@@ -12,6 +12,7 @@ export interface AnnouncementBarProps {
 }
 
 const defaults = [
+  "Summer special! — 10% on all orders over $50.00",
   "Free shipping on orders over $100",
   "New statement pieces just dropped",
   "Secure checkout & easy returns",

@@ -9,7 +9,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { demoProducts, demoTestimonials } from "@/lib/data/demo";
+import { demoProducts } from "@/lib/data/demo";
 import { formatCurrency } from "@/lib/utils";
 
 const revenue = [
@@ -38,7 +38,6 @@ export default function AdminDashboardPage() {
     { label: "Low Stock", value: String(demoProducts.filter((p) => p.stock <= 10).length) },
     { label: "Subscribers", value: "328" },
     { label: "Unread Messages", value: "4" },
-    { label: "Reviews", value: String(demoTestimonials.length) },
   ];
 
   return (

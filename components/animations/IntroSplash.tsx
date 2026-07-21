@@ -189,22 +189,6 @@ export function IntroSplash() {
 
           {motionOk && <SparkleField />}
 
-          {/* Fuchsia brush stroke sweep */}
-          <AnimatePresence>
-            {phase >= 1 && (
-              <motion.div
-                className="pointer-events-none absolute left-[-10%] top-[42%] z-[5] h-16 w-[120%] -rotate-6 md:h-24"
-                initial={{ x: "-30%", opacity: 0, scaleX: 0.4 }}
-                animate={{ x: "0%", opacity: 1, scaleX: 1 }}
-                transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
-                aria-hidden
-              >
-                <div className="h-full w-full rounded-full bg-gradient-to-r from-transparent via-fuchsia to-transparent opacity-70 blur-[2px]" />
-                <div className="absolute inset-y-3 inset-x-[8%] rounded-full bg-gradient-to-r from-fuchsia-deep via-fuchsia-glow to-fuchsia opacity-90" />
-              </motion.div>
-            )}
-          </AnimatePresence>
-
           {/* Floating light orbs */}
           {motionOk && (
             <>

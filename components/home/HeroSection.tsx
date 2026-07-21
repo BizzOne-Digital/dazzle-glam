@@ -4,14 +4,7 @@ import { useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, useScroll, useTransform } from "framer-motion";
-import {
-  ArrowDown,
-  Gem,
-  Lock,
-  Mouse,
-  ShieldCheck,
-  Sparkles,
-} from "lucide-react";
+import { Gem, Lock, ShieldCheck, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
 const HERO_IMAGE = "/images/hero/campaign.png";
@@ -164,14 +157,6 @@ export function HeroSection() {
         </div>
       </div>
 
-      <a
-        href="#products"
-        className="absolute bottom-6 left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-1.5 text-[9px] uppercase tracking-[0.32em] text-white/55 transition hover:text-fuchsia sm:bottom-8 sm:text-[10px]"
-      >
-        <Mouse className="h-5 w-5 opacity-70" />
-        Scroll to Dazzle
-        <ArrowDown className="h-3.5 w-3.5 animate-bounce" />
-      </a>
     </section>
   );
 }
