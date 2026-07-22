@@ -1,16 +1,17 @@
 import { AnimatedLegalLayout } from "@/components/animations/AnimatedLegalLayout";
-import { placeholderImages } from "@/config/site";
+import { demoProducts } from "@/lib/data/demo";
 
 export const metadata = { title: "Accessibility" };
 
 export default function AccessibilityPage() {
+  const images = demoProducts.slice(0, 3).map((p) => p.images[0]);
   return (
     <AnimatedLegalLayout
       title="Accessibility Statement"
-      images={placeholderImages.bracelets.slice(0, 3)}
+      images={images}
     >
       <p>
-        Dazzle Glam is committed to an inclusive shopping experience. We aim to meet WCAG 2.2 AA
+        Dazzle Glam is committed to an inclusive shopping experience. We aim to meet Canadian Government Legislation
         guidelines with semantic HTML, keyboard navigation, visible focus states, and reduced-motion
         support.
       </p>

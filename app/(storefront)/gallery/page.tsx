@@ -161,14 +161,6 @@ export default function GalleryPage() {
                         className="object-cover transition duration-700 ease-out group-hover:scale-110"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 transition duration-500 group-hover:opacity-100" />
-                      <div className="absolute inset-x-0 bottom-0 translate-y-4 p-4 opacity-0 transition duration-500 group-hover:translate-y-0 group-hover:opacity-100">
-                        <p className="text-[10px] uppercase tracking-[0.25em] text-fuchsia">
-                          {item.cat}
-                        </p>
-                        <p className="mt-1 font-heading text-lg text-white">
-                          {item.caption}
-                        </p>
-                      </div>
                       <motion.span
                         className="absolute right-3 top-3 rounded-full border border-white/20 bg-black/40 px-2 py-1 text-[9px] uppercase tracking-wider text-white/80 opacity-0 backdrop-blur-sm group-hover:opacity-100"
                         initial={false}
@@ -276,13 +268,6 @@ export default function GalleryPage() {
                 sizes="90vw"
                 priority
               />
-              <div className="absolute inset-x-0 bottom-0 flex justify-center pb-2">
-                <p className="rounded-full border border-white/15 bg-black/60 px-4 py-2 text-xs uppercase tracking-[0.2em] text-silver backdrop-blur-sm">
-                  <span className="block truncate">
-                    {items[active].caption} · {active + 1}/{items.length}
-                  </span>
-                </p>
-              </div>
             </motion.div>
           </motion.div>
         )}

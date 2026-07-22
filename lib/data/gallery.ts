@@ -36,8 +36,8 @@ const files = [
   "editorial-detail-shot-1.png",
 ] as const;
 
-export const galleryItems: GalleryItem[] = files.map((file, i) => {
-  const cat = file.startsWith("product-")
+const autoItems: GalleryItem[] = files.map((file, i) => {
+  const cat: GalleryCategory = file.startsWith("product-")
     ? "product"
     : file.startsWith("lifestyle-")
       ? "lifestyle"
@@ -50,5 +50,59 @@ export const galleryItems: GalleryItem[] = files.map((file, i) => {
     tall: cat === "editorial" ? i % 2 === 0 : i % 3 === 0,
   };
 });
+
+/** Manually added images — gallery-1.png … gallery-7.png */
+const newItems: GalleryItem[] = [
+  {
+    src: "/images/gallery/gallery-1.png",
+    cat: "product",
+    caption: "Halo Ring",
+    tall: false,
+  },
+  {
+    src: "/images/gallery/gallery-2.png",
+    cat: "product",
+    caption: "Vintage Solitaire",
+    tall: true,
+  },
+  {
+    src: "/images/gallery/gallery-3.png",
+    cat: "lifestyle",
+    caption: "Golden Hour",
+    tall: false,
+  },
+  {
+    src: "/images/gallery/gallery-4.png",
+    cat: "lifestyle",
+    caption: "Bridal Morning",
+    tall: true,
+  },
+  {
+    src: "/images/gallery/gallery-5.png",
+    cat: "editorial",
+    caption: "Campaign III",
+    tall: false,
+  },
+  {
+    src: "/images/gallery/gallery-6.png",
+    cat: "product",
+    caption: "Eternity Band",
+    tall: false,
+  },
+  {
+    src: "/images/gallery/gallery-7.png",
+    cat: "editorial",
+    caption: "Lookbook",
+    tall: true,
+  },
+  {
+    src: "/images/gallery/gallery-8.png",
+    cat: "lifestyle",
+    caption: "Statement Look",
+    tall: false,
+  },
+];
+
+export const galleryItems: GalleryItem[] = [...autoItems, ...newItems];
 
 export const galleryImagePaths = galleryItems.map((g) => g.src);

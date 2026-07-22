@@ -6,7 +6,6 @@ import { Footer } from "@/components/layout/Footer";
 import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
 import { IntroSplash } from "@/components/animations/IntroSplash";
 import { IntroProvider, useIntro } from "@/components/animations/IntroProvider";
-import { PageTransition } from "@/components/animations/PageTransition";
 import { announcementDefaults } from "@/config/site";
 import { cn } from "@/lib/utils";
 
@@ -34,7 +33,6 @@ function StorefrontShell({ children }: { children: React.ReactNode }) {
         <Header />
       </div>
 
-      <PageTransition />
       <main
         id="main-content"
         className={cn(

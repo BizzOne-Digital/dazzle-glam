@@ -65,7 +65,7 @@ export function Modal({
     <AnimatePresence>
       {open && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 isolate"
           role="presentation"
           onMouseDown={handleBackdrop}
         >
@@ -83,8 +83,9 @@ export function Modal({
             aria-labelledby={title ? titleId : undefined}
             aria-describedby={description ? descId : undefined}
             className={cn(
-              "relative z-10 flex max-h-[90dvh] w-full flex-col overflow-hidden rounded-sm glass-strong border-metallic",
-              "shadow-[0_24px_80px_rgb(0_0_0/0.65)]",
+              "relative z-10 flex max-h-[90dvh] w-full flex-col overflow-hidden rounded-xl",
+              "border border-white/10 bg-[#0a0a0a]",
+              "shadow-[0_24px_80px_rgb(0_0_0/0.8),0_0_0_1px_rgb(255_255_255/0.06)]",
               sizeStyles[size],
               className
             )}

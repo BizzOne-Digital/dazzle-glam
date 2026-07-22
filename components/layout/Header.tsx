@@ -95,7 +95,7 @@ export function Header({ className }: { className?: string }) {
           aria-hidden
         />
 
-        <div className="relative mx-auto grid h-[4.25rem] max-w-[1400px] grid-cols-[1fr_auto_1fr] items-center gap-2 px-3 sm:h-[4.75rem] sm:px-5 lg:px-8">
+        <div className="relative mx-auto grid h-[5.5rem] max-w-[1400px] grid-cols-[1fr_auto_1fr] items-center gap-2 px-3 sm:h-[6rem] sm:px-5 lg:px-8">
           <div className="flex min-w-0 items-center gap-0.5 justify-self-start">
             <button
               type="button"
@@ -135,7 +135,7 @@ export function Header({ className }: { className?: string }) {
                 alt={brand.name}
                 width={200}
                 height={72}
-                className="h-10 w-auto max-w-[140px] object-contain sm:h-12 sm:max-w-[180px]"
+                className="h-16 w-auto max-w-[200px] object-contain sm:h-20 sm:max-w-[260px]"
                 priority
               />
             </span>

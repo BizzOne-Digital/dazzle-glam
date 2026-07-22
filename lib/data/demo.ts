@@ -11,6 +11,8 @@ export interface DemoProduct {
   category: string;
   materials: string[];
   colors: string[];
+  /** Available ring sizes. Empty array = no sizes set yet (triggers inquiry flow) */
+  sizes: string[];
   images: string[];
   badge?: "new" | "bestseller";
   isFeatured?: boolean;
@@ -20,13 +22,17 @@ export interface DemoProduct {
   dimensions?: string;
 }
 
-/** Local product photos in /public/images/products — basename without -1/-2 */
+/** Local product photos in /public/images/products — basename without -1/-2/-3/-4 */
 function productImgs(base: string): string[] {
   return [
     `/images/products/${base}-1.png`,
     `/images/products/${base}-2.png`,
+    `/images/products/${base}-3.png`,
+    `/images/products/${base}-4.png`,
   ];
 }
+
+const DEFAULT_SIZES: string[] = []; // Client will set sizes from admin panel
 
 /** Exact catalogue from client product sheet — 18 rings only */
 export const demoProducts: DemoProduct[] = [
@@ -42,6 +48,7 @@ export const demoProducts: DemoProduct[] = [
     category: "rings",
     materials: ["Rose Gold Tone", "White Tone", "Cubic Zirconia"],
     colors: ["Rose Gold", "White"],
+    sizes: DEFAULT_SIZES,
     images: productImgs("Womens-White-and-Rose"),
     isNewArrival: true,
     badge: "new",
@@ -59,6 +66,7 @@ export const demoProducts: DemoProduct[] = [
     category: "rings",
     materials: ["Silver Tone", "Cubic Zirconia"],
     colors: ["Silver"],
+    sizes: DEFAULT_SIZES,
     images: productImgs("Beautiful-Womens-Bow-Tie"),
     isNewArrival: true,
     careInstructions: "Wipe with a soft cloth after wear.",
@@ -75,6 +83,7 @@ export const demoProducts: DemoProduct[] = [
     category: "rings",
     materials: ["Silver Tone", "Sapphire CZ"],
     colors: ["Blue", "Silver"],
+    sizes: DEFAULT_SIZES,
     images: productImgs("Brilliant-Womens-Sapphire"),
     isFeatured: true,
     isBestSeller: true,
@@ -93,6 +102,7 @@ export const demoProducts: DemoProduct[] = [
     category: "rings",
     materials: ["Silver Tone", "Cubic Zirconia"],
     colors: ["Silver"],
+    sizes: DEFAULT_SIZES,
     images: productImgs("Exquisite-Princess"),
     careInstructions: "Remove before swimming or showering.",
   },
@@ -108,6 +118,7 @@ export const demoProducts: DemoProduct[] = [
     category: "rings",
     materials: ["Silver Tone", "Cubic Zirconia"],
     colors: ["White", "Silver"],
+    sizes: DEFAULT_SIZES,
     images: productImgs("Exquisite-White-Cluster"),
     isBestSeller: true,
     badge: "bestseller",
@@ -125,6 +136,7 @@ export const demoProducts: DemoProduct[] = [
     category: "rings",
     materials: ["Silver Tone", "Synthetic Crystal"],
     colors: ["Silver"],
+    sizes: DEFAULT_SIZES,
     images: productImgs("Gorgeous-Synthetic-Crystal"),
     isNewArrival: true,
     careInstructions: "Avoid perfume contact directly on stones.",
@@ -141,6 +153,7 @@ export const demoProducts: DemoProduct[] = [
     category: "rings",
     materials: ["Silver Tone", "Cubic Zirconia"],
     colors: ["Silver"],
+    sizes: DEFAULT_SIZES,
     images: productImgs("His-and-Hers-Stunning-Cubic"),
     isFeatured: true,
     careInstructions: "Clean with mild soap and soft brush.",
@@ -157,6 +170,7 @@ export const demoProducts: DemoProduct[] = [
     category: "rings",
     materials: ["Gold Tone", "Black Stone", "CZ"],
     colors: ["Gold", "Black"],
+    sizes: DEFAULT_SIZES,
     images: productImgs("Mens-Boastful-Black-Stone"),
     isBestSeller: true,
     badge: "bestseller",
@@ -174,6 +188,7 @@ export const demoProducts: DemoProduct[] = [
     category: "rings",
     materials: ["Silver Tone", "Black Stone", "CZ"],
     colors: ["Silver", "Black"],
+    sizes: DEFAULT_SIZES,
     images: productImgs("Mens-Boastful-Black-Stone-Signet-silver"),
     careInstructions: "Polish with a silver jewelry cloth.",
   },
@@ -189,6 +204,7 @@ export const demoProducts: DemoProduct[] = [
     category: "rings",
     materials: ["925 Sterling Silver", "Crystal Zircon"],
     colors: ["Silver"],
+    sizes: DEFAULT_SIZES,
     images: productImgs("Mens-Dazzling-925"),
     isNewArrival: true,
     badge: "new",
@@ -206,6 +222,7 @@ export const demoProducts: DemoProduct[] = [
     category: "rings",
     materials: ["Stainless Steel", "Cubic Zirconia"],
     colors: ["Silver"],
+    sizes: DEFAULT_SIZES,
     images: productImgs("Mens-Stunning-8mm-Stainless"),
     isBestSeller: true,
     badge: "bestseller",
@@ -223,6 +240,7 @@ export const demoProducts: DemoProduct[] = [
     category: "rings",
     materials: ["Two-Tone Metal", "Cubic Zirconia"],
     colors: ["Silver", "Rose Gold"],
+    sizes: DEFAULT_SIZES,
     images: productImgs("Stunning-Heart-Shaped-Two-Tone"),
     isFeatured: true,
     careInstructions: "Avoid moisture. Soft cloth only.",
@@ -239,6 +257,7 @@ export const demoProducts: DemoProduct[] = [
     category: "rings",
     materials: ["Silver Tone", "Cubic Zirconia"],
     colors: ["Silver", "White"],
+    sizes: DEFAULT_SIZES,
     images: productImgs("Stunning-Womens-Round"),
     isBestSeller: true,
     badge: "bestseller",
@@ -256,6 +275,7 @@ export const demoProducts: DemoProduct[] = [
     category: "rings",
     materials: ["Silver Tone", "Black Stone", "CZ"],
     colors: ["Black", "Silver"],
+    sizes: DEFAULT_SIZES,
     images: productImgs("Womens-Beautiful-Black-Stone"),
     careInstructions: "Keep dry and store flat.",
   },
@@ -271,6 +291,7 @@ export const demoProducts: DemoProduct[] = [
     category: "rings",
     materials: ["Silver Tone", "Cubic Zirconia"],
     colors: ["Silver"],
+    sizes: DEFAULT_SIZES,
     images: productImgs("Womens-Beautiful-Engagement-Ring"),
     isNewArrival: true,
     badge: "new",
@@ -288,6 +309,7 @@ export const demoProducts: DemoProduct[] = [
     category: "rings",
     materials: ["Silver Tone", "Cubic Zirconia"],
     colors: ["Silver"],
+    sizes: DEFAULT_SIZES,
     images: productImgs("Womens-Luxurious-2pc-Cubic"),
     isFeatured: true,
     isBestSeller: true,
@@ -306,6 +328,7 @@ export const demoProducts: DemoProduct[] = [
     category: "rings",
     materials: ["Silver Tone", "Cubic Zirconia"],
     colors: ["Silver"],
+    sizes: DEFAULT_SIZES,
     images: productImgs("Womens-Luxurious-3pc-Cubic"),
     isNewArrival: true,
     careInstructions: "Stack carefully; avoid friction between bands.",
@@ -322,6 +345,7 @@ export const demoProducts: DemoProduct[] = [
     category: "rings",
     materials: ["S925 Sterling Silver", "Cubic Zirconia"],
     colors: ["Silver"],
+    sizes: DEFAULT_SIZES,
     images: productImgs("Womens-Luxurious-S925"),
     isNewArrival: true,
     badge: "new",
@@ -411,7 +435,7 @@ export const demoServices = [
     slug: "gift-recommendations",
     shortDescription: "Thoughtful sparkle for someone special.",
     description:
-      "Tell us about them — personality, metal preference, occasion — and we'll recommend pieces that feel personal and bold. Perfect for birthdays, anniversaries, proposals, and “just because” moments.",
+      "Tell us about them — personality, metal preference, occasion — and we'll recommend pieces that feel personal and bold. Perfect for birthdays, anniversaries, proposals, and just because moments.",
     image: placeholderImages.editorial[2],
     features: ["Gift consult", "Premium packaging", "Optional handwritten note"],
     priceLabel: "Complimentary",

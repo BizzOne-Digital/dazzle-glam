@@ -21,9 +21,10 @@ export default function CheckoutPage() {
   const [sameBilling, setSameBilling] = useState(true);
 
   const subtotal = items.reduce((s, i) => s + i.price * i.quantity, 0);
-  const shipping = subtotal >= 150 ? 0 : 12;
+  const [shippingMethod, setShippingMethod] = useState("standard");
+  const shippingCost = subtotal >= 100 ? 0 : shippingMethod === "express" ? 15 : 8;
   const tax = subtotal * 0.13;
-  const total = subtotal + shipping + tax;
+  const total = subtotal + shippingCost + tax;
 
   if (items.length === 0) {
     return (
@@ -76,9 +77,32 @@ export default function CheckoutPage() {
                 <Input name="line1" required placeholder="Address" className="sm:col-span-2" />
                 <Input name="line2" placeholder="Apt / suite" className="sm:col-span-2" />
                 <Input name="city" required placeholder="City" />
-                <Input name="province" required placeholder="Province" />
+                <Select
+                  name="province"
+                  required
+                  label="Province / Territory"
+                  placeholder="Select province"
+                  options={[
+                    { label: "Alberta", value: "AB" },
+                    { label: "British Columbia", value: "BC" },
+                    { label: "Manitoba", value: "MB" },
+                    { label: "New Brunswick", value: "NB" },
+                    { label: "Newfoundland and Labrador", value: "NL" },
+                    { label: "Northwest Territories", value: "NT" },
+                    { label: "Nova Scotia", value: "NS" },
+                    { label: "Nunavut", value: "NU" },
+                    { label: "Ontario", value: "ON" },
+                    { label: "Prince Edward Island", value: "PE" },
+                    { label: "Quebec", value: "QC" },
+                    { label: "Saskatchewan", value: "SK" },
+                    { label: "Yukon", value: "YT" },
+                  ]}
+                />
                 <Input name="postalCode" required placeholder="Postal code" />
-                <Input name="country" defaultValue="Canada" required placeholder="Country" />
+                <div className="flex h-12 items-center rounded-sm border border-white/12 bg-white/5 px-4 font-body text-sm text-white/50 cursor-not-allowed select-none">
+                  Canada
+                </div>
+                <input type="hidden" name="country" value="Canada" />
               </div>
               <label className="mt-4 flex items-center gap-2 text-sm text-white/60">
                 <input
@@ -97,9 +121,10 @@ export default function CheckoutPage() {
                 <Select
                   name="shippingMethod"
                   defaultValue="standard"
+                  onChange={(e) => setShippingMethod(e.target.value)}
                   options={[
-                    { label: "Standard (3–6 days) — $12 / Free over $150", value: "standard" },
-                    { label: "Express (1–3 days) — $24", value: "express" },
+                    { label: "Standard (3–6 days) — $8 / Free over $100", value: "standard" },
+                    { label: "Express (4 days) — $15", value: "express" },
                   ]}
                 />
               </div>
@@ -147,7 +172,7 @@ export default function CheckoutPage() {
               </div>
               <div className="flex justify-between">
                 <dt className="text-white/50">Shipping</dt>
-                <dd>{shipping === 0 ? "Free" : formatCurrency(shipping)}</dd>
+                <dd>{shippingCost === 0 ? "Free" : formatCurrency(shippingCost)}</dd>
               </div>
               <div className="flex justify-between">
                 <dt className="text-white/50">Tax</dt>

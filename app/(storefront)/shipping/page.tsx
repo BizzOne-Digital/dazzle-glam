@@ -1,11 +1,12 @@
 import { AnimatedLegalLayout } from "@/components/animations/AnimatedLegalLayout";
-import { placeholderImages } from "@/config/site";
+import { demoProducts } from "@/lib/data/demo";
 
 export const metadata = { title: "Shipping Policy" };
 
 export default function ShippingPage() {
+  const images = demoProducts.slice(6, 9).map((p) => p.images[0]);
   return (
-    <AnimatedLegalLayout title="Shipping Policy" images={placeholderImages.gallery.slice(0, 3)}>
+    <AnimatedLegalLayout title="Shipping Policy" images={images}>
       <p>We ship Canada-wide with tracked delivery options.</p>
       <ul className="list-disc space-y-2 pl-5">
         <li>Standard: 3–6 business days</li>

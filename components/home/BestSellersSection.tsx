@@ -39,7 +39,7 @@ export function BestSellersSection() {
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
             <div className="absolute bottom-0 p-5 md:p-8">
-              <span className="rounded-sm bg-fuchsia px-2 py-1 text-[10px] uppercase tracking-widest">
+              <span className="rounded-xl border border-white bg-white px-3 py-1 text-[10px] uppercase tracking-widest text-black shadow-[0_0_12px_rgb(255_255_255/0.6)]">
                 Bestseller
               </span>
               <h3 className="mt-3 line-clamp-3 font-heading text-2xl text-white sm:text-3xl md:text-4xl">

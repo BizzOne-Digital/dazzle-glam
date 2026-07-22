@@ -20,7 +20,7 @@ export function HeroSection() {
   return (
     <section
       ref={ref}
-      className="relative flex min-h-[100svh] items-end overflow-x-hidden pb-16 pt-[7.5rem] sm:pb-20 sm:pt-[8.25rem] md:items-center md:pb-24 md:pt-[8.5rem]"
+      className="relative flex min-h-[100svh] items-end overflow-x-hidden pb-16 pt-[9.5rem] sm:pb-20 sm:pt-[10.5rem] md:items-center md:pb-24 md:pt-[10.5rem]"
     >
       {/* Background */}
       <motion.div style={{ scale }} className="absolute inset-0">

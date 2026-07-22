@@ -1,13 +1,12 @@
 import { AnimatedLegalLayout } from "@/components/animations/AnimatedLegalLayout";
-import { placeholderImages } from "@/config/site";
+import { demoProducts } from "@/lib/data/demo";
 
-export const metadata = {
-  title: "Privacy Policy",
-};
+export const metadata = { title: "Privacy Policy" };
 
 export default function PrivacyPage() {
+  const images = demoProducts.slice(12, 15).map((p) => p.images[0]);
   return (
-    <AnimatedLegalLayout title="Privacy Policy" images={placeholderImages.gallery.slice(0, 3)}>
+    <AnimatedLegalLayout title="Privacy Policy" images={images}>
       <p>Last updated: July 2026</p>
       <p>
         Dazzle Glam Jewelry Collection (&quot;we&quot;, &quot;us&quot;) respects your privacy. This

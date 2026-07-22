@@ -26,9 +26,11 @@ export default function CartPage() {
   const updateQuantity = useCartStore((s) => s.updateQuantity);
   const removeItem = useCartStore((s) => s.removeItem);
   const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
-  const shipping = subtotal >= 150 || subtotal === 0 ? 0 : 12;
-  const tax = subtotal * 0.13;
-  const total = subtotal + shipping + tax;
+  const discount = subtotal >= 65 ? subtotal * 0.1 : 0;
+  const discountedSubtotal = subtotal - discount;
+  const shipping = subtotal === 0 ? 0 : discountedSubtotal >= 100 ? 0 : 12;
+  const tax = discountedSubtotal * 0.13;
+  const total = discountedSubtotal + shipping + tax;
 
   if (items.length === 0) {
     return (
@@ -138,9 +140,22 @@ export default function CartPage() {
                   <dt className="text-white/50">Subtotal</dt>
                   <dd>{formatCurrency(subtotal)}</dd>
                 </div>
+                {discount > 0 && (
+                  <div className="flex justify-between text-emerald-400">
+                    <dt className="flex items-center gap-1">
+                      <span>10% Discount</span>
+                      <span className="rounded-full bg-emerald-400/15 px-2 py-0.5 text-[10px] uppercase tracking-wider">
+                        Applied
+                      </span>
+                    </dt>
+                    <dd>−{formatCurrency(discount)}</dd>
+                  </div>
+                )}
                 <div className="flex justify-between">
                   <dt className="text-white/50">Shipping</dt>
-                  <dd>{shipping === 0 ? "Free" : formatCurrency(shipping)}</dd>
+                  <dd className={shipping === 0 && subtotal > 0 ? "text-emerald-400" : ""}>
+                    {shipping === 0 && subtotal > 0 ? "Free 🎉" : formatCurrency(shipping)}
+                  </dd>
                 </div>
                 <div className="flex justify-between">
                   <dt className="text-white/50">Est. tax</dt>
@@ -151,6 +166,16 @@ export default function CartPage() {
                   <dd className="text-fuchsia">{formatCurrency(total)}</dd>
                 </div>
               </dl>
+              {subtotal > 0 && subtotal < 65 && (
+                <p className="mt-4 rounded-lg bg-fuchsia/10 border border-fuchsia/20 px-3 py-2 text-xs text-fuchsia">
+                  Add {formatCurrency(65 - subtotal)} more to get 10% off your order
+                </p>
+              )}
+              {subtotal >= 65 && discountedSubtotal < 100 && (
+                <p className="mt-4 rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-xs text-white/50">
+                  Add {formatCurrency(100 - discountedSubtotal)} more after discount for free shipping
+                </p>
+              )}
               <Button asChild fullWidth className="mt-6">
                 <Link href="/checkout">Checkout</Link>
               </Button>

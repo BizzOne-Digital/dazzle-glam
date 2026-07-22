@@ -148,7 +148,7 @@ function ShopPageContent() {
           <HeroTextReveal
             eyebrow="Boutique"
             title="Shop All Jewelry"
-            description="Eighteen statement rings — bold energy, luminous finish."
+            description="Statement Rings — Bold Energy, Luminous Finish."
           />
         </div>
       </div>

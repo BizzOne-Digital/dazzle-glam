@@ -3,7 +3,7 @@
 import { useState, type MouseEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Eye, Heart, ShoppingBag } from "lucide-react";
+import { Heart, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -25,14 +25,12 @@ export interface ProductCardData {
 export interface ProductCardProps {
   product: ProductCardData;
   className?: string;
-  onQuickView?: (product: ProductCardData) => void;
   onWishlistToggle?: (product: ProductCardData, wished: boolean) => void;
 }
 
 export function ProductCard({
   product,
   className,
-  onQuickView,
   onWishlistToggle,
 }: ProductCardProps) {
   const [wished, setWished] = useState(false);
@@ -58,16 +56,6 @@ export function ProductCard({
     setWished(next);
     onWishlistToggle?.(product, next);
     toast.success(next ? "Added to wishlist" : "Removed from wishlist");
-  };
-
-  const handleQuickView = (e: MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (onQuickView) {
-      onQuickView(product);
-      return;
-    }
-    setQuickOpen(true);
   };
 
   const handleAddToCart = (e?: MouseEvent) => {
@@ -137,33 +125,23 @@ export function ProductCard({
           >
             <Heart className={cn("h-4 w-4", wished && "fill-current")} />
           </button>
-
-          <div className="absolute inset-x-2 bottom-2 z-10 flex translate-y-0 gap-2 opacity-100 transition duration-400 sm:inset-x-3 sm:bottom-3 md:translate-y-3 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100">
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              className="flex-1 bg-black/55 backdrop-blur-md"
-              onClick={handleQuickView}
-              aria-label="Quick view"
-            >
-              <Eye className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">View</span>
-            </Button>
-            <Button
-              type="button"
-              variant="primary"
-              size="sm"
-              className="flex-1"
-              onClick={handleAddToCart}
-              disabled={!inStock}
-              aria-label="Add to cart"
-            >
-              <ShoppingBag className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Add</span>
-            </Button>
-          </div>
         </Link>
+
+        {/* Add to cart button — outside the Link so it doesn't block navigation */}
+        <div className="absolute inset-x-2 bottom-[4.5rem] z-10 flex gap-2 translate-y-3 opacity-0 transition duration-400 sm:inset-x-3 sm:bottom-[5rem] group-hover:translate-y-0 group-hover:opacity-100">
+          <Button
+            type="button"
+            variant="primary"
+            size="sm"
+            className="flex-1"
+            onClick={handleAddToCart}
+            disabled={!inStock}
+            aria-label="Add to cart"
+          >
+            <ShoppingBag className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Add</span>
+          </Button>
+        </div>
 
         <div className="mt-3.5 space-y-1.5">
           <Link href={href}>

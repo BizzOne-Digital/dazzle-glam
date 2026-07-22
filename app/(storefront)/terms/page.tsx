@@ -1,11 +1,12 @@
 import { AnimatedLegalLayout } from "@/components/animations/AnimatedLegalLayout";
-import { placeholderImages } from "@/config/site";
+import { demoProducts } from "@/lib/data/demo";
 
 export const metadata = { title: "Terms and Conditions" };
 
 export default function TermsPage() {
+  const images = demoProducts.slice(3, 6).map((p) => p.images[0]);
   return (
-    <AnimatedLegalLayout title="Terms & Conditions" images={placeholderImages.rings.slice(0, 3)}>
+    <AnimatedLegalLayout title="Terms & Conditions" images={images}>
       <p>By using Dazzle Glam Jewelry Collection websites and services, you agree to these terms.</p>
       <h2 className="font-heading text-2xl text-white">Orders &amp; Pricing</h2>
       <p>

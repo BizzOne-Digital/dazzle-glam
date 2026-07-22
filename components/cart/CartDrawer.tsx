@@ -15,6 +15,10 @@ export function CartDrawer() {
   const updateQuantity = useCartStore((s) => s.updateQuantity);
   const removeItem = useCartStore((s) => s.removeItem);
   const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+  const discount = subtotal >= 65 ? subtotal * 0.1 : 0;
+  const discountedSubtotal = subtotal - discount;
+  const shipping = subtotal === 0 ? 0 : discountedSubtotal >= 100 ? 0 : 12;
+  const total = discountedSubtotal + shipping;
   const totalQty = items.reduce((n, i) => n + i.quantity, 0);
 
   return (
@@ -31,14 +35,40 @@ export function CartDrawer() {
       footer={
         items.length > 0 ? (
           <div className="space-y-4">
+            <div className="space-y-2 text-sm">
+              <div className="flex items-center justify-between text-white/50">
+                <span className="uppercase tracking-[0.14em]">Subtotal</span>
+                <span>{formatCurrency(subtotal)}</span>
+              </div>
+              {discount > 0 && (
+                <div className="flex items-center justify-between text-emerald-400">
+                  <span className="uppercase tracking-[0.14em]">10% Discount</span>
+                  <span>−{formatCurrency(discount)}</span>
+                </div>
+              )}
+              {shipping === 0 && subtotal > 0 && (
+                <div className="flex items-center justify-between text-emerald-400">
+                  <span className="uppercase tracking-[0.14em]">Shipping</span>
+                  <span>Free 🎉</span>
+                </div>
+              )}
+            </div>
             <div className="flex items-center justify-between font-body text-sm">
-              <span className="uppercase tracking-[0.14em] text-silver">
-                Subtotal
-              </span>
+              <span className="uppercase tracking-[0.14em] text-silver">Total</span>
               <span className="font-heading text-xl text-white">
-                {formatCurrency(subtotal)}
+                {formatCurrency(total)}
               </span>
             </div>
+            {subtotal > 0 && subtotal < 65 && (
+              <p className="rounded-lg border border-fuchsia/20 bg-fuchsia/10 px-3 py-2 text-xs text-fuchsia">
+                Add {formatCurrency(65 - subtotal)} more for 10% off
+              </p>
+            )}
+            {subtotal >= 65 && discountedSubtotal < 100 && (
+              <p className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/50">
+                Add {formatCurrency(100 - discountedSubtotal)} more after discount for free shipping
+              </p>
+            )}
             <p className="font-body text-xs text-white/40">
               Shipping & taxes calculated at checkout.
             </p>

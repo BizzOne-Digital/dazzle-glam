@@ -21,8 +21,8 @@ function useIsMobile(breakpoint = 768) {
 const offsets: Record<RevealDirection, { x?: number; y?: number; scale?: number }> = {
   up: { y: 80 },
   down: { y: -80 },
-  left: { x: 100 },
-  right: { x: -100 },
+  left: { y: 40 },
+  right: { y: 40 },
   scale: { scale: 0.88 },
   fade: {},
 };
@@ -30,8 +30,8 @@ const offsets: Record<RevealDirection, { x?: number; y?: number; scale?: number 
 const mobileOffsets: Record<RevealDirection, { x?: number; y?: number; scale?: number }> = {
   up: { y: 36 },
   down: { y: -36 },
-  left: { x: 28 },
-  right: { x: -28 },
+  left: { y: 20 },
+  right: { y: 20 },
   scale: { scale: 0.94 },
   fade: {},
 };

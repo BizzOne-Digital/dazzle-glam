@@ -25,7 +25,7 @@ export function SwipeProductsSection() {
           <SectionHeading
             eyebrow="Our Products"
             title="Shop Every Sparkle"
-            description="Eighteen statement rings curated to turn heads — swipe to explore, tap to dazzle."
+            description="Statement Rings Curated To Turn Heads"
             align="left"
             className="mb-0"
           />

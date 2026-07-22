@@ -15,10 +15,10 @@ export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
 
 const variantStyles: Record<BadgeVariant, string> = {
   default: "bg-white/10 text-white/90 border-white/15",
-  fuchsia: "bg-fuchsia/20 text-fuchsia-glow border-fuchsia/40",
+  fuchsia: "bg-white text-black border-white shadow-[0_0_12px_rgb(255_255_255/0.6)] rounded-xl",
   silver: "bg-silver/15 text-silver-light border-silver/35",
   sale: "bg-fuchsia text-white border-fuchsia",
-  new: "bg-white text-black border-white",
+  new: "bg-white text-black border-white shadow-[0_0_12px_rgb(255_255_255/0.6)] rounded-xl",
   outline: "bg-transparent text-silver border-silver/50",
 };
 

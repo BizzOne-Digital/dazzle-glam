@@ -8,12 +8,11 @@ import {
   ArrowRight,
   CheckCircle2,
   Clock,
+  Facebook,
   Instagram,
   Mail,
-  MessageSquareHeart,
   Phone,
   Send,
-  Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Container } from "@/components/ui/Container";
@@ -36,18 +35,10 @@ import {
 } from "@/components/animations/PageMotion";
 import { cn } from "@/lib/utils";
 
-const inquiryOptions = [
-  { label: "General", value: "general", hint: "Anything else" },
-  { label: "Order help", value: "order", hint: "Tracking & support" },
-  { label: "Styling", value: "styling", hint: "Look curation" },
-  { label: "Custom", value: "custom", hint: "Made for you" },
-  { label: "Bulk / party", value: "wholesale", hint: "Group orders" },
-] as const;
-
-function resolveInquiry(serviceSlug?: string | null) {
-  if (!serviceSlug) return "general";
-  if (serviceSlug.includes("custom")) return "custom";
-  if (serviceSlug.includes("bulk")) return "wholesale";
+function resolveInquiry(_serviceSlug?: string | null) {
+  if (!_serviceSlug) return "general";
+  if (_serviceSlug.includes("custom")) return "custom";
+  if (_serviceSlug.includes("bulk")) return "wholesale";
   return "styling";
 }
 
@@ -60,7 +51,6 @@ function ContactForm() {
   );
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
-  const [inquiryType, setInquiryType] = useState(resolveInquiry(serviceSlug));
   const [focused, setFocused] = useState<string | null>(null);
 
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -72,7 +62,7 @@ function ContactForm() {
         name: fd.get("name"),
         email: fd.get("email"),
         phone: fd.get("phone") || undefined,
-        inquiryType,
+        inquiryType: "general",
         orderNumber: fd.get("orderNumber") || undefined,
         message: fd.get("message"),
       });
@@ -105,10 +95,17 @@ function ContactForm() {
       value: brand.email,
     },
     {
-      href: brand.instagramUrl,
+      href: "https://www.instagram.com/dazzleglamcollection?igsh=MWNnaXJwM2M3Ymk1dA==",
       icon: Instagram,
       label: "Instagram",
-      value: brand.instagram,
+      value: "@dazzleglamcollection",
+      external: true,
+    },
+    {
+      href: "https://www.facebook.com/profile.php?id=61591817804914",
+      icon: Facebook,
+      label: "Facebook",
+      value: "@dazzleglamcollection",
       external: true,
     },
   ];
@@ -183,7 +180,7 @@ function ContactForm() {
                     Studio hours
                   </p>
                   <p className="mt-1 text-sm text-white/70">
-                    Mon–Fri 10am–6pm EST · Sat 11am–4pm
+                    Mon–Fri 9am–9pm · Sat–Sun 9am–6pm
                   </p>
                 </div>
               </div>
@@ -269,24 +266,6 @@ function ContactForm() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -8 }}
                     >
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <p className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.28em] text-fuchsia">
-                            <MessageSquareHeart className="h-3.5 w-3.5" />
-                            Write us
-                          </p>
-                          <h2 className="mt-2 font-heading text-3xl text-white md:text-4xl">
-                            Start the conversation
-                          </h2>
-                          <p className="mt-2 text-sm text-white/50">
-                            Tell us what you need — styling, orders, or custom glam.
-                          </p>
-                        </div>
-                        <span className="hidden shrink-0 rounded-full border border-fuchsia/30 bg-fuchsia/10 p-3 text-fuchsia sm:inline-flex">
-                          <Sparkles className="h-5 w-5" />
-                        </span>
-                      </div>
-
                       {service && (
                         <motion.div
                           className="rounded-xl border border-fuchsia/30 bg-fuchsia/10 px-4 py-3 text-sm text-fuchsia-glow"
@@ -298,47 +277,6 @@ function ContactForm() {
                         </motion.div>
                       )}
 
-                      <div>
-                        <p className="mb-3 font-body text-xs uppercase tracking-[0.16em] text-silver">
-                          What&apos;s this about?
-                        </p>
-                        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                          {inquiryOptions.map((opt) => {
-                            const active = inquiryType === opt.value;
-                            return (
-                              <button
-                                key={opt.value}
-                                type="button"
-                                onClick={() => setInquiryType(opt.value)}
-                                className={cn(
-                                  "relative rounded-xl border px-3 py-3 text-left transition",
-                                  active
-                                    ? "border-fuchsia bg-fuchsia/15 text-white"
-                                    : "border-white/12 bg-white/[0.03] text-white/70 hover:border-silver/40 hover:text-white"
-                                )}
-                              >
-                                {active && (
-                                  <motion.span
-                                    layoutId="inquiry-chip"
-                                    className="absolute inset-0 rounded-xl bg-fuchsia/10"
-                                    transition={{
-                                      type: "spring",
-                                      stiffness: 380,
-                                      damping: 30,
-                                    }}
-                                  />
-                                )}
-                                <span className="relative z-10 block text-xs font-medium uppercase tracking-wider">
-                                  {opt.label}
-                                </span>
-                                <span className="relative z-10 mt-0.5 block text-[10px] text-white/40">
-                                  {opt.hint}
-                                </span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
 
                       <div className="grid gap-4 sm:grid-cols-2">
                         <div
