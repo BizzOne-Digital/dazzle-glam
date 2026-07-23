@@ -4,7 +4,7 @@ import { useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { Gem, Lock, ShieldCheck, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
 const HERO_IMAGE = "/images/hero/campaign.png";
@@ -32,8 +32,8 @@ export function HeroSection() {
           className="object-cover object-[72%_center] sm:object-[68%_center]"
           sizes="100vw"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-black/25 sm:via-black/75 sm:to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/50" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/50 to-transparent sm:via-black/40 sm:to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30" />
         <div className="grain absolute inset-0" />
       </motion.div>
 
@@ -114,45 +114,6 @@ export function HeroSection() {
                 Shop New Arrivals <Sparkles className="h-3.5 w-3.5" />
               </Link>
             </Button>
-            <Button
-              asChild
-              variant="secondary"
-              size="lg"
-              className="w-full border-fuchsia/70 text-white hover:border-fuchsia hover:bg-fuchsia/10 sm:w-auto"
-            >
-              <Link href="/shop">
-                Explore Products <Sparkles className="h-3.5 w-3.5" />
-              </Link>
-            </Button>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.65 }}
-            className="mt-8 flex flex-col gap-3 text-[10px] uppercase tracking-[0.16em] text-white/80 sm:mt-10 sm:flex-row sm:flex-wrap sm:gap-x-7 sm:gap-y-3 sm:text-[11px] sm:tracking-[0.18em]"
-          >
-            <span className="flex items-center gap-2">
-              <Gem className="h-4 w-4 shrink-0 text-fuchsia" />
-              <span>
-                <span className="text-white">Premium Quality</span>
-                <span className="text-white/50"> — Finest materials</span>
-              </span>
-            </span>
-            <span className="flex items-center gap-2">
-              <Lock className="h-4 w-4 shrink-0 text-fuchsia" />
-              <span>
-                <span className="text-white">Secure Payment</span>
-                <span className="text-white/50"> — 100% protected</span>
-              </span>
-            </span>
-            <span className="flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4 shrink-0 text-fuchsia" />
-              <span>
-                <span className="text-white">Satisfaction Guarantee</span>
-                <span className="text-white/50"> — Love it or return it</span>
-              </span>
-            </span>
           </motion.div>
         </div>
       </div>

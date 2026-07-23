@@ -95,8 +95,44 @@ export function Header({ className }: { className?: string }) {
           aria-hidden
         />
 
-        <div className="relative mx-auto grid h-[5.5rem] max-w-[1400px] grid-cols-[1fr_auto_1fr] items-center gap-2 px-3 sm:h-[6rem] sm:px-5 lg:px-8">
-          <div className="flex min-w-0 items-center gap-0.5 justify-self-start">
+        <div className="relative mx-auto flex h-[5.5rem] max-w-[1400px] items-center justify-between gap-4 px-3 sm:h-[6rem] sm:px-5 lg:px-8">
+          {/* Left: Logo */}
+          <Link
+            href="/"
+            className="relative z-10 flex shrink-0"
+            aria-label={brand.name}
+          >
+            <Image
+              src="/brand/logo.png"
+              alt={brand.name}
+              width={220}
+              height={80}
+              className="h-20 w-auto object-contain sm:h-24"
+              priority
+            />
+          </Link>
+
+          {/* Center: Navigation */}
+          <nav className="hidden flex-1 items-center justify-center lg:flex" aria-label="Primary">
+            {leftNav.map((item) => (
+              <NavLink
+                key={`${item.label}-${item.href}`}
+                href={item.href}
+                label={item.label}
+                active={
+                  item.href === "/"
+                    ? pathname === "/"
+                    : item.href === "/shop"
+                      ? pathname.startsWith("/shop") ||
+                        pathname.startsWith("/products")
+                      : isActive(item.href)
+                }
+              />
+            ))}
+          </nav>
+
+          {/* Right: Actions */}
+          <div className="flex min-w-0 items-center gap-0.5 sm:gap-1">
             <button
               type="button"
               className="inline-flex h-10 w-10 shrink-0 items-center justify-center text-white lg:hidden"
@@ -105,43 +141,6 @@ export function Header({ className }: { className?: string }) {
             >
               <Menu className="h-5 w-5" />
             </button>
-            <nav className="hidden items-center lg:flex" aria-label="Primary">
-              {leftNav.map((item) => (
-                <NavLink
-                  key={`${item.label}-${item.href}`}
-                  href={item.href}
-                  label={item.label}
-                  active={
-                    item.href === "/"
-                      ? pathname === "/"
-                      : item.href === "/shop"
-                        ? pathname.startsWith("/shop") ||
-                          pathname.startsWith("/products")
-                        : isActive(item.href)
-                  }
-                />
-              ))}
-            </nav>
-          </div>
-
-          <Link
-            href="/"
-            className="logo-tab relative z-10 -mb-1 flex justify-self-center sm:-mb-1.5"
-            aria-label={brand.name}
-          >
-            <span className="logo-tab-inner relative flex items-end justify-center bg-black/40 px-5 pb-1.5 pt-1 sm:px-8 sm:pb-2 sm:pt-1.5">
-              <Image
-                src="/brand/logo.png"
-                alt={brand.name}
-                width={200}
-                height={72}
-                className="h-16 w-auto max-w-[200px] object-contain sm:h-20 sm:max-w-[260px]"
-                priority
-              />
-            </span>
-          </Link>
-
-          <div className="flex min-w-0 items-center justify-self-end gap-0.5 sm:gap-1">
 
             <Link
               href="/shop"
