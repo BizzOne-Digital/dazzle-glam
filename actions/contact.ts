@@ -5,6 +5,7 @@ import { connectDB } from "@/lib/db/connect";
 import { rateLimit } from "@/lib/rate-limit";
 import { contactSchema, newsletterSchema } from "@/lib/validations";
 import { ContactSubmission, NewsletterSubscriber } from "@/models";
+import { sendContactNotificationEmail } from "@/lib/email";
 import type { ActionResult } from "@/actions/auth";
 
 async function clientKey(prefix: string): Promise<string> {
@@ -47,6 +48,25 @@ export async function submitContact(
     orderNumber: parsed.data.orderNumber,
     message: parsed.data.message,
   });
+
+  // Send email notification to admin
+  const adminEmail = process.env.ADMIN_EMAIL || process.env.SMTP_USER;
+  if (adminEmail) {
+    try {
+      await sendContactNotificationEmail({
+        customerName: parsed.data.name,
+        customerEmail: parsed.data.email,
+        customerPhone: parsed.data.phone,
+        inquiryType: parsed.data.inquiryType,
+        orderNumber: parsed.data.orderNumber,
+        message: parsed.data.message,
+        adminEmail,
+      });
+    } catch (emailError) {
+      console.error("Failed to send contact notification email:", emailError);
+      // Don't fail the submission if email fails
+    }
+  }
 
   return {
     success: true,

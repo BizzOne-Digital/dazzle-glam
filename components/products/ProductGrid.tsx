@@ -19,7 +19,6 @@ export interface ProductGridProps {
   skeletonCount?: number;
   emptyTitle?: string;
   emptyDescription?: string;
-  onQuickView?: ProductCardProps["onQuickView"];
   onWishlistToggle?: ProductCardProps["onWishlistToggle"];
 }
 
@@ -37,7 +36,6 @@ export function ProductGrid({
   skeletonCount = 8,
   emptyTitle = "No pieces found",
   emptyDescription = "Try adjusting your filters or explore our full collection.",
-  onQuickView,
   onWishlistToggle,
 }: ProductGridProps) {
   if (loading) {
@@ -71,7 +69,6 @@ export function ProductGrid({
           <HoverLift>
             <ProductCard
               product={product}
-              onQuickView={onQuickView}
               onWishlistToggle={onWishlistToggle}
             />
           </HoverLift>

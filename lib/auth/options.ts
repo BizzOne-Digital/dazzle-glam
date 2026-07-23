@@ -20,63 +20,68 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        const email = credentials.email.trim().toLowerCase();
-        const portal = credentials.portal?.toLowerCase();
+        try {
+          const email = credentials.email.trim().toLowerCase();
+          const portal = credentials.portal?.toLowerCase();
 
-        await connectDB();
+          await connectDB();
 
-        if (portal === "admin" || !portal) {
-          const admin = (await AdminUser.findOne({
-            email,
-            isActive: true,
-          }).lean()) as IAdminUser | null;
+          if (portal === "admin" || !portal) {
+            const admin = (await AdminUser.findOne({
+              email,
+              isActive: true,
+            }).lean()) as IAdminUser | null;
 
-          if (admin?.password) {
-            const valid = await verifyPassword(
-              credentials.password,
-              admin.password
-            );
-            if (valid) {
-              await AdminUser.updateOne(
-                { _id: admin._id },
-                { $set: { lastLoginAt: new Date() } }
+            if (admin?.password) {
+              const valid = await verifyPassword(
+                credentials.password,
+                admin.password
               );
-              return {
-                id: String(admin._id),
-                email: admin.email,
-                name: admin.name,
-                role: "admin" as UserRole,
-              };
+              if (valid) {
+                await AdminUser.updateOne(
+                  { _id: admin._id },
+                  { $set: { lastLoginAt: new Date() } }
+                );
+                return {
+                  id: String(admin._id),
+                  email: admin.email,
+                  name: admin.name,
+                  role: "admin" as UserRole,
+                };
+              }
+            }
+            if (portal === "admin") {
+              return null;
             }
           }
-          if (portal === "admin") {
-            return null;
-          }
-        }
 
-        if (portal === "customer" || !portal) {
-          const customer = (await Customer.findOne({
-            email,
-            isDisabled: false,
-          }).lean()) as ICustomer | null;
+          if (portal === "customer" || !portal) {
+            const customer = (await Customer.findOne({
+              email,
+              isDisabled: false,
+            }).lean()) as ICustomer | null;
 
-          if (customer?.password) {
-            const valid = await verifyPassword(
-              credentials.password,
-              customer.password
-            );
-            if (valid) {
-              return {
-                id: String(customer._id),
-                email: customer.email,
-                name: customer.name,
-                role: "customer" as UserRole,
-              };
+            if (customer?.password) {
+              const valid = await verifyPassword(
+                credentials.password,
+                customer.password
+              );
+              if (valid) {
+                return {
+                  id: String(customer._id),
+                  email: customer.email,
+                  name: customer.name,
+                  role: "customer" as UserRole,
+                };
+              }
             }
           }
-        }
 
-        return null;
+          return null;
+        } catch (error) {
+          console.error("Auth error:", error);
+          return null;
+        }
       },
     }),
   ],
@@ -109,4 +114,5 @@ export const authOptions: NextAuthOptions = {
     },
   },
   secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
+  debug: process.env.NODE_ENV === "development",
 };

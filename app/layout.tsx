@@ -65,6 +65,13 @@ export default function RootLayout({
       lang="en"
       className={`${cormorant.variable} ${outfit.variable} ${greatVibes.variable}`}
     >
+      <head>
+        <script
+          src="https://upload-widget.cloudinary.com/global/all.js"
+          type="text/javascript"
+          async
+        ></script>
+      </head>
       <body className="font-body">
         <a href="#main-content" className="skip-link">
           Skip to content

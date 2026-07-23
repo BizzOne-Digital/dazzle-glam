@@ -6,7 +6,9 @@ export const brand = {
   email: "dazzleglamcollection@gmail.com",
   website: "https://dazzleglamjewelry.ca",
   instagram: "@dazzleglamcollection",
-  instagramUrl: "https://instagram.com/dazzleglamcollection",
+  instagramUrl: "https://www.instagram.com/dazzleglamcollection?igsh=MWNnaXJwM2M3Ymk1dA==",
+  facebook: "@dazzleglamcollection",
+  facebookUrl: "https://www.facebook.com/profile.php?id=61591817804914",
   clientName: "Karleen",
 } as const;
 

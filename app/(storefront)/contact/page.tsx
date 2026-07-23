@@ -35,13 +35,6 @@ import {
 } from "@/components/animations/PageMotion";
 import { cn } from "@/lib/utils";
 
-function resolveInquiry(_serviceSlug?: string | null) {
-  if (!_serviceSlug) return "general";
-  if (_serviceSlug.includes("custom")) return "custom";
-  if (_serviceSlug.includes("bulk")) return "wholesale";
-  return "styling";
-}
-
 function ContactForm() {
   const searchParams = useSearchParams();
   const serviceSlug = searchParams.get("service");

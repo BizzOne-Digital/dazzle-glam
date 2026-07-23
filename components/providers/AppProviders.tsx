@@ -11,7 +11,7 @@ export interface AppProvidersProps {
 
 export function AppProviders({ children }: AppProvidersProps) {
   return (
-    <SessionProvider>
+    <SessionProvider refetchInterval={0} refetchOnWindowFocus={false}>
       {children}
       <CartDrawer />
       <Toaster

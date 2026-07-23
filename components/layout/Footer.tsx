@@ -3,7 +3,7 @@
 import { FormEvent, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowUp, Instagram, Mail, Phone } from "lucide-react";
+import { ArrowUp, Instagram, Mail, Phone, Facebook } from "lucide-react";
 import { toast } from "sonner";
 import { brand, navigation } from "@/config/site";
 import { Button } from "@/components/ui/Button";
@@ -122,6 +122,15 @@ export function Footer({ className }: { className?: string }) {
               >
                 <Instagram className="h-4 w-4 shrink-0 text-fuchsia" />
                 <span className="min-w-0 truncate">{brand.instagram}</span>
+              </a>
+              <a
+                href={brand.facebookUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex min-w-0 items-center gap-2 hover:text-fuchsia"
+              >
+                <Facebook className="h-4 w-4 shrink-0 text-fuchsia" />
+                <span className="min-w-0 truncate">{brand.facebook}</span>
               </a>
             </div>
           </div>

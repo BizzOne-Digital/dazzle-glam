@@ -150,13 +150,13 @@ export default function ProductPage() {
                   </div>
                 )}
               </motion.div>
-              <div className="mt-3 grid grid-cols-4 gap-3">
-                {product.images.slice(0, 4).map((img, i) => (
+              <div className="mt-3 flex gap-3">
+                {product.images.slice(0, 2).map((img, i) => (
                   <button
                     key={img + i}
                     type="button"
                     onClick={() => setActive(i)}
-                    className={`relative aspect-square overflow-hidden rounded-lg border ${
+                    className={`relative h-20 w-20 overflow-hidden rounded-lg border ${
                       active === i ? "border-fuchsia" : "border-white/10"
                     }`}
                   >
@@ -165,7 +165,7 @@ export default function ProductPage() {
                       alt=""
                       fill
                       className="object-cover"
-                      sizes="120px"
+                      sizes="80px"
                       onError={(e) => {
                         // hide thumbnails whose image file doesn't exist yet
                         (e.currentTarget.closest("button") as HTMLElement).style.display = "none";
