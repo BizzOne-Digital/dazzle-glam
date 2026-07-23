@@ -127,10 +127,11 @@ export async function notifyCustomerSizeAvailable(
     await inquiry.save();
 
     return { success: true, message: `Email sent to ${inquiry.customerEmail}` };
-  } catch {
+  } catch (error) {
+    console.error("Failed to send size notification email:", error);
     return {
       success: false,
-      message: "Failed to send email. Check SMTP settings.",
+      message: `Failed to send email. Check SMTP settings. Error: ${error instanceof Error ? error.message : "Unknown error"}`,
     };
   }
 }
@@ -178,7 +179,8 @@ export async function updateProductSizesAndNotify(
       inquiry.notifiedAt = new Date();
       await inquiry.save();
       notified++;
-    } catch {
+    } catch (error) {
+      console.error(`Failed to notify ${inquiry.customerEmail}:`, error);
       // continue even if one email fails
     }
   }

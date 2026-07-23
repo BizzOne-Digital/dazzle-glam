@@ -305,19 +305,11 @@ function ContactForm() {
                         </div>
                       </div>
 
-                      <div className="grid gap-4 sm:grid-cols-2">
-                        <Input
-                          name="phone"
-                          label="Phone"
-                          placeholder="Optional"
-                          hint="Best number if you'd like a call back"
-                        />
-                        <Input
-                          name="orderNumber"
-                          label="Order number"
-                          placeholder="If applicable"
-                        />
-                      </div>
+                      <Input
+                        name="phone"
+                        label="Phone (Optional)"
+                        placeholder="Best number if you'd like a call back"
+                      />
 
                       <Textarea
                         name="message"
