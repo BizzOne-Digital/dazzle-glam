@@ -118,7 +118,7 @@ export const contactSchema = z.object({
   name: z.string().min(2, "Name is required").max(100),
   email: z.string().email("Valid email required"),
   phone: z.string().optional(),
-  inquiryType: z.string().min(1, "Please select an inquiry type"),
+  inquiryType: z.string().optional(),
   orderNumber: z.string().optional(),
   message: z.string().min(10, "Message must be at least 10 characters").max(5000),
 });

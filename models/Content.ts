@@ -149,7 +149,7 @@ export interface IContactSubmission {
   name: string;
   email: string;
   phone?: string;
-  inquiryType: string;
+  inquiryType?: string;
   orderNumber?: string;
   message: string;
   isRead: boolean;
@@ -163,7 +163,7 @@ const ContactSubmissionSchema = new Schema<IContactSubmission>(
     name: { type: String, required: true },
     email: { type: String, required: true },
     phone: String,
-    inquiryType: { type: String, required: true },
+    inquiryType: { type: String, default: "general" },
     orderNumber: String,
     message: { type: String, required: true },
     isRead: { type: Boolean, default: false },
