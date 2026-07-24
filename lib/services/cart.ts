@@ -82,9 +82,9 @@ function resolveUnitPrice(
 async function getEcommerceDefaults() {
   const settings = (await SiteSettings.findOne().lean()) as ISiteSettings | null;
   return {
-    taxRate: settings?.ecommerce?.taxRate ?? 0.13,
-    freeShippingThreshold: settings?.ecommerce?.freeShippingThreshold ?? 150,
-    currency: settings?.ecommerce?.currency ?? "CAD",
+    taxRate: settings?.taxRate ?? 0.13,
+    freeShippingThreshold: settings?.freeShippingThreshold ?? 150,
+    currency: settings?.currency ?? "CAD",
   };
 }
 

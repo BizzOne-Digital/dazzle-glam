@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type FormEvent, Suspense } from "react";
+import { useMemo, useState, useEffect, type FormEvent, Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Button } from "@/components/ui/Button";
 import { submitContact } from "@/actions/contact";
+import { getSiteSettings, type SiteSettingsData } from "@/actions/settings";
 import { brand, placeholderImages } from "@/config/site";
 import { demoServices } from "@/lib/data/demo";
 import { ScrollReveal } from "@/components/animations/ScrollReveal";
@@ -45,6 +46,23 @@ function ContactForm() {
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [focused, setFocused] = useState<string | null>(null);
+  const [settings, setSettings] = useState<SiteSettingsData | null>(null);
+  const [pageContent, setPageContent] = useState<{ sections?: Record<string, unknown> } | null>(null);
+
+  // Load settings and content from API
+  useEffect(() => {
+    // Fetch settings
+    fetch("/api/settings")
+      .then((res) => res.json())
+      .then((data) => setSettings(data))
+      .catch((err) => console.error("Failed to load settings:", err));
+
+    // Fetch page content
+    fetch("/api/content/contact")
+      .then((res) => res.json())
+      .then((data) => setPageContent(data))
+      .catch((err) => console.error("Failed to load page content:", err));
+  }, []);
 
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -76,26 +94,26 @@ function ContactForm() {
 
   const contactCards = [
     {
-      href: `tel:${brand.phone}`,
+      href: `tel:${(settings?.phone || brand.phone).replace(/[^\d+]/g, "")}`,
       icon: Phone,
       label: "Call us",
-      value: brand.phone,
+      value: settings?.phone || brand.phone,
     },
     {
-      href: `mailto:${brand.email}`,
+      href: `mailto:${settings?.email || brand.email}`,
       icon: Mail,
       label: "Email",
-      value: brand.email,
+      value: settings?.email || brand.email,
     },
     {
-      href: "https://www.instagram.com/dazzleglamcollection?igsh=MWNnaXJwM2M3Ymk1dA==",
+      href: settings?.instagramUrl || "https://www.instagram.com/dazzleglamcollection?igsh=MWNnaXJwM2M3Ymk1dA==",
       icon: Instagram,
       label: "Instagram",
       value: "@dazzleglamcollection",
       external: true,
     },
     {
-      href: "https://www.facebook.com/profile.php?id=61591817804914",
+      href: settings?.facebookUrl || "https://www.facebook.com/profile.php?id=61591817804914",
       icon: Facebook,
       label: "Facebook",
       value: "@dazzleglamcollection",
@@ -173,7 +191,7 @@ function ContactForm() {
                     Studio hours
                   </p>
                   <p className="mt-1 text-sm text-white/70">
-                    Mon–Fri 9am–9pm · Sat–Sun 9am–6pm
+                    {settings?.businessHours || "Mon–Fri 9am–9pm · Sat–Sun 9am–6pm"}
                   </p>
                 </div>
               </div>

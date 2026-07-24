@@ -274,9 +274,25 @@ export const MediaAsset =
 
 export interface IPageContent {
   _id: mongoose.Types.ObjectId;
-  key: string;
-  title?: string;
-  content: Record<string, unknown>;
+  pageKey: string; // 'home', 'about', 'contact', 'faq', etc.
+  sections: {
+    [key: string]: {
+      title?: string;
+      subtitle?: string;
+      description?: string;
+      content?: string;
+      image?: string;
+      images?: string[];
+      items?: Array<{
+        title?: string;
+        description?: string;
+        icon?: string;
+        image?: string;
+        [key: string]: any;
+      }>;
+      [key: string]: any;
+    };
+  };
   seo: SeoFields;
   isPublished: boolean;
   updatedAt: Date;
@@ -285,9 +301,8 @@ export interface IPageContent {
 
 const PageContentSchema = new Schema<IPageContent>(
   {
-    key: { type: String, required: true, unique: true, index: true },
-    title: String,
-    content: { type: Schema.Types.Mixed, default: {} },
+    pageKey: { type: String, required: true, unique: true, index: true },
+    sections: { type: Schema.Types.Mixed, default: {} },
     seo: {
       title: String,
       description: String,

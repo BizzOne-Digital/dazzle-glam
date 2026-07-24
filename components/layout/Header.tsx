@@ -90,10 +90,6 @@ export function Header({ className }: { className?: string }) {
           className
         )}
       >
-        <div
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-fuchsia/80"
-          aria-hidden
-        />
 
         <div className="relative mx-auto flex h-[5.5rem] max-w-[1400px] items-center justify-between gap-4 px-3 sm:h-[6rem] sm:px-5 lg:px-8">
           {/* Left: Logo */}
@@ -105,9 +101,9 @@ export function Header({ className }: { className?: string }) {
             <Image
               src="/brand/logo.png"
               alt={brand.name}
-              width={220}
-              height={80}
-              className="h-20 w-auto object-contain sm:h-24"
+              width={240}
+              height={88}
+              className="h-24 w-auto object-contain sm:h-28"
               priority
             />
           </Link>

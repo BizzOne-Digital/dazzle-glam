@@ -2,13 +2,13 @@ export const brand = {
   name: "Dazzle Glam Jewelry Collection",
   shortName: "Dazzle Glam",
   tagline: "Bold Jewelry. Unforgettable Energy.",
-  phone: "(416) 305-7500",
+  phone: "(416) 905-7500",
   email: "dazzleglamcollection@gmail.com",
   website: "https://dazzleglamjewelry.ca",
   instagram: "@dazzleglamcollection",
-  instagramUrl: "https://www.instagram.com/dazzleglamcollection?igsh=MWNnaXJwM2M3Ymk1dA==",
+  instagramUrl: "https://www.instagram.com/dazzleglamcollection",
   facebook: "@dazzleglamcollection",
-  facebookUrl: "https://www.facebook.com/profile.php?id=61591817804914",
+  facebookUrl: "https://www.facebook.com/dazzleglamcollection",
   clientName: "Karleen",
 } as const;
 

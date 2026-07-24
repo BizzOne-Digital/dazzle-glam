@@ -1,11 +1,12 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUp, Instagram, Mail, Phone, Facebook } from "lucide-react";
 import { toast } from "sonner";
 import { brand, navigation } from "@/config/site";
+import { getSiteSettings, type SiteSettingsData } from "@/actions/settings";
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { Input } from "@/components/ui/Input";
@@ -32,6 +33,14 @@ const marqueWords = ["DAZZLE GLAM", "•", "DAZZLE GLAM", "•", "DAZZLE GLAM", 
 export function Footer({ className }: { className?: string }) {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
+  const [settings, setSettings] = useState<SiteSettingsData | null>(null);
+
+  useEffect(() => {
+    fetch("/api/settings")
+      .then((res) => res.json())
+      .then((data) => setSettings(data))
+      .catch((err) => console.error("Failed to load settings:", err));
+  }, []);
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -87,13 +96,10 @@ export function Footer({ className }: { className?: string }) {
               <Image
                 src="/brand/logo.png"
                 alt={brand.name}
-                width={48}
-                height={48}
-                className="h-12 w-12 object-contain"
+                width={240}
+                height={88}
+                className="h-24 w-auto object-contain sm:h-28"
               />
-              <span className="font-heading text-2xl text-white">
-                {brand.shortName}
-              </span>
             </Link>
             <p className="mt-4 max-w-sm font-body text-sm leading-relaxed text-white/55">
               {brand.tagline} Luxury statement jewelry crafted for bold energy
@@ -101,21 +107,21 @@ export function Footer({ className }: { className?: string }) {
             </p>
             <div className="mt-5 space-y-3 font-body text-sm text-white/70">
               <a
-                href={`tel:${brand.phone.replace(/[^\d+]/g, "")}`}
+                href={`tel:${(settings?.phone || brand.phone).replace(/[^\d+]/g, "")}`}
                 className="flex min-w-0 items-center gap-2 hover:text-fuchsia"
               >
                 <Phone className="h-4 w-4 shrink-0 text-fuchsia" />
-                <span className="min-w-0 break-all">{brand.phone}</span>
+                <span className="min-w-0 break-all">{settings?.phone || brand.phone}</span>
               </a>
               <a
-                href={`mailto:${brand.email}`}
+                href={`mailto:${settings?.email || brand.email}`}
                 className="flex min-w-0 items-center gap-2 hover:text-fuchsia"
               >
                 <Mail className="h-4 w-4 shrink-0 text-fuchsia" />
-                <span className="min-w-0 break-all">{brand.email}</span>
+                <span className="min-w-0 break-all">{settings?.email || brand.email}</span>
               </a>
               <a
-                href={brand.instagramUrl}
+                href={settings?.instagramUrl || brand.instagramUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex min-w-0 items-center gap-2 hover:text-fuchsia"
@@ -124,7 +130,7 @@ export function Footer({ className }: { className?: string }) {
                 <span className="min-w-0 truncate">{brand.instagram}</span>
               </a>
               <a
-                href={brand.facebookUrl}
+                href={settings?.facebookUrl || brand.facebookUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex min-w-0 items-center gap-2 hover:text-fuchsia"
