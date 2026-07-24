@@ -12,6 +12,7 @@ import { Select } from "@/components/ui/Select";
 import { useCartStore } from "@/lib/store/cart";
 import { formatCurrency } from "@/lib/utils";
 import { placeholderImages } from "@/config/site";
+import { ShieldCheck } from "lucide-react";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -37,15 +38,69 @@ export default function CheckoutPage() {
     );
   }
 
-  const onSubmit = async (e: FormEvent) => {
+  const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 900));
-    // Stripe-ready: when STRIPE keys exist, create PaymentIntent via API.
-    // Never store raw card data — Stripe Elements handles PCI scope.
-    clearCart();
-    toast.success("Order placed successfully");
-    router.push("/checkout/success");
+
+    try {
+      const formData = new FormData(e.currentTarget);
+      
+      const checkoutData = {
+        items: items.map(item => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          image: item.image,
+          description: item.description || "",
+        })),
+        customerEmail: formData.get("email") as string,
+        customerPhone: formData.get("phone") as string,
+        firstName: formData.get("firstName") as string,
+        lastName: formData.get("lastName") as string,
+        shippingAddress: {
+          line1: formData.get("line1") as string,
+          line2: formData.get("line2") as string,
+          city: formData.get("city") as string,
+          province: formData.get("province") as string,
+          postalCode: formData.get("postalCode") as string,
+          country: "Canada",
+        },
+        shippingMethod,
+        subtotal,
+        shippingCost,
+        tax,
+        total,
+      };
+
+      // Create Stripe checkout session
+      const response = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(checkoutData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to create checkout session");
+      }
+
+      if (data.url) {
+        // Clear cart before redirecting to Stripe
+        clearCart();
+        // Redirect to Stripe checkout
+        window.location.href = data.url;
+      } else {
+        throw new Error("No checkout URL received");
+      }
+    } catch (error: any) {
+      console.error("Checkout error:", error);
+      toast.error(error.message || "Failed to process checkout");
+      setLoading(false);
+    }
   };
 
   return (
@@ -124,25 +179,9 @@ export default function CheckoutPage() {
                   onChange={(e) => setShippingMethod(e.target.value)}
                   options={[
                     { label: "Standard (3–6 days) — $8 / Free over $100", value: "standard" },
-                    { label: "Express (4 days) — $15", value: "express" },
+                    { label: "Express (1-2 days) — $15", value: "express" },
                   ]}
                 />
-              </div>
-            </section>
-
-            <section className="rounded-2xl border border-white/10 p-6">
-              <h2 className="font-heading text-2xl">Payment</h2>
-              <p className="mt-2 text-sm text-white/50">
-                Secure Stripe-ready checkout. Card details are never stored on our servers.
-                Configure <code className="text-fuchsia">STRIPE_SECRET_KEY</code> to enable live
-                payments.
-              </p>
-              <div className="mt-4 grid gap-3">
-                <Input placeholder="Card number (Stripe Elements in production)" disabled />
-                <div className="grid grid-cols-2 gap-3">
-                  <Input placeholder="MM/YY" disabled />
-                  <Input placeholder="CVC" disabled />
-                </div>
               </div>
             </section>
           </div>
@@ -183,8 +222,18 @@ export default function CheckoutPage() {
                 <dd className="text-fuchsia">{formatCurrency(total)}</dd>
               </div>
             </dl>
+            
+            <div className="mt-4 rounded-lg border border-fuchsia/20 bg-fuchsia/5 p-3 text-xs text-white/60">
+              <div className="flex items-start gap-2">
+                <ShieldCheck className="h-4 w-4 shrink-0 text-fuchsia" />
+                <p>
+                  Secure payment powered by Stripe. Your payment information is encrypted and never stored on our servers.
+                </p>
+              </div>
+            </div>
+
             <Button type="submit" fullWidth className="mt-6" loading={loading}>
-              Place Order
+              Pay Securely with Stripe
             </Button>
           </aside>
         </form>

@@ -20,7 +20,7 @@ export function HeroSection() {
   return (
     <section
       ref={ref}
-      className="relative flex min-h-[100svh] items-end overflow-x-hidden pb-16 pt-[12rem] sm:pb-20 sm:pt-[13rem] md:items-center md:pb-24 md:pt-[13rem]"
+      className="relative flex min-h-[100svh] items-end overflow-x-hidden pb-16 pt-[9rem] sm:pb-20 sm:pt-[10rem] md:items-center md:pb-24 md:pt-[10rem]"
     >
       {/* Background */}
       <motion.div style={{ scale }} className="absolute inset-0">
@@ -61,7 +61,7 @@ export function HeroSection() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.12 }}
-            className="mb-4 text-sm font-medium uppercase tracking-[0.32em] text-white/85 sm:mb-5 sm:text-base md:text-lg sm:tracking-[0.38em]"
+            className="mb-4 text-[0.9rem] font-medium uppercase tracking-[0.32em] text-white/85 sm:mb-5 sm:text-[1.05rem] md:text-[1.15rem] lg:text-[1.35rem] xl:text-[1.6rem] sm:tracking-[0.38em]"
           >
             Dazzle{" "}
             <span className="text-fuchsia">Glam</span> Jewelry Collection
@@ -72,7 +72,7 @@ export function HeroSection() {
               initial={{ y: "110%" }}
               animate={{ y: 0 }}
               transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-              className="font-heading text-sm font-semibold leading-tight tracking-tight text-white sm:text-base md:text-lg lg:text-xl"
+              className="font-heading text-lg font-semibold leading-tight tracking-tight text-white sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl"
             >
               Turn Heads.{" "}
               <span className="font-script text-fuchsia">Own the Room.</span>
