@@ -61,7 +61,7 @@ export function HeroSection() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.12 }}
-            className="mb-3 text-xs font-medium uppercase tracking-[0.32em] text-white/85 sm:mb-4 sm:text-sm sm:tracking-[0.38em]"
+            className="mb-4 text-sm font-medium uppercase tracking-[0.32em] text-white/85 sm:mb-5 sm:text-base md:text-lg sm:tracking-[0.38em]"
           >
             Dazzle{" "}
             <span className="text-fuchsia">Glam</span> Jewelry Collection
@@ -72,26 +72,17 @@ export function HeroSection() {
               initial={{ y: "110%" }}
               animate={{ y: 0 }}
               transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-              className="font-heading text-[3.5rem] font-semibold leading-[0.92] tracking-tight text-white sm:text-7xl md:text-8xl lg:text-9xl xl:text-[10rem]"
+              className="font-heading text-sm font-semibold leading-tight tracking-tight text-white sm:text-base md:text-lg lg:text-xl"
             >
-              Turn Heads.
+              Turn Heads.{" "}
+              <span className="font-script text-fuchsia">Own the Room.</span>
             </motion.h1>
           </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.22, duration: 0.55 }}
-            className="relative mt-1 sm:mt-0"
-          >
-            <p className="font-script text-[3.5rem] leading-none text-fuchsia sm:text-7xl md:text-8xl lg:text-9xl">
-              Own the Room.
-            </p>
-            <span
-              className="mt-1 block h-[3px] w-[min(100%,14rem)] rounded-full bg-gradient-to-r from-fuchsia via-fuchsia-glow to-transparent shadow-[0_0_18px_rgb(255_20_147/0.75)] sm:w-[18rem]"
-              aria-hidden
-            />
-          </motion.div>
+          <span
+            className="mt-2 block h-[3px] w-[min(100%,10rem)] rounded-full bg-gradient-to-r from-fuchsia via-fuchsia-glow to-transparent shadow-[0_0_18px_rgb(255_20_147/0.75)] sm:w-[14rem]"
+            aria-hidden
+          />
 
           <motion.p
             initial={{ opacity: 0, y: 20 }}
