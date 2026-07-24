@@ -106,10 +106,10 @@ export function HeroTextReveal({
     return (
       <div className={cn("flex flex-col", alignCls)}>
         {eyebrow && (
-          <p className="text-[11px] uppercase tracking-[0.35em] text-fuchsia">{eyebrow}</p>
+          <p className="text-sm uppercase tracking-[0.35em] text-fuchsia">{eyebrow}</p>
         )}
-        <h1 className="mt-2 font-heading text-3xl text-white sm:text-4xl md:text-6xl">{title}</h1>
-        {description && <p className="mt-3 max-w-xl text-sm text-white/60 sm:text-base">{description}</p>}
+        <h1 className="mt-2 font-heading text-5xl text-white sm:text-6xl md:text-7xl lg:text-8xl">{title}</h1>
+        {description && <p className="mt-3 max-w-xl text-base text-white/60 sm:text-lg md:text-xl">{description}</p>}
       </div>
     );
   }
@@ -127,19 +127,19 @@ export function HeroTextReveal({
       {eyebrow && (
         <motion.p
           variants={item}
-          className="text-[11px] uppercase tracking-[0.35em] text-fuchsia"
+          className="text-sm uppercase tracking-[0.35em] text-fuchsia"
         >
           {eyebrow}
         </motion.p>
       )}
       <motion.h1
         variants={item}
-        className="mt-2 font-heading text-3xl text-white sm:text-4xl md:text-6xl"
+        className="mt-2 font-heading text-5xl text-white sm:text-6xl md:text-7xl lg:text-8xl"
       >
         {title}
       </motion.h1>
       {description && (
-        <motion.p variants={item} className="mt-3 max-w-xl text-sm text-white/60 sm:text-base">
+        <motion.p variants={item} className="mt-3 max-w-xl text-base text-white/60 sm:text-lg md:text-xl">
           {description}
         </motion.p>
       )}

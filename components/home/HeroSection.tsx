@@ -61,7 +61,7 @@ export function HeroSection() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.12 }}
-            className="mb-3 text-[10px] font-medium uppercase tracking-[0.32em] text-white/85 sm:mb-4 sm:text-[11px] sm:tracking-[0.38em]"
+            className="mb-3 text-xs font-medium uppercase tracking-[0.32em] text-white/85 sm:mb-4 sm:text-sm sm:tracking-[0.38em]"
           >
             Dazzle{" "}
             <span className="text-fuchsia">Glam</span> Jewelry Collection
@@ -72,7 +72,7 @@ export function HeroSection() {
               initial={{ y: "110%" }}
               animate={{ y: 0 }}
               transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-              className="font-heading text-[2.35rem] font-semibold leading-[0.92] tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl"
+              className="font-heading text-[3.5rem] font-semibold leading-[0.92] tracking-tight text-white sm:text-7xl md:text-8xl lg:text-9xl xl:text-[10rem]"
             >
               Turn Heads.
             </motion.h1>
@@ -84,7 +84,7 @@ export function HeroSection() {
             transition={{ delay: 0.22, duration: 0.55 }}
             className="relative mt-1 sm:mt-0"
           >
-            <p className="font-script text-[2.4rem] leading-none text-fuchsia sm:text-5xl md:text-6xl lg:text-7xl">
+            <p className="font-script text-[3.5rem] leading-none text-fuchsia sm:text-7xl md:text-8xl lg:text-9xl">
               Own the Room.
             </p>
             <span
@@ -97,7 +97,7 @@ export function HeroSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.35 }}
-            className="mb-7 mt-5 max-w-md text-sm leading-relaxed text-white/75 sm:mb-8 sm:mt-6 sm:text-base md:text-lg"
+            className="mb-7 mt-5 max-w-md text-base leading-relaxed text-white/75 sm:mb-8 sm:mt-6 sm:text-lg md:text-xl"
           >
             Eye-popping jewelry designed to command attention, amplify your
             confidence and transform every look into a bold statement.
