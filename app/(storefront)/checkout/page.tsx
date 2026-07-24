@@ -79,19 +79,31 @@ export default function CheckoutPage() {
         body: JSON.stringify(checkoutData),
       });
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        console.error("Failed to parse API response:", parseError);
+        throw new Error("Invalid response from payment server");
+      }
+
+      console.log("API Response:", { status: response.status, data });
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to create checkout session");
+        console.error("Stripe API error:", data);
+        const errorMsg = data?.error || data?.message || `Server error: ${response.status}`;
+        throw new Error(errorMsg);
       }
 
       if (data.url) {
+        console.log("Redirecting to Stripe:", data.url);
         // Clear cart before redirecting to Stripe
         clearCart();
         // Redirect to Stripe checkout
         window.location.href = data.url;
       } else {
-        throw new Error("No checkout URL received");
+        console.error("No URL in response:", data);
+        throw new Error("No checkout URL received from Stripe. Please check server logs.");
       }
     } catch (error) {
       console.error("Checkout error:", error);

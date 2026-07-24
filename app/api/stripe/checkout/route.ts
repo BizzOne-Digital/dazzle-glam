@@ -37,7 +37,15 @@ export async function POST(req: Request) {
     const key = process.env.STRIPE_SECRET_KEY;
     const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 
+    console.log("🔑 Stripe keys check:", {
+      hasSecretKey: !!key,
+      hasPublishableKey: !!publishableKey,
+      secretKeyPrefix: key?.substring(0, 8),
+      publishableKeyPrefix: publishableKey?.substring(0, 8),
+    });
+
     if (!key || !publishableKey) {
+      console.error("❌ Stripe keys missing");
       return NextResponse.json(
         { error: "Stripe is not configured. Please add your Stripe keys to .env file." },
         { status: 503 }
@@ -46,6 +54,12 @@ export async function POST(req: Request) {
 
     const stripe = new Stripe(key);
     const body: CheckoutRequestBody = await req.json();
+
+    console.log("📦 Creating checkout session for:", {
+      itemCount: body.items.length,
+      total: body.total,
+      email: body.customerEmail,
+    });
 
     const {
       items,
@@ -71,7 +85,8 @@ export async function POST(req: Request) {
           currency: "cad",
           product_data: {
             name: item.name,
-            images: item.image ? [item.image] : [],
+            // Only include images if they are valid HTTPS URLs
+            ...(item.image && item.image.startsWith('http') ? { images: [item.image] } : {}),
           },
           unit_amount: Math.round(item.price * 100), // Convert to cents
         },
@@ -85,7 +100,8 @@ export async function POST(req: Request) {
               currency: "cad",
               product_data: {
                 name: item.name,
-                images: item.image ? [item.image] : [],
+                // Only include images if they are valid HTTPS URLs
+                ...(item.image && item.image.startsWith('http') ? { images: [item.image] } : {}),
               },
               unit_amount: Math.round(item.price * 100),
             },
@@ -131,10 +147,14 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ sessionId: session.id, url: session.url });
   } catch (error) {
-    console.error("Stripe checkout error:", error);
+    console.error("❌ Stripe checkout error:", error);
     const errorMessage = error instanceof Error ? error.message : "Failed to create checkout session";
+    console.error("Error details:", errorMessage);
     return NextResponse.json(
-      { error: errorMessage },
+      { 
+        error: errorMessage,
+        details: error instanceof Error ? error.stack : undefined
+      },
       { status: 500 }
     );
   }
