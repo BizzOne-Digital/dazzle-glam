@@ -36,7 +36,13 @@ export function Footer({ className }: { className?: string }) {
   const [settings, setSettings] = useState<SiteSettingsData | null>(null);
 
   useEffect(() => {
-    fetch("/api/settings")
+    fetch("/api/settings", {
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache',
+      }
+    })
       .then((res) => res.json())
       .then((data) => setSettings(data))
       .catch((err) => console.error("Failed to load settings:", err));

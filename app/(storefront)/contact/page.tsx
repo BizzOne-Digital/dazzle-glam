@@ -51,14 +51,29 @@ function ContactForm() {
 
   // Load settings and content from API
   useEffect(() => {
-    // Fetch settings
-    fetch("/api/settings")
+    // Fetch settings with no-cache
+    fetch("/api/settings", {
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache',
+      }
+    })
       .then((res) => res.json())
-      .then((data) => setSettings(data))
+      .then((data) => {
+        console.log("Settings loaded from API:", data);
+        setSettings(data);
+      })
       .catch((err) => console.error("Failed to load settings:", err));
 
-    // Fetch page content
-    fetch("/api/content/contact")
+    // Fetch page content with no-cache
+    fetch("/api/content/contact", {
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache',
+      }
+    })
       .then((res) => res.json())
       .then((data) => setPageContent(data))
       .catch((err) => console.error("Failed to load page content:", err));

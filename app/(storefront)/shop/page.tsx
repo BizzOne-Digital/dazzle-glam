@@ -134,7 +134,7 @@ function ShopPageContent() {
       <div className="relative mb-12 h-56 overflow-hidden md:h-72 lg:h-80">
         <KenBurnsImage>
           <Image
-            src="/images/hero/products-campaign.png"
+            src="/images/hero/shop-hero.png"
             alt="Shop Dazzle Glam jewelry"
             fill
             className="object-cover object-[78%_center] sm:object-[70%_center]"
