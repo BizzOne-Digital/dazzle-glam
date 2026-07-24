@@ -125,8 +125,8 @@ export default function AccountClient() {
                 sizes="50vw"
               />
             </KenBurnsImage>
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/55 to-black/30" />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/40 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/15 to-transparent" />
             <div className="absolute inset-0 flex flex-col justify-end p-10">
               <p className="text-[11px] uppercase tracking-[0.35em] text-fuchsia">
                 Member vault

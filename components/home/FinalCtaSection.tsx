@@ -14,7 +14,7 @@ export function FinalCtaSection() {
         className="object-cover opacity-30 blur-sm"
         sizes="100vw"
       />
-      <div className="absolute inset-0 bg-gradient-to-r from-black via-black/90 to-fuchsia/30" />
+      <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-black/25 to-fuchsia/10" />
       <Container className="relative z-10 text-center">
         <h2 className="font-heading text-3xl text-white md:text-6xl lg:text-7xl">
           Your Next Statement Starts Here

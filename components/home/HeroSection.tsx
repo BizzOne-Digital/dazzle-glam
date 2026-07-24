@@ -32,8 +32,8 @@ export function HeroSection() {
           className="object-cover object-[72%_center] sm:object-[68%_center]"
           sizes="100vw"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/50 to-transparent sm:via-black/40 sm:to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-black/15 to-transparent sm:via-black/10 sm:to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
         <div className="grain absolute inset-0" />
       </motion.div>
 

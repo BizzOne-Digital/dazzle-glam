@@ -40,8 +40,8 @@ export function AboutExperience() {
             sizes="100vw"
           />
         </KenBurnsImage>
-        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/70 to-black/20" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/45" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/25 via-black/15 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
         <div className="absolute inset-0 flex items-center md:items-center">
           <Container className="pt-6 pb-8 md:pt-2 md:pb-10">
             <HeroTextReveal

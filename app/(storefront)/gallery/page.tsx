@@ -59,8 +59,8 @@ export default function GalleryPage() {
             sizes="100vw"
           />
         </KenBurnsImage>
-        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/65 to-black/20" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/35" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/25 via-black/15 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
         <motion.div
           className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgb(0_0_0/0.35)_100%)]"
           initial={{ opacity: 0 }}
