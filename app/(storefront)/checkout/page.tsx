@@ -3,7 +3,6 @@
 import { useState, type FormEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Container } from "@/components/ui/Container";
 import { Input } from "@/components/ui/Input";
@@ -15,7 +14,6 @@ import { placeholderImages } from "@/config/site";
 import { ShieldCheck } from "lucide-react";
 
 export default function CheckoutPage() {
-  const router = useRouter();
   const items = useCartStore((s) => s.items);
   const clearCart = useCartStore((s) => s.clearCart);
   const [loading, setLoading] = useState(false);
@@ -52,7 +50,6 @@ export default function CheckoutPage() {
           price: item.price,
           quantity: item.quantity,
           image: item.image,
-          description: item.description || "",
         })),
         customerEmail: formData.get("email") as string,
         customerPhone: formData.get("phone") as string,
@@ -96,9 +93,10 @@ export default function CheckoutPage() {
       } else {
         throw new Error("No checkout URL received");
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Checkout error:", error);
-      toast.error(error.message || "Failed to process checkout");
+      const errorMessage = error instanceof Error ? error.message : "Failed to process checkout";
+      toast.error(errorMessage);
       setLoading(false);
     }
   };

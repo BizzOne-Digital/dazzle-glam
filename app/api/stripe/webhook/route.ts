@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { connectDB } from "@/lib/db";
+import { connectDB } from "@/lib/db/connect";
 import { Order } from "@/models/Commerce";
 import { sendEmail } from "@/lib/email";
 
@@ -49,31 +49,34 @@ export async function POST(req: Request) {
           },
           items: lineItems.data
             .filter(item => !item.description?.includes("Shipping"))
-            .map((item: any) => ({
-              productId: item.price?.product?.id || "",
-              name: item.description || "",
-              price: (item.amount_total || 0) / 100 / (item.quantity || 1),
-              quantity: item.quantity || 1,
-              image: item.price?.product?.images?.[0] || "",
-            })),
+            .map((item) => {
+              const product = item.price?.product as Stripe.Product | undefined;
+              return {
+                productId: product?.id || "",
+                name: item.description || "",
+                price: (item.amount_total || 0) / 100 / (item.quantity || 1),
+                quantity: item.quantity || 1,
+                image: product?.images?.[0] || "",
+              };
+            }),
           shipping: {
             name: `${session.metadata?.firstName || ""} ${session.metadata?.lastName || ""}`.trim(),
-            line1: session.shipping_details?.address?.line1 || session.metadata?.shippingAddressLine1 || "",
-            line2: session.shipping_details?.address?.line2 || session.metadata?.shippingAddressLine2 || "",
-            city: session.shipping_details?.address?.city || session.metadata?.shippingCity || "",
-            province: session.shipping_details?.address?.state || session.metadata?.shippingProvince || "",
-            postalCode: session.shipping_details?.address?.postal_code || session.metadata?.shippingPostalCode || "",
-            country: session.shipping_details?.address?.country || session.metadata?.shippingCountry || "CA",
+            line1: session.metadata?.shippingAddressLine1 || "",
+            line2: session.metadata?.shippingAddressLine2 || "",
+            city: session.metadata?.shippingCity || "",
+            province: session.metadata?.shippingProvince || "",
+            postalCode: session.metadata?.shippingPostalCode || "",
+            country: session.metadata?.shippingCountry || "CA",
             phone: session.customer_details?.phone || session.metadata?.customerPhone || "",
           },
           billing: {
             name: `${session.metadata?.firstName || ""} ${session.metadata?.lastName || ""}`.trim(),
-            line1: session.shipping_details?.address?.line1 || session.metadata?.shippingAddressLine1 || "",
-            line2: session.shipping_details?.address?.line2 || session.metadata?.shippingAddressLine2 || "",
-            city: session.shipping_details?.address?.city || session.metadata?.shippingCity || "",
-            province: session.shipping_details?.address?.state || session.metadata?.shippingProvince || "",
-            postalCode: session.shipping_details?.address?.postal_code || session.metadata?.shippingPostalCode || "",
-            country: session.shipping_details?.address?.country || session.metadata?.shippingCountry || "CA",
+            line1: session.metadata?.shippingAddressLine1 || "",
+            line2: session.metadata?.shippingAddressLine2 || "",
+            city: session.metadata?.shippingCity || "",
+            province: session.metadata?.shippingProvince || "",
+            postalCode: session.metadata?.shippingPostalCode || "",
+            country: session.metadata?.shippingCountry || "CA",
           },
           payment: {
             method: "stripe",
@@ -111,7 +114,7 @@ export async function POST(req: Request) {
                 
                 <h3>Items Ordered:</h3>
                 <ul>
-                  ${orderData.items.map((item: any) => `
+                  ${orderData.items.map((item) => `
                     <li>${item.name} - Qty: ${item.quantity} - $${(item.price * item.quantity).toFixed(2)}</li>
                   `).join("")}
                 </ul>
@@ -155,7 +158,7 @@ export async function POST(req: Request) {
                 
                 <h3>Items:</h3>
                 <ul>
-                  ${orderData.items.map((item: any) => `
+                  ${orderData.items.map((item) => `
                     <li>${item.name} - Qty: ${item.quantity} - $${(item.price * item.quantity).toFixed(2)}</li>
                   `).join("")}
                 </ul>
@@ -199,7 +202,7 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ received: true });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Webhook error:", error);
     return NextResponse.json({ error: "Webhook handler failed" }, { status: 400 });
   }

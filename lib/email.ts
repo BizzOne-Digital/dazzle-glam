@@ -23,6 +23,25 @@ function createTransport() {
 
 const FROM = process.env.EMAIL_FROM || "noreply@dazzleglamjewelry.ca";
 
+export async function sendEmail({
+  to,
+  subject,
+  html,
+}: {
+  to: string;
+  subject: string;
+  html: string;
+}) {
+  const transporter = createTransport();
+
+  await transporter.sendMail({
+    from: `"Dazzle Glam" <${FROM}>`,
+    to,
+    subject,
+    html,
+  });
+}
+
 export async function sendSizeAvailableEmail({
   to,
   customerName,

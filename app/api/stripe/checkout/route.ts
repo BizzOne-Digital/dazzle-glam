@@ -1,6 +1,37 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
+interface CheckoutItem {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+  image?: string;
+}
+
+interface ShippingAddress {
+  line1: string;
+  line2?: string;
+  city: string;
+  province: string;
+  postalCode: string;
+  country: string;
+}
+
+interface CheckoutRequestBody {
+  items: CheckoutItem[];
+  customerEmail: string;
+  customerPhone?: string;
+  firstName: string;
+  lastName: string;
+  shippingAddress: ShippingAddress;
+  shippingMethod: string;
+  subtotal: number;
+  shippingCost: number;
+  tax: number;
+  total: number;
+}
+
 export async function POST(req: Request) {
   try {
     const key = process.env.STRIPE_SECRET_KEY;
@@ -14,7 +45,7 @@ export async function POST(req: Request) {
     }
 
     const stripe = new Stripe(key);
-    const body = await req.json();
+    const body: CheckoutRequestBody = await req.json();
 
     const {
       items,
@@ -35,13 +66,12 @@ export async function POST(req: Request) {
       payment_method_types: ["card"],
       mode: "payment",
       customer_email: customerEmail,
-      line_items: items.map((item: any) => ({
+      line_items: items.map((item) => ({
         price_data: {
           currency: "cad",
           product_data: {
             name: item.name,
             images: item.image ? [item.image] : [],
-            description: item.description || "",
           },
           unit_amount: Math.round(item.price * 100), // Convert to cents
         },
@@ -50,7 +80,7 @@ export async function POST(req: Request) {
       // Add shipping as a line item
       ...(shippingCost > 0 && {
         line_items: [
-          ...items.map((item: any) => ({
+          ...items.map((item) => ({
             price_data: {
               currency: "cad",
               product_data: {
@@ -100,10 +130,11 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ sessionId: session.id, url: session.url });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Stripe checkout error:", error);
+    const errorMessage = error instanceof Error ? error.message : "Failed to create checkout session";
     return NextResponse.json(
-      { error: error.message || "Failed to create checkout session" },
+      { error: errorMessage },
       { status: 500 }
     );
   }
