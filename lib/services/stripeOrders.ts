@@ -53,7 +53,10 @@ export async function fulfillStripeCheckoutSession(
     "";
 
   const items = lineItems.data
-    .filter((item) => !item.description?.toLowerCase().includes("shipping"))
+    .filter((item) => {
+      const name = item.description?.toLowerCase() || "";
+      return !name.includes("shipping") && !name.includes("tax");
+    })
     .map((item) => {
       const product = item.price?.product as Stripe.Product | string | undefined;
       const productObj =

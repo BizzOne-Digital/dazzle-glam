@@ -113,6 +113,20 @@ export async function POST(req: Request) {
       });
     }
 
+    const taxAmount = Math.max(0, Number(tax) || 0);
+    if (taxAmount > 0) {
+      lineItems.push({
+        price_data: {
+          currency: "cad",
+          product_data: {
+            name: "Tax (HST 13%)",
+          },
+          unit_amount: Math.round(taxAmount * 100),
+        },
+        quantity: 1,
+      });
+    }
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       mode: "payment",
@@ -131,7 +145,7 @@ export async function POST(req: Request) {
         shippingMethod: shippingMethod || "standard",
         subtotal: subtotal.toString(),
         shippingCost: shippingCost.toString(),
-        tax: tax.toString(),
+        tax: taxAmount.toString(),
         total: total.toString(),
         shippingAddressLine1: shippingAddress?.line1 || "",
         shippingAddressLine2: shippingAddress?.line2 || "",
