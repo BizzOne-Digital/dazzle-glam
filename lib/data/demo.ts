@@ -22,14 +22,9 @@ export interface DemoProduct {
   dimensions?: string;
 }
 
-/** Local product photos in /public/images/products — basename without -1/-2/-3/-4 */
-function productImgs(base: string): string[] {
-  return [
-    `/images/products/${base}-1.png`,
-    `/images/products/${base}-2.png`,
-    `/images/products/${base}-3.png`,
-    `/images/products/${base}-4.png`,
-  ];
+/** Local product photos in /public/images/products — basename without -1/-2/-3 */
+function productImgs(base: string, count = 3): string[] {
+  return Array.from({ length: count }, (_, i) => `/images/products/${base}-${i + 1}.png`);
 }
 
 const DEFAULT_SIZES: string[] = []; // Client will set sizes from admin panel
@@ -189,7 +184,7 @@ export const demoProducts: DemoProduct[] = [
     materials: ["Silver Tone", "Black Stone", "CZ"],
     colors: ["Silver", "Black"],
     sizes: DEFAULT_SIZES,
-    images: productImgs("Mens-Boastful-Black-Stone-Signet-silver"),
+    images: productImgs("Mens-Boastful-Black-Stone-Signet-silver", 2),
     careInstructions: "Polish with a silver jewelry cloth.",
   },
   {
@@ -276,7 +271,7 @@ export const demoProducts: DemoProduct[] = [
     materials: ["Silver Tone", "Black Stone", "CZ"],
     colors: ["Black", "Silver"],
     sizes: DEFAULT_SIZES,
-    images: productImgs("Womens-Beautiful-Black-Stone"),
+    images: productImgs("Womens-Beautiful-Black-Stone", 2),
     careInstructions: "Keep dry and store flat.",
   },
   {
@@ -292,7 +287,7 @@ export const demoProducts: DemoProduct[] = [
     materials: ["Silver Tone", "Cubic Zirconia"],
     colors: ["Silver"],
     sizes: DEFAULT_SIZES,
-    images: productImgs("Womens-Beautiful-Engagement-Ring"),
+    images: productImgs("Womens-Beautiful-Engagement-Ring", 2),
     isNewArrival: true,
     badge: "new",
     careInstructions: "Clean as a set; store together.",
@@ -310,7 +305,7 @@ export const demoProducts: DemoProduct[] = [
     materials: ["Silver Tone", "Cubic Zirconia"],
     colors: ["Silver"],
     sizes: DEFAULT_SIZES,
-    images: productImgs("Womens-Luxurious-2pc-Cubic"),
+    images: productImgs("Womens-Luxurious-2pc-Cubic", 2),
     isFeatured: true,
     isBestSeller: true,
     badge: "bestseller",
@@ -329,7 +324,7 @@ export const demoProducts: DemoProduct[] = [
     materials: ["Silver Tone", "Cubic Zirconia"],
     colors: ["Silver"],
     sizes: DEFAULT_SIZES,
-    images: productImgs("Womens-Luxurious-3pc-Cubic"),
+    images: productImgs("Womens-Luxurious-3pc-Cubic", 2),
     isNewArrival: true,
     careInstructions: "Stack carefully; avoid friction between bands.",
   },

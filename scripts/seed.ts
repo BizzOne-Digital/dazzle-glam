@@ -13,7 +13,8 @@ import {
   Review,
 } from "../models";
 import { demoProducts, demoTestimonials, demoServices } from "../lib/data/demo";
-import { navigation, placeholderImages, brand } from "../config/site";
+import { galleryItems } from "../lib/data/gallery";
+import { navigation, brand, placeholderImages } from "../config/site";
 
 async function main() {
   await connectDB();
@@ -101,11 +102,12 @@ async function main() {
   );
 
   await GalleryItem.insertMany(
-    placeholderImages.gallery.map((image, i) => ({
-      title: `Gallery ${i + 1}`,
-      caption: "Dazzle Glam look",
-      image,
-      category: i % 2 === 0 ? "product" : "lifestyle",
+    galleryItems.map((g, i) => ({
+      title: g.caption,
+      caption: g.caption,
+      image: g.src,
+      category: g.cat,
+      tall: !!g.tall,
       sortOrder: i,
       isPublished: true,
     }))

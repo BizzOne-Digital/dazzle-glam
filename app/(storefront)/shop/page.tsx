@@ -9,7 +9,7 @@ import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { demoProducts, toCardProduct } from "@/lib/data/demo";
+import { demoProducts, toCardProduct, type DemoProduct } from "@/lib/data/demo";
 import {
   PageEnter,
   KenBurnsImage,
@@ -29,6 +29,38 @@ function ShopPageContent() {
   const [maxPrice, setMaxPrice] = useState(100);
   const [inStockOnly, setInStockOnly] = useState(false);
   const [drawer, setDrawer] = useState(false);
+  const [catalog, setCatalog] = useState<DemoProduct[]>(demoProducts);
+  const [hero, setHero] = useState({
+    eyebrow: "Boutique",
+    title: "Shop All Jewelry",
+    description: "Eighteen statement rings — bold energy, luminous finish.",
+    image: "/images/hero/products-campaign.png",
+  });
+
+  useEffect(() => {
+    fetch("/api/products")
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data.products) && data.products.length) {
+          setCatalog(data.products);
+        }
+      })
+      .catch(() => undefined);
+    fetch("/api/content/shop")
+      .then((r) => r.json())
+      .then((data) => {
+        const h = data?.sections?.hero;
+        if (h) {
+          setHero((prev) => ({
+            eyebrow: h.eyebrow || prev.eyebrow,
+            title: h.title || prev.title,
+            description: h.description || prev.description,
+            image: h.image || prev.image,
+          }));
+        }
+      })
+      .catch(() => undefined);
+  }, []);
 
   useEffect(() => {
     const cat = searchParams.get("category");
@@ -42,7 +74,7 @@ function ShopPageContent() {
   }, [searchParams]);
 
   const products = useMemo(() => {
-    let list = [...demoProducts];
+    let list = [...catalog];
     if (category !== "all") list = list.filter((p) => p.category === category);
     if (q.trim()) {
       const s = q.toLowerCase();
@@ -63,7 +95,7 @@ function ShopPageContent() {
     if (sort === "name") list.sort((a, b) => a.name.localeCompare(b.name));
 
     return list.map(toCardProduct);
-  }, [q, category, sort, filter, maxPrice, inStockOnly]);
+  }, [catalog, q, category, sort, filter, maxPrice, inStockOnly]);
 
   const Filters = (
     <div className="space-y-6">
@@ -134,7 +166,7 @@ function ShopPageContent() {
       <div className="relative mb-12 h-56 overflow-hidden md:h-72 lg:h-80">
         <KenBurnsImage>
           <Image
-            src="/images/hero/shop-hero.png"
+            src={hero.image}
             alt="Shop Dazzle Glam jewelry"
             fill
             className="object-cover object-[78%_center] sm:object-[70%_center]"
@@ -146,9 +178,9 @@ function ShopPageContent() {
         <div className="absolute inset-0 bg-gradient-to-t from-black/15 via-transparent to-transparent" />
         <div className="absolute inset-0 flex items-center justify-center px-4 md:justify-start md:pl-10 lg:pl-16">
           <HeroTextReveal
-            eyebrow="Boutique"
-            title="Shop All Jewelry"
-            description="Statement Rings — Bold Energy, Luminous Finish."
+            eyebrow={hero.eyebrow}
+            title={hero.title}
+            description={hero.description}
           />
         </div>
       </div>

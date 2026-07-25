@@ -1,28 +1,60 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { demoProducts } from "@/lib/data/demo";
 import { formatCurrency } from "@/lib/utils";
-import { useMemo, useState } from "react";
+import { deleteProductAdmin } from "@/actions/products";
+import type { DemoProduct } from "@/lib/data/demo";
 
 export default function AdminProductsPage() {
   const [q, setQ] = useState("");
-  const products = useMemo(
-    () =>
-      demoProducts.filter((p) => p.name.toLowerCase().includes(q.toLowerCase())),
-    [q]
+  const [products, setProducts] = useState<DemoProduct[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/admin/products");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to load");
+      setProducts(data.products || []);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to load products");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void load();
+  }, []);
+
+  const filtered = useMemo(
+    () => products.filter((p) => p.name.toLowerCase().includes(q.toLowerCase())),
+    [products, q]
   );
+
+  const onDelete = async (id: string) => {
+    if (!confirm("Delete this product permanently?")) return;
+    const res = await deleteProductAdmin(id);
+    if (res.success) {
+      toast.success("Product deleted");
+      await load();
+    } else toast.error(res.error || "Delete failed");
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-heading text-3xl">Products</h1>
-          <p className="text-sm text-white/50">{products.length} catalog items</p>
+          <p className="text-sm text-white/50">
+            {loading ? "Loading…" : `${filtered.length} catalog items`}
+          </p>
         </div>
         <Button asChild>
           <Link href="/admin/products/new">Add Product</Link>
@@ -46,7 +78,7 @@ export default function AdminProductsPage() {
             </tr>
           </thead>
           <tbody>
-            {products.map((p) => (
+            {filtered.map((p) => (
               <tr key={p.id} className="border-t border-white/5">
                 <td className="p-3">
                   <div className="flex items-center gap-3">
@@ -67,16 +99,16 @@ export default function AdminProductsPage() {
                     .join(" · ") || "—"}
                 </td>
                 <td className="p-3">
-                  <div className="flex gap-2">
+                  <div className="flex gap-3">
                     <Link href={`/admin/products/${p.id}`} className="text-fuchsia hover:underline">
                       Edit
                     </Link>
                     <button
                       type="button"
                       className="text-white/40 hover:text-white"
-                      onClick={() => toast.success("Duplicated (connect MongoDB to persist)")}
+                      onClick={() => void onDelete(p.id)}
                     >
-                      Duplicate
+                      Delete
                     </button>
                   </div>
                 </td>

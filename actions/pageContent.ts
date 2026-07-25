@@ -2,12 +2,16 @@
 
 import { connectDB } from "@/lib/db/connect";
 import { PageContent } from "@/models/Content";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
+import { requireAdmin } from "@/lib/auth/session";
 
-export async function getPageContent(pageKey: string) {
+export async function getPageContent(pageKey: string, { publishedOnly = true } = {}) {
   try {
     await connectDB();
-    const content = await PageContent.findOne({ pageKey, isPublished: true }).lean();
+    const filter = publishedOnly
+      ? { pageKey, isPublished: true }
+      : { pageKey };
+    const content = await PageContent.findOne(filter).lean();
     
     if (!content) {
       return null;
@@ -37,6 +41,7 @@ export async function updatePageContent(pageKey: string, data: {
   isPublished?: boolean;
 }) {
   try {
+    await requireAdmin();
     await connectDB();
     
     const updated = await PageContent.findOneAndUpdate(
@@ -52,11 +57,11 @@ export async function updatePageContent(pageKey: string, data: {
       }
     ).lean();
 
-    // Revalidate specific paths and the API route
+    revalidateTag(`page-${pageKey}`);
     revalidatePath(`/api/content/${pageKey}`, "page");
     revalidatePath("/", "layout");
+    revalidatePath("/admin/content");
     
-    // Also revalidate specific page routes
     switch (pageKey) {
       case "home":
         revalidatePath("/", "page");
@@ -72,6 +77,9 @@ export async function updatePageContent(pageKey: string, data: {
         break;
       case "shop":
         revalidatePath("/shop", "page");
+        break;
+      case "gallery":
+        revalidatePath("/gallery", "page");
         break;
       default:
         revalidatePath(`/${pageKey}`, "page");

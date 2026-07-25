@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { ProductCard } from "@/components/products/ProductCard";
@@ -12,7 +12,18 @@ import { demoProducts, toCardProduct } from "@/lib/data/demo";
 /** Swipeable product rail — replaces collections on homepage */
 export function SwipeProductsSection() {
   const scroller = useRef<HTMLDivElement>(null);
-  const products = demoProducts.map(toCardProduct);
+  const [products, setProducts] = useState(() => demoProducts.map(toCardProduct));
+
+  useEffect(() => {
+    fetch("/api/products")
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data.products) && data.products.length) {
+          setProducts(data.products.map(toCardProduct));
+        }
+      })
+      .catch(() => undefined);
+  }, []);
 
   const scroll = (dir: number) => {
     scroller.current?.scrollBy({ left: dir * 300, behavior: "smooth" });

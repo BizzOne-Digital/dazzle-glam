@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Instagram, X, ChevronLeft, ChevronRight } from "lucide-react";
@@ -19,10 +19,14 @@ import {
 import { ScrollReveal } from "@/components/animations/ScrollReveal";
 import { MarqueeText } from "@/components/animations/Marquee";
 import { brand, marqueeWords } from "@/config/site";
-import { galleryItems } from "@/lib/data/gallery";
+import { galleryItems as staticGallery, type GalleryCategory } from "@/lib/data/gallery";
 
-const all = galleryItems;
-const heroImage = "/images/hero/gallery-campaign.png";
+type UiItem = {
+  src: string;
+  cat: GalleryCategory;
+  caption: string;
+  tall?: boolean;
+};
 
 const filters = ["all", "product", "lifestyle", "editorial"] as const;
 
@@ -30,10 +34,58 @@ export default function GalleryPage() {
   const [cat, setCat] = useState<(typeof filters)[number]>("all");
   const [active, setActive] = useState<number | null>(null);
   const reduced = useReducedMotion();
+  const [all, setAll] = useState<UiItem[]>(staticGallery);
+  const [hero, setHero] = useState({
+    eyebrow: "Portfolio",
+    title: "Gallery",
+    description:
+      "Customer looks, product close-ups, and campaign moments — scroll, filter, and feel the glam.",
+    image: "/images/hero/gallery-campaign.png",
+  });
+
+  useEffect(() => {
+    fetch("/api/gallery")
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data.items) && data.items.length) {
+          setAll(
+            data.items.map(
+              (item: {
+                image: string;
+                category?: string;
+                caption?: string;
+                title?: string;
+                tall?: boolean;
+              }) => ({
+                src: item.image,
+                cat: (item.category || "product") as GalleryCategory,
+                caption: item.caption || item.title || "Gallery",
+                tall: !!item.tall,
+              })
+            )
+          );
+        }
+      })
+      .catch(() => undefined);
+    fetch("/api/content/gallery")
+      .then((r) => r.json())
+      .then((data) => {
+        const h = data?.sections?.hero;
+        if (h) {
+          setHero((prev) => ({
+            eyebrow: h.eyebrow || prev.eyebrow,
+            title: h.title || prev.title,
+            description: h.description || prev.description,
+            image: h.image || prev.image,
+          }));
+        }
+      })
+      .catch(() => undefined);
+  }, []);
 
   const items = useMemo(
     () => (cat === "all" ? all : all.filter((i) => i.cat === cat)),
-    [cat]
+    [cat, all]
   );
 
   const open = (i: number) => setActive(i);
@@ -51,7 +103,7 @@ export default function GalleryPage() {
       <div className="relative mb-12 h-56 overflow-hidden md:mb-16 md:h-80 lg:h-[22rem]">
         <KenBurnsImage>
           <Image
-            src={heroImage}
+            src={hero.image}
             alt="Dazzle Glam gallery campaign"
             fill
             className="object-cover object-[82%_center] sm:object-[72%_center]"
@@ -69,9 +121,9 @@ export default function GalleryPage() {
         />
         <div className="absolute inset-0 flex items-center justify-center px-4 md:justify-start md:pl-10 lg:pl-16">
           <HeroTextReveal
-            eyebrow="Portfolio"
-            title="Gallery"
-            description="Customer looks, product close-ups, and campaign moments — scroll, filter, and feel the glam."
+            eyebrow={hero.eyebrow}
+            title={hero.title}
+            description={hero.description}
           />
         </div>
         <motion.div

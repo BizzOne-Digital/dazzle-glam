@@ -1,17 +1,31 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ProductCard } from "@/components/products/ProductCard";
 import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Button } from "@/components/ui/Button";
-import { demoProducts, toCardProduct } from "@/lib/data/demo";
+import { demoProducts, toCardProduct, type DemoProduct } from "@/lib/data/demo";
 import { formatCurrency } from "@/lib/utils";
 
 export function BestSellersSection() {
-  const bestsellers = demoProducts.filter((p) => p.isBestSeller);
-  const featured = bestsellers[0];
+  const [catalog, setCatalog] = useState<DemoProduct[]>(demoProducts);
+
+  useEffect(() => {
+    fetch("/api/products")
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data.products) && data.products.length) {
+          setCatalog(data.products);
+        }
+      })
+      .catch(() => undefined);
+  }, []);
+
+  const bestsellers = catalog.filter((p) => p.isBestSeller);
+  const featured = bestsellers[0] || catalog[0];
   const rest = bestsellers.slice(1, 5).map(toCardProduct);
 
   if (!featured) return null;

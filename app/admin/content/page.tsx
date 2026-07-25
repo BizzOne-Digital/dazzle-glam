@@ -5,7 +5,9 @@ import { toast } from "sonner";
 import { Save, Eye, EyeOff, Plus, Trash2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { LocalImageField } from "@/components/admin/LocalImageField";
 import { getAllPageContents, updatePageContent } from "@/actions/pageContent";
+import { defaultPageContent } from "@/lib/content/defaults";
 
 interface PageContentData {
   _id: string;
@@ -19,177 +21,9 @@ interface PageContentData {
   isPublished: boolean;
 }
 
-const PAGE_TEMPLATES = {
-  home: {
-    hero: {
-      title: "Dazzle Glam Jewelry Collection",
-      subtitle: "Turn Heads. Own the Room.",
-      description: "Eye-popping jewelry designed to command attention, amplify your confidence and transform every look into a bold statement.",
-      image: "/hero/hero-1.png",
-    },
-    swipeProducts: {
-      title: "New Arrivals",
-      description: "Statement Rings Curated To Turn Heads",
-    },
-    bestSellers: {
-      title: "Best Sellers",
-      description: "Our most-loved pieces",
-    },
-  },
-  about: {
-    hero: {
-      title: "About Us",
-      subtitle: "Bold Jewelry for Women Who Refuse to Blend In",
-      description: "At Dazzle Glam, we believe jewelry should do more than accessorize—it should amplify your presence, command attention, and make every room yours.",
-      image: "/products/product-1.png",
-    },
-    story: {
-      title: "Our Story",
-      content: "Founded on the belief that confidence is the best accessory, Dazzle Glam creates statement jewelry for women who own their space. Each piece is crafted to turn heads, spark conversations, and elevate your style to iconic status.",
-    },
-    mission: {
-      title: "Our Mission",
-      content: "To empower bold women with jewelry that's as fearless as they are. We design pieces that don't just complement your outfit—they define it.",
-    },
-  },
-  contact: {
-    hero: {
-      title: "Get in Touch",
-      subtitle: "We'd love to hear from you",
-      description: "Whether you have a question about our products, need assistance, or just want to say hello, our team is here to help.",
-      image: "/products/product-1.png",
-    },
-    hours: {
-      title: "Studio Hours",
-      weekday: "Monday – Friday: 9am – 9pm",
-      weekend: "Saturday – Sunday: 9am – 6pm",
-    },
-  },
-  faq: {
-    hero: {
-      title: "Frequently Asked Questions",
-      subtitle: "Everything You Need to Know",
-      description: "Find answers to common questions about our products, shipping, returns, and more.",
-    },
-    items: [
-      {
-        question: "What materials are used in your jewelry?",
-        answer: "Our jewelry is crafted from high-quality materials including sterling silver, gold-plated brass, and premium crystals. Each product listing includes specific material details.",
-      },
-      {
-        question: "How do I determine my ring size?",
-        answer: "We offer sizes 5-12 for all our rings. If you're unsure of your size or need a size that's currently unavailable, you can submit a size inquiry on the product page, and we'll notify you when it becomes available.",
-      },
-      {
-        question: "What is your return policy?",
-        answer: "We accept returns within 30 days of purchase for unworn, undamaged items in their original packaging. Please visit our Returns & Refunds page for complete details.",
-      },
-      {
-        question: "Do you offer international shipping?",
-        answer: "Currently, we ship within Canada only. Standard shipping is $8, and express 4-day shipping is available for $15. Orders over $100 qualify for free shipping.",
-      },
-      {
-        question: "How do I care for my jewelry?",
-        answer: "Store your jewelry in a cool, dry place away from direct sunlight. Clean with a soft, lint-free cloth. Avoid contact with water, perfumes, and harsh chemicals to maintain the finish.",
-      },
-    ],
-  },
-  shipping: {
-    hero: {
-      title: "Shipping Policy",
-      subtitle: "Fast & Reliable Delivery",
-      description: "We offer multiple shipping options to get your jewelry to you quickly and safely.",
-      image: "/products/product-1.png",
-    },
-    options: [
-      {
-        title: "Standard Shipping",
-        description: "$8 flat rate, 5-7 business days",
-      },
-      {
-        title: "Express Shipping",
-        description: "$15, 4 business days",
-      },
-      {
-        title: "Free Shipping",
-        description: "On orders over $100",
-      },
-    ],
-    content: "All orders are processed within 1-2 business days. You'll receive a tracking number once your order ships. We currently ship within Canada only.",
-  },
-  returns: {
-    hero: {
-      title: "Returns & Refunds",
-      subtitle: "Hassle-Free Returns",
-      description: "Not completely satisfied? We offer easy returns within 30 days.",
-      image: "/products/product-1.png",
-    },
-    policy: {
-      title: "Return Policy",
-      content: "We accept returns within 30 days of purchase for items that are unworn, undamaged, and in their original packaging with all tags attached. Refunds are processed to the original payment method within 5-10 business days of receiving the returned item.",
-    },
-    process: [
-      {
-        step: "1",
-        title: "Contact Us",
-        description: "Email us at dazzleglamcollection@gmail.com with your order number and reason for return.",
-      },
-      {
-        step: "2",
-        title: "Ship It Back",
-        description: "Securely package the item and ship it to the address provided. Customers are responsible for return shipping costs.",
-      },
-      {
-        step: "3",
-        title: "Get Your Refund",
-        description: "Once we receive and inspect your return, we'll process your refund within 5-10 business days.",
-      },
-    ],
-  },
-  privacy: {
-    hero: {
-      title: "Privacy Policy",
-      subtitle: "Your Privacy Matters",
-      description: "Learn how we collect, use, and protect your personal information.",
-      image: "/products/product-1.png",
-    },
-    lastUpdated: "January 2024",
-    content: "At Dazzle Glam, we are committed to protecting your privacy. This policy outlines how we collect, use, and safeguard your personal information.",
-  },
-  terms: {
-    hero: {
-      title: "Terms of Service",
-      subtitle: "Terms & Conditions",
-      description: "Please read these terms carefully before using our website or purchasing our products.",
-      image: "/products/product-1.png",
-    },
-    lastUpdated: "January 2024",
-    content: "By accessing and using the Dazzle Glam website, you agree to be bound by these terms of service and all applicable laws and regulations.",
-  },
-  accessibility: {
-    hero: {
-      title: "Accessibility Statement",
-      subtitle: "Committed to Accessibility",
-      description: "We're dedicated to making our website accessible to everyone.",
-      image: "/products/product-1.png",
-    },
-    content: "Dazzle Glam is committed to ensuring digital accessibility for people with disabilities. We continually improve the user experience for everyone and apply relevant accessibility standards.",
-  },
-  gallery: {
-    hero: {
-      title: "Gallery",
-      subtitle: "Statement Jewelry in Action",
-      description: "Explore our collection and see how Dazzle Glam jewelry transforms every look.",
-    },
-  },
-  shop: {
-    hero: {
-      title: "Shop All",
-      subtitle: "Bold Jewelry for Bold Women",
-      description: "Explore our full collection of statement rings designed to turn heads and own the room.",
-    },
-  },
-};
+const PAGE_TEMPLATES = defaultPageContent as Record<string, Record<string, unknown>>;
+
+const MANAGED_PAGES = ["home", "shop", "gallery", "about", "contact", "faq", "shipping", "returns", "privacy", "terms", "accessibility"];
 
 export default function ContentManagementPage() {
   const [pages, setPages] = useState<PageContentData[]>([]);
@@ -372,12 +206,20 @@ export default function ContentManagementPage() {
               </div>
             ) : (
               <div className="space-y-4">
-                {Object.entries(sectionData as Record<string, unknown>).map(([field, value]: [string, unknown]) => (
+                {Object.entries(sectionData as Record<string, unknown>).map(([field, value]: [string, unknown]) => {
+                  const isImageField = /image/i.test(field);
+                  return (
                   <div key={field}>
                     <label className="mb-1 block text-sm text-white/70 capitalize">
                       {field}
                     </label>
-                    {typeof value === "string" && value.length > 100 ? (
+                    {isImageField ? (
+                      <LocalImageField
+                        folder="pages"
+                        value={String(value || "")}
+                        onChange={(url) => updateSection(sectionKey, field, url)}
+                      />
+                    ) : typeof value === "string" && value.length > 100 ? (
                       <textarea
                         value={value}
                         onChange={(e) => updateSection(sectionKey, field, e.target.value)}
@@ -393,7 +235,8 @@ export default function ContentManagementPage() {
                       />
                     )}
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -435,7 +278,7 @@ export default function ContentManagementPage() {
             <div className="rounded-lg border border-white/10 bg-charcoal/50 p-4">
               <h2 className="mb-4 font-heading text-lg text-white">Pages</h2>
               <div className="space-y-1">
-                {Object.keys(PAGE_TEMPLATES).map((pageKey) => (
+                {MANAGED_PAGES.map((pageKey) => (
                   <button
                     key={pageKey}
                     onClick={() => setSelectedPage(pageKey)}

@@ -10,7 +10,7 @@ import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { ProductGrid } from "@/components/products/ProductGrid";
-import { demoProducts, toCardProduct } from "@/lib/data/demo";
+import { demoProducts, toCardProduct, type DemoProduct } from "@/lib/data/demo";
 import { useCartStore } from "@/lib/store/cart";
 import { formatCurrency } from "@/lib/utils";
 import { submitSizeInquiry } from "@/actions/sizeInquiry";
@@ -25,7 +25,10 @@ const ALL_SIZES = ["5", "6", "7", "8", "9", "10", "11", "12"];
 
 export default function ProductPage() {
   const params = useParams<{ slug: string }>();
-  const product = demoProducts.find((p) => p.slug === params.slug);
+  const [product, setProduct] = useState<DemoProduct | null>(
+    () => demoProducts.find((p) => p.slug === params.slug) || null
+  );
+  const [catalog, setCatalog] = useState(demoProducts);
   const [active, setActive] = useState(0);
   const [qty, setQty] = useState(1);
   const [zoom, setZoom] = useState(false);
@@ -35,6 +38,23 @@ export default function ProductPage() {
 
   // Live sizes fetched from API (admin-managed via MongoDB)
   const [liveSizes, setLiveSizes] = useState<string[] | null>(null);
+
+  useEffect(() => {
+    fetch(`/api/products/by-slug/${params.slug}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.product) setProduct(data.product);
+      })
+      .catch(() => undefined);
+    fetch("/api/products")
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data.products) && data.products.length) {
+          setCatalog(data.products);
+        }
+      })
+      .catch(() => undefined);
+  }, [params.slug]);
 
   useEffect(() => {
     if (!product) return;
@@ -59,11 +79,11 @@ export default function ProductPage() {
 
   const related = useMemo(() => {
     if (!product) return [];
-    return demoProducts
-      .filter((p) => p.id !== product.id)
+    return catalog
+      .filter((p) => p.id !== product.id && p.slug !== product.slug)
       .slice(0, 4)
       .map(toCardProduct);
-  }, [product]);
+  }, [product, catalog]);
 
   if (!product) {
     return (
@@ -151,7 +171,7 @@ export default function ProductPage() {
                 )}
               </motion.div>
               <div className="mt-3 flex gap-3">
-                {product.images.slice(0, 2).map((img, i) => (
+                {product.images.slice(0, 3).map((img, i) => (
                   <button
                     key={img + i}
                     type="button"

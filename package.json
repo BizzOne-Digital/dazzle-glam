@@ -11,6 +11,7 @@
     "seed:admin": "tsx --env-file=.env scripts/seed-admin.ts",
     "seed:content": "tsx --env-file=.env scripts/seedPageContent.ts",
     "migrate:content": "tsx --env-file=.env scripts/migratePageContent.ts",
+    "update:product-images": "tsx --env-file=.env scripts/updateProductImages.ts",
     "update:settings": "tsx --env-file=.env scripts/updateSettings.ts",
     "test:settings": "tsx --env-file=.env scripts/testSettingsSave.ts"
   },

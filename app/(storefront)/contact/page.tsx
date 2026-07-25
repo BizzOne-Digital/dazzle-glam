@@ -147,9 +147,24 @@ function ContactForm() {
         />
         <div className="relative flex items-center justify-center">
           <HeroTextReveal
-            eyebrow="Connect"
-            title="Contact Us"
-            description="Questions, custom orders, styling — we're here."
+            eyebrow={
+              String(
+                (pageContent?.sections?.hero as { eyebrow?: string } | undefined)?.eyebrow ||
+                  "Connect"
+              )
+            }
+            title={
+              String(
+                (pageContent?.sections?.hero as { title?: string } | undefined)?.title ||
+                  "Contact Us"
+              )
+            }
+            description={
+              String(
+                (pageContent?.sections?.hero as { description?: string } | undefined)
+                  ?.description || "Questions, custom orders, styling — we're here."
+              )
+            }
           />
         </div>
       </div>

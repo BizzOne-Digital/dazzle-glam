@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Instagram, X } from "lucide-react";
@@ -10,14 +10,37 @@ import { Button } from "@/components/ui/Button";
 import { brand } from "@/config/site";
 import { galleryItems } from "@/lib/data/gallery";
 
-const items = galleryItems.slice(0, 8).map((g, i) => ({
-  id: `g${i}`,
-  src: g.src,
-  caption: g.caption,
-}));
-
 export function GallerySection() {
   const [active, setActive] = useState<number | null>(null);
+  const [items, setItems] = useState(
+    galleryItems.slice(0, 8).map((g, i) => ({
+      id: `g${i}`,
+      src: g.src,
+      caption: g.caption,
+    }))
+  );
+
+  useEffect(() => {
+    fetch("/api/gallery")
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data.items) && data.items.length) {
+          setItems(
+            data.items.slice(0, 8).map(
+              (
+                item: { _id?: string; image: string; caption?: string; title?: string },
+                i: number
+              ) => ({
+                id: item._id || `g${i}`,
+                src: item.image,
+                caption: item.caption || item.title || "Gallery",
+              })
+            )
+          );
+        }
+      })
+      .catch(() => undefined);
+  }, []);
 
   return (
     <section className="py-20 md:py-28">

@@ -7,9 +7,33 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
-const HERO_IMAGE = "/images/hero/campaign.png";
+export type HeroContent = {
+  eyebrow?: string;
+  title?: string;
+  scriptTitle?: string;
+  description?: string;
+  image?: string;
+  primaryCta?: string;
+  primaryHref?: string;
+  secondaryCta?: string;
+  secondaryHref?: string;
+};
 
-export function HeroSection() {
+const DEFAULTS: Required<HeroContent> = {
+  eyebrow: "Dazzle Glam Jewelry Collection",
+  title: "Turn Heads.",
+  scriptTitle: "Own the Room.",
+  description:
+    "Eye-popping jewelry designed to command attention, amplify your confidence and transform every look into a bold statement.",
+  image: "/images/hero/campaign.png",
+  primaryCta: "Shop New Arrivals",
+  primaryHref: "/shop?sort=new",
+  secondaryCta: "Explore Products",
+  secondaryHref: "/shop",
+};
+
+export function HeroSection({ content }: { content?: HeroContent }) {
+  const c = { ...DEFAULTS, ...content };
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -22,10 +46,9 @@ export function HeroSection() {
       ref={ref}
       className="relative flex min-h-[100svh] items-end overflow-x-hidden pb-16 pt-[9rem] sm:pb-20 sm:pt-[10rem] md:items-center md:pb-24 md:pt-[10rem]"
     >
-      {/* Background */}
       <motion.div style={{ scale }} className="absolute inset-0">
         <Image
-          src={HERO_IMAGE}
+          src={c.image}
           alt="Dazzle Glam statement jewelry campaign"
           fill
           priority
@@ -37,24 +60,6 @@ export function HeroSection() {
         <div className="grain absolute inset-0" />
       </motion.div>
 
-      {/* Soft gem glows (corners) */}
-      <div
-        className="pointer-events-none absolute -bottom-8 -left-6 z-[6] h-40 w-40 rounded-full bg-fuchsia/35 blur-[60px] sm:h-52 sm:w-52"
-        aria-hidden
-      />
-      <div
-        className="pointer-events-none absolute -bottom-10 -right-8 z-[6] h-44 w-44 rounded-full bg-fuchsia/30 blur-[70px] sm:h-56 sm:w-56"
-        aria-hidden
-      />
-      <div
-        className="pointer-events-none absolute left-[8%] top-[18%] z-[6] hidden h-2 w-2 rounded-full bg-fuchsia/80 shadow-[0_0_12px_#ff1493] sm:block"
-        aria-hidden
-      />
-      <div
-        className="pointer-events-none absolute left-[18%] top-[28%] z-[6] hidden h-1.5 w-1.5 rotate-45 bg-fuchsia/60 sm:block"
-        aria-hidden
-      />
-
       <div className="relative z-10 mx-auto w-full max-w-7xl px-5 sm:px-8 lg:px-12">
         <div className="max-w-xl lg:max-w-2xl">
           <motion.p
@@ -63,8 +68,15 @@ export function HeroSection() {
             transition={{ delay: 0.12 }}
             className="mb-4 text-[0.9rem] font-medium uppercase tracking-[0.32em] text-white/85 sm:mb-5 sm:text-[1.05rem] md:text-[1.15rem] lg:text-[1.35rem] xl:text-[1.6rem] sm:tracking-[0.38em]"
           >
-            Dazzle{" "}
-            <span className="text-fuchsia">Glam</span> Jewelry Collection
+            {c.eyebrow.includes("Glam") ? (
+              <>
+                {c.eyebrow.split(/Glam/i)[0]}
+                <span className="text-fuchsia">Glam</span>
+                {c.eyebrow.split(/Glam/i)[1] || ""}
+              </>
+            ) : (
+              c.eyebrow
+            )}
           </motion.p>
 
           <div className="overflow-hidden">
@@ -74,8 +86,8 @@ export function HeroSection() {
               transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
               className="font-heading text-lg font-semibold leading-tight tracking-tight text-white sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl"
             >
-              Turn Heads.{" "}
-              <span className="font-script text-fuchsia">Own the Room.</span>
+              {c.title}{" "}
+              <span className="font-script text-fuchsia">{c.scriptTitle}</span>
             </motion.h1>
           </div>
 
@@ -90,8 +102,7 @@ export function HeroSection() {
             transition={{ delay: 0.35 }}
             className="mb-7 mt-5 max-w-md text-base leading-relaxed text-white/75 sm:mb-8 sm:mt-6 sm:text-lg md:text-xl"
           >
-            Eye-popping jewelry designed to command attention, amplify your
-            confidence and transform every look into a bold statement.
+            {c.description}
           </motion.p>
 
           <motion.div
@@ -101,14 +112,23 @@ export function HeroSection() {
             className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap"
           >
             <Button asChild size="lg" className="w-full sm:w-auto">
-              <Link href="/shop?sort=new">
-                Shop New Arrivals <Sparkles className="h-3.5 w-3.5" />
+              <Link href={c.primaryHref}>
+                {c.primaryCta} <Sparkles className="h-3.5 w-3.5" />
               </Link>
             </Button>
+            {c.secondaryCta && (
+              <Button
+                asChild
+                variant="secondary"
+                size="lg"
+                className="w-full border-fuchsia/70 text-white hover:border-fuchsia hover:bg-fuchsia/10 sm:w-auto"
+              >
+                <Link href={c.secondaryHref}>{c.secondaryCta}</Link>
+              </Button>
+            )}
           </motion.div>
         </div>
       </div>
-
     </section>
   );
 }

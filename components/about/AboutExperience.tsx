@@ -19,7 +19,22 @@ import {
 } from "@/components/animations/PageMotion";
 import { brand, placeholderImages } from "@/config/site";
 
-export function AboutExperience() {
+type AboutContent = {
+  hero?: { eyebrow?: string; title?: string; image?: string };
+  mission?: {
+    eyebrow?: string;
+    title?: string;
+    description?: string;
+    content?: string;
+    scriptLine?: string;
+  };
+  founder?: { eyebrow?: string; title?: string; description?: string };
+};
+
+export function AboutExperience({ content }: { content?: AboutContent }) {
+  const hero = content?.hero;
+  const mission = content?.mission;
+  const founder = content?.founder;
   const imgs = [
     ...placeholderImages.editorial.slice(0, 2),
     ...placeholderImages.lifestyle.slice(0, 2),
@@ -32,7 +47,7 @@ export function AboutExperience() {
       <div className="relative h-[58vh] min-h-[380px] overflow-hidden md:h-[64vh]">
         <KenBurnsImage>
           <Image
-            src="/images/hero/about-campaign.png"
+            src={hero?.image || "/images/hero/about-campaign.png"}
             alt="Dazzle Glam brand story"
             fill
             className="object-cover object-[78%_18%] sm:object-[72%_22%] md:object-[68%_20%]"
@@ -45,8 +60,8 @@ export function AboutExperience() {
         <div className="absolute inset-0 flex items-center md:items-center">
           <Container className="pt-6 pb-8 md:pt-2 md:pb-10">
             <HeroTextReveal
-              eyebrow="Our Story"
-              title="Jewelry That Breaks the Mold"
+              eyebrow={hero?.eyebrow || "Our Story"}
+              title={hero?.title || "Jewelry That Breaks the Mold"}
               align="left"
             />
           </Container>
@@ -57,14 +72,16 @@ export function AboutExperience() {
         <div className="grid items-center gap-12 lg:grid-cols-2">
           <ScrollReveal direction="left">
             <SectionHeading
-              eyebrow="Mission"
-              title="Amplify Character. Own the Room."
-              description="We believe jewelry should break the mold, amplify character, and transform everyday moments into bold statements of artistic confidence."
+              eyebrow={mission?.eyebrow || "Mission"}
+              title={mission?.title || "Amplify Character. Own the Room."}
+              description={
+                mission?.description ||
+                "We believe jewelry should break the mold, amplify character, and transform everyday moments into bold statements of artistic confidence."
+              }
             />
             <p className="text-white/60">
-              Founded by {brand.clientName}, {brand.name} was built for women between 15 and 50 who
-              want eye-popping pieces that command attention from across the room — without
-              whispering.
+              {mission?.content ||
+                `Founded by ${brand.clientName}, ${brand.name} was built for women between 15 and 50 who want eye-popping pieces that command attention from across the room — without whispering.`}
             </p>
             <motion.p
               className="mt-4 font-script text-3xl text-fuchsia-glow"
@@ -73,7 +90,7 @@ export function AboutExperience() {
               viewport={{ once: true }}
               transition={{ delay: 0.2, duration: 0.7 }}
             >
-              So glam it up!
+              {mission?.scriptLine || "So glam it up!"}
             </motion.p>
           </ScrollReveal>
 
@@ -132,12 +149,15 @@ export function AboutExperience() {
                 />
               </ParallaxBlock>
               <div className="flex flex-col justify-center bg-charcoal p-6 sm:p-10">
-                <p className="text-[11px] uppercase tracking-[0.3em] text-fuchsia">Founder</p>
-                <h2 className="mt-2 font-heading text-3xl sm:text-4xl">{brand.clientName}</h2>
+                <p className="text-[11px] uppercase tracking-[0.3em] text-fuchsia">
+                  {founder?.eyebrow || "Founder"}
+                </p>
+                <h2 className="mt-2 font-heading text-3xl sm:text-4xl">
+                  {founder?.title || brand.clientName}
+                </h2>
                 <p className="mt-4 text-white/65">
-                  With a passion for statement jewelry and modern feminine glamour,{" "}
-                  {brand.clientName} curates pieces that feel like a high-fashion campaign — ready
-                  for real life.
+                  {founder?.description ||
+                    `With a passion for statement jewelry and modern feminine glamour, ${brand.clientName} curates pieces that feel like a high-fashion campaign — ready for real life.`}
                 </p>
                 <Button asChild className="mt-8 w-fit">
                   <Link href="/shop">Shop the Products</Link>

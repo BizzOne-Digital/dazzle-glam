@@ -32,6 +32,10 @@ yarn-error.log*
 .env
 .env*.local
 
+# local CMS uploads (keep folder via .gitkeep)
+/public/uploads/**
+!/public/uploads/.gitkeep
+
 # vercel
 .vercel
 

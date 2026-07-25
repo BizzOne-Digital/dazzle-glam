@@ -30,11 +30,15 @@ function RevealBlock({
   );
 }
 
-export function HomeExperience() {
+export function HomeExperience({
+  heroContent,
+}: {
+  heroContent?: import("@/components/home/HeroSection").HeroContent;
+}) {
   return (
     <div className="home-snap-root">
       <SnapSection>
-        <HeroSection />
+        <HeroSection content={heroContent} />
       </SnapSection>
 
       <SnapSection>

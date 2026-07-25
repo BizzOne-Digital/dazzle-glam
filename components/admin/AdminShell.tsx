@@ -26,7 +26,7 @@ const nav = [
   { href: "/admin/orders", label: "Orders", icon: ShoppingCart },
   { href: "/admin/customers", label: "Customers", icon: Users },
   { href: "/admin/discounts", label: "Discounts", icon: Percent },
-  { href: "/admin/content", label: "Content", icon: FileText },
+  { href: "/admin/content", label: "Pages", icon: FileText },
   { href: "/admin/gallery", label: "Gallery", icon: Images },
   { href: "/admin/contact", label: "Contact", icon: Inbox },
   { href: "/admin/media", label: "Media", icon: FolderOpen },

@@ -1,21 +1,37 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { formatCurrency } from "@/lib/utils";
-import { demoProducts } from "@/lib/data/demo";
+import { demoProducts, type DemoProduct } from "@/lib/data/demo";
 
 export function FeaturedProductSection() {
+  const [catalog, setCatalog] = useState<DemoProduct[]>(demoProducts);
+
+  useEffect(() => {
+    fetch("/api/products")
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data.products) && data.products.length) {
+          setCatalog(data.products);
+        }
+      })
+      .catch(() => undefined);
+  }, []);
+
   const product =
-    demoProducts.find((p) => p.slug === "sapphire-birthstone-promise-ring") ||
-    demoProducts.find((p) => p.isFeatured) ||
-    demoProducts[0];
+    catalog.find((p) => p.slug === "sapphire-birthstone-promise-ring") ||
+    catalog.find((p) => p.isFeatured) ||
+    catalog[0];
+
+  if (!product) return null;
 
   const featuredImage =
     product.images[1] ||
+    product.images[0] ||
     "/images/products/Brilliant-Womens-Sapphire-2.png";
 
   const ref = useRef<HTMLDivElement>(null);

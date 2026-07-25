@@ -79,6 +79,7 @@ export interface IGalleryItem {
   image: string;
   videoUrl?: string;
   category?: string;
+  tall?: boolean;
   productTags: mongoose.Types.ObjectId[];
   sortOrder: number;
   isPublished: boolean;
@@ -92,7 +93,12 @@ const GalleryItemSchema = new Schema<IGalleryItem>(
     caption: String,
     image: { type: String, required: true },
     videoUrl: String,
-    category: String,
+    category: {
+      type: String,
+      enum: ["product", "lifestyle", "editorial", "other"],
+      default: "product",
+    },
+    tall: { type: Boolean, default: false },
     productTags: [{ type: Schema.Types.ObjectId, ref: "Product" }],
     sortOrder: { type: Number, default: 0 },
     isPublished: { type: Boolean, default: true },
