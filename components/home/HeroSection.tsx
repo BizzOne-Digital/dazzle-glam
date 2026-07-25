@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, useScroll, useTransform } from "framer-motion";
@@ -34,12 +34,17 @@ const DEFAULTS: Required<HeroContent> = {
 
 export function HeroSection({ content }: { content?: HeroContent }) {
   const c = { ...DEFAULTS, ...content };
+  const [imageSrc, setImageSrc] = useState(c.image || DEFAULTS.image);
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start start", "end start"],
   });
   const scale = useTransform(scrollYProgress, [0, 1], [1, 1.06]);
+
+  useEffect(() => {
+    setImageSrc(c.image || DEFAULTS.image);
+  }, [c.image]);
 
   return (
     <section
@@ -48,12 +53,15 @@ export function HeroSection({ content }: { content?: HeroContent }) {
     >
       <motion.div style={{ scale }} className="absolute inset-0">
         <Image
-          src={c.image}
+          src={imageSrc}
           alt="Dazzle Glam statement jewelry campaign"
           fill
           priority
           className="object-cover object-[72%_center] sm:object-[68%_center]"
           sizes="100vw"
+          onError={() => {
+            if (imageSrc !== DEFAULTS.image) setImageSrc(DEFAULTS.image);
+          }}
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-black/15 to-transparent sm:via-black/10 sm:to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />

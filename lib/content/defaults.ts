@@ -120,6 +120,28 @@ export async function getPageSections(pageKey: string): Promise<PageSections> {
   return { ...defaults, ...content.sections };
 }
 
+/**
+ * Resolve CMS image URLs for Vercel.
+ * Legacy `/uploads/...` paths were written to disk (read-only on Vercel) and break.
+ * New uploads use `/api/uploads/{folder}/{file}` (MongoDB).
+ */
+export function resolveContentImage(
+  url: string | undefined | null,
+  fallback: string
+): string {
+  if (!url || !String(url).trim()) return fallback;
+  const value = String(url).trim();
+
+  if (value.startsWith("/api/uploads/")) return value;
+
+  // Old local filesystem uploads — not available on Vercel
+  if (value.startsWith("/uploads/")) {
+    return fallback;
+  }
+
+  return value;
+}
+
 export function sectionText(
   sections: PageSections,
   key: string,
@@ -128,4 +150,13 @@ export function sectionText(
 ): string {
   const value = sections?.[key]?.[field];
   return typeof value === "string" && value.length ? value : fallback;
+}
+
+export function sectionImage(
+  sections: PageSections,
+  key: string,
+  field: string,
+  fallback: string
+): string {
+  return resolveContentImage(sectionText(sections, key, field, fallback), fallback);
 }

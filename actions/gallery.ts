@@ -16,7 +16,9 @@ export async function getGalleryItems(publishedOnly = true) {
     await connectDB();
     const filter = publishedOnly ? { isPublished: true } : {};
     const items = await GalleryItem.find(filter).sort({ sortOrder: 1, createdAt: -1 }).lean();
-    if (!items.length && publishedOnly) {
+
+    // Prefer full static catalog when DB is empty or incomplete (e.g. only 8 of 24 seeded)
+    if (publishedOnly && items.length < staticGallery.length) {
       return staticGallery.map((g, i) => ({
         _id: `static-${i}`,
         title: g.caption,
@@ -28,6 +30,7 @@ export async function getGalleryItems(publishedOnly = true) {
         isPublished: true,
       }));
     }
+
     return serialize(items);
   } catch (error) {
     console.error("getGalleryItems:", error);
@@ -114,9 +117,14 @@ export async function seedGalleryFromStatic() {
   await requireAdmin();
   await connectDB();
   const count = await GalleryItem.countDocuments();
-  if (count > 0) {
+
+  // Replace incomplete seeds so all static images appear in admin + storefront
+  if (count > 0 && count < staticGallery.length) {
+    await GalleryItem.deleteMany({});
+  } else if (count >= staticGallery.length) {
     return { success: true, message: `Gallery already has ${count} items` };
   }
+
   await GalleryItem.insertMany(
     staticGallery.map((g, i) => ({
       title: g.caption,
@@ -129,5 +137,7 @@ export async function seedGalleryFromStatic() {
     }))
   );
   revalidatePath("/gallery");
+  revalidatePath("/");
+  revalidatePath("/admin/gallery");
   return { success: true, message: `Seeded ${staticGallery.length} gallery items` };
 }

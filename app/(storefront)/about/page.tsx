@@ -1,5 +1,5 @@
 import { AboutExperience } from "@/components/about/AboutExperience";
-import { getPageSections, sectionText } from "@/lib/content/defaults";
+import { getPageSections, sectionImage, sectionText } from "@/lib/content/defaults";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +22,7 @@ export default async function AboutPage() {
             "title",
             "Jewelry That Breaks the Mold"
           ),
-          image: sectionText(
+          image: sectionImage(
             sections,
             "hero",
             "image",

@@ -47,24 +47,25 @@ export default function GalleryPage() {
     fetch("/api/gallery")
       .then((r) => r.json())
       .then((data) => {
-        if (Array.isArray(data.items) && data.items.length) {
-          setAll(
-            data.items.map(
-              (item: {
-                image: string;
-                category?: string;
-                caption?: string;
-                title?: string;
-                tall?: boolean;
-              }) => ({
-                src: item.image,
-                cat: (item.category || "product") as GalleryCategory,
-                caption: item.caption || item.title || "Gallery",
-                tall: !!item.tall,
-              })
-            )
-          );
-        }
+        if (!Array.isArray(data.items) || !data.items.length) return;
+        // Keep the fuller static set if the API returns an incomplete catalog
+        if (data.items.length < staticGallery.length) return;
+        setAll(
+          data.items.map(
+            (item: {
+              image: string;
+              category?: string;
+              caption?: string;
+              title?: string;
+              tall?: boolean;
+            }) => ({
+              src: item.image,
+              cat: (item.category || "product") as GalleryCategory,
+              caption: item.caption || item.title || "Gallery",
+              tall: !!item.tall,
+            })
+          )
+        );
       })
       .catch(() => undefined);
     fetch("/api/content/gallery")
@@ -76,7 +77,9 @@ export default function GalleryPage() {
             eyebrow: h.eyebrow || prev.eyebrow,
             title: h.title || prev.title,
             description: h.description || prev.description,
-            image: h.image || prev.image,
+            image: h.image?.startsWith("/uploads/")
+              ? prev.image
+              : h.image || prev.image,
           }));
         }
       })

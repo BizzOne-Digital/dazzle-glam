@@ -55,7 +55,9 @@ function ShopPageContent() {
             eyebrow: h.eyebrow || prev.eyebrow,
             title: h.title || prev.title,
             description: h.description || prev.description,
-            image: h.image || prev.image,
+            image: h.image?.startsWith("/uploads/")
+              ? prev.image
+              : h.image || prev.image,
           }));
         }
       })
