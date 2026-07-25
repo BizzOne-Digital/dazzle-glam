@@ -22,6 +22,8 @@ export function FeaturedProductSection() {
       .catch(() => undefined);
   }, []);
 
+  const ref = useRef<HTMLDivElement>(null);
+
   const product =
     catalog.find((p) => p.slug === "sapphire-birthstone-promise-ring") ||
     catalog.find((p) => p.isFeatured) ||
@@ -33,8 +35,6 @@ export function FeaturedProductSection() {
     product.images[1] ||
     product.images[0] ||
     "/images/products/Brilliant-Womens-Sapphire-2.png";
-
-  const ref = useRef<HTMLDivElement>(null);
 
   const onMove = (e: React.MouseEvent) => {
     const el = ref.current;

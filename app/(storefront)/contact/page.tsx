@@ -20,7 +20,7 @@ import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Button } from "@/components/ui/Button";
 import { submitContact } from "@/actions/contact";
-import { getSiteSettings, type SiteSettingsData } from "@/actions/settings";
+import type { SiteSettingsData } from "@/actions/settings";
 import { brand, placeholderImages } from "@/config/site";
 import { demoServices } from "@/lib/data/demo";
 import { ScrollReveal } from "@/components/animations/ScrollReveal";

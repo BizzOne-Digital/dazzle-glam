@@ -6,7 +6,7 @@ import Link from "next/link";
 import { ArrowUp, Instagram, Mail, Phone, Facebook } from "lucide-react";
 import { toast } from "sonner";
 import { brand, navigation } from "@/config/site";
-import { getSiteSettings, type SiteSettingsData } from "@/actions/settings";
+import type { SiteSettingsData } from "@/actions/settings";
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { Input } from "@/components/ui/Input";
