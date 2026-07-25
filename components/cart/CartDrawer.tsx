@@ -17,7 +17,8 @@ export function CartDrawer() {
   const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
   const discount = subtotal >= 65 ? subtotal * 0.1 : 0;
   const discountedSubtotal = subtotal - discount;
-  const shipping = subtotal === 0 ? 0 : discountedSubtotal >= 100 ? 0 : 12;
+  /** Temporary: shipping disabled for Stripe testing */
+  const shipping = 0;
   const total = discountedSubtotal + shipping;
   const totalQty = items.reduce((n, i) => n + i.quantity, 0);
 
@@ -64,13 +65,8 @@ export function CartDrawer() {
                 Add {formatCurrency(65 - subtotal)} more for 10% off
               </p>
             )}
-            {subtotal >= 65 && discountedSubtotal < 100 && (
-              <p className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/50">
-                Add {formatCurrency(100 - discountedSubtotal)} more after discount for free shipping
-              </p>
-            )}
             <p className="font-body text-xs text-white/40">
-              Shipping & taxes calculated at checkout.
+              Taxes calculated at checkout. Shipping waived for testing.
             </p>
             <Link
               href="/checkout"

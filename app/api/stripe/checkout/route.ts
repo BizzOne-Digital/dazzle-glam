@@ -70,10 +70,12 @@ export async function POST(req: Request) {
       shippingAddress,
       shippingMethod,
       subtotal,
-      shippingCost,
       tax,
       total,
     } = body;
+
+    // Temporary: shipping disabled for Stripe testing
+    const shippingCost = 0;
 
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({

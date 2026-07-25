@@ -20,8 +20,9 @@ export default function CheckoutPage() {
   const [sameBilling, setSameBilling] = useState(true);
 
   const subtotal = items.reduce((s, i) => s + i.price * i.quantity, 0);
-  const [shippingMethod, setShippingMethod] = useState("standard");
-  const shippingCost = subtotal >= 100 ? 0 : shippingMethod === "express" ? 15 : 8;
+  const shippingMethod = "standard";
+  /** Temporary: shipping disabled for Stripe testing */
+  const shippingCost = 0;
   const tax = subtotal * 0.13;
   const total = subtotal + shippingCost + tax;
 
@@ -180,20 +181,6 @@ export default function CheckoutPage() {
               </label>
             </section>
 
-            <section className="rounded-2xl border border-white/10 p-6">
-              <h2 className="font-heading text-2xl">Delivery</h2>
-              <div className="mt-4">
-                <Select
-                  name="shippingMethod"
-                  defaultValue="standard"
-                  onChange={(e) => setShippingMethod(e.target.value)}
-                  options={[
-                    { label: "Standard (3–6 days) — $8 / Free over $100", value: "standard" },
-                    { label: "Express (1-2 days) — $15", value: "express" },
-                  ]}
-                />
-              </div>
-            </section>
           </div>
 
           <aside className="h-fit rounded-2xl border border-silver/20 bg-black/50 p-6">
@@ -221,7 +208,7 @@ export default function CheckoutPage() {
               </div>
               <div className="flex justify-between">
                 <dt className="text-white/50">Shipping</dt>
-                <dd>{shippingCost === 0 ? "Free" : formatCurrency(shippingCost)}</dd>
+                <dd className="text-emerald-400">Free</dd>
               </div>
               <div className="flex justify-between">
                 <dt className="text-white/50">Tax</dt>

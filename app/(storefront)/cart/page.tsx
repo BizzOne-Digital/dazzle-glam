@@ -28,7 +28,8 @@ export default function CartPage() {
   const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
   const discount = subtotal >= 65 ? subtotal * 0.1 : 0;
   const discountedSubtotal = subtotal - discount;
-  const shipping = subtotal === 0 ? 0 : discountedSubtotal >= 100 ? 0 : 12;
+  /** Temporary: shipping disabled for Stripe testing */
+  const shipping = 0;
   const tax = discountedSubtotal * 0.13;
   const total = discountedSubtotal + shipping + tax;
 
@@ -169,11 +170,6 @@ export default function CartPage() {
               {subtotal > 0 && subtotal < 65 && (
                 <p className="mt-4 rounded-lg bg-fuchsia/10 border border-fuchsia/20 px-3 py-2 text-xs text-fuchsia">
                   Add {formatCurrency(65 - subtotal)} more to get 10% off your order
-                </p>
-              )}
-              {subtotal >= 65 && discountedSubtotal < 100 && (
-                <p className="mt-4 rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-xs text-white/50">
-                  Add {formatCurrency(100 - discountedSubtotal)} more after discount for free shipping
                 </p>
               )}
               <Button asChild fullWidth className="mt-6">
