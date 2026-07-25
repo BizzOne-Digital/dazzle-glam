@@ -10,7 +10,9 @@ function toBuffer(data: unknown): Buffer {
   if (data instanceof Uint8Array) return Buffer.from(data);
   if (data && typeof data === "object" && "buffer" in data) {
     const inner = (data as { buffer: ArrayBuffer | Buffer | Uint8Array }).buffer;
-    return Buffer.isBuffer(inner) ? inner : Buffer.from(inner);
+    if (Buffer.isBuffer(inner)) return inner;
+    if (inner instanceof Uint8Array) return Buffer.from(inner);
+    return Buffer.from(new Uint8Array(inner));
   }
   throw new Error("Invalid image data");
 }
@@ -35,12 +37,13 @@ export async function GET(_request: Request, { params }: Params) {
     }
 
     const body = toBuffer(doc.data);
+    const bytes = new Uint8Array(body);
 
-    return new NextResponse(body, {
+    return new NextResponse(bytes, {
       status: 200,
       headers: {
         "Content-Type": doc.mimeType || "image/jpeg",
-        "Content-Length": String(body.length),
+        "Content-Length": String(bytes.byteLength),
         "Cache-Control": "public, max-age=31536000, immutable",
       },
     });

@@ -2,6 +2,7 @@ import { randomBytes } from "crypto";
 import { connectDB } from "@/lib/db/connect";
 import {
   StoredUpload,
+  type IStoredUpload,
   type UploadFolder,
 } from "@/models/Upload";
 
@@ -59,7 +60,9 @@ export async function saveFolderUpload(
 
 export async function getFolderUpload(folder: string, filename: string) {
   await connectDB();
-  return StoredUpload.findOne({ folder, filename }).lean();
+  return StoredUpload.findOne({ folder, filename })
+    .lean<IStoredUpload | null>()
+    .exec();
 }
 
 export async function deleteFolderUpload(url?: string | null) {
