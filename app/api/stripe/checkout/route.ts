@@ -78,49 +78,46 @@ export async function POST(req: Request) {
     const shippingCost = 0;
 
     // Create Stripe checkout session
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
-      mode: "payment",
-      customer_email: customerEmail,
-      line_items: items.map((item) => ({
+    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map(
+      (item) => ({
         price_data: {
           currency: "cad",
           product_data: {
             name: item.name,
-            // Only include images if they are valid HTTPS URLs
-            ...(item.image && item.image.startsWith('http') ? { images: [item.image] } : {}),
+            ...(item.image && item.image.startsWith("http")
+              ? { images: [item.image] }
+              : {}),
+            metadata: {
+              cartItemId: item.id,
+              productId: item.id.includes("::")
+                ? item.id.split("::")[0]
+                : item.id,
+            },
           },
-          unit_amount: Math.round(item.price * 100), // Convert to cents
+          unit_amount: Math.round(item.price * 100),
         },
         quantity: item.quantity,
-      })),
-      // Add shipping as a line item
-      ...(shippingCost > 0 && {
-        line_items: [
-          ...items.map((item) => ({
-            price_data: {
-              currency: "cad",
-              product_data: {
-                name: item.name,
-                // Only include images if they are valid HTTPS URLs
-                ...(item.image && item.image.startsWith('http') ? { images: [item.image] } : {}),
-              },
-              unit_amount: Math.round(item.price * 100),
-            },
-            quantity: item.quantity,
-          })),
-          {
-            price_data: {
-              currency: "cad",
-              product_data: {
-                name: `Shipping (${shippingMethod})`,
-              },
-              unit_amount: Math.round(shippingCost * 100),
-            },
-            quantity: 1,
+      })
+    );
+
+    if (shippingCost > 0) {
+      lineItems.push({
+        price_data: {
+          currency: "cad",
+          product_data: {
+            name: `Shipping (${shippingMethod})`,
           },
-        ],
-      }),
+          unit_amount: Math.round(shippingCost * 100),
+        },
+        quantity: 1,
+      });
+    }
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      mode: "payment",
+      customer_email: customerEmail,
+      line_items: lineItems,
       shipping_address_collection: {
         allowed_countries: ["CA"],
       },

@@ -74,7 +74,7 @@ export const Wishlist =
   models.Wishlist || model<IWishlist>("Wishlist", WishlistSchema);
 
 export interface IOrderItem {
-  product: mongoose.Types.ObjectId;
+  product?: mongoose.Types.ObjectId;
   variantId?: string;
   name: string;
   sku?: string;
@@ -119,7 +119,8 @@ export interface IOrder {
 
 const OrderItemSchema = new Schema(
   {
-    product: { type: Schema.Types.ObjectId, ref: "Product", required: true },
+    // Optional for Stripe checkout when Mongo product id is unavailable
+    product: { type: Schema.Types.ObjectId, ref: "Product" },
     variantId: String,
     name: { type: String, required: true },
     sku: String,
