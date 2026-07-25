@@ -38,40 +38,63 @@ export async function uploadImage(
     folder?: string;
     publicId?: string;
     filename?: string;
+    mimeType?: string;
   }
 ): Promise<UploadImageResult | null> {
-  if (!configureCloudinary()) {
-    console.warn(
-      "[cloudinary] Credentials missing — uploadImage skipped gracefully"
-    );
-    return null;
-  }
-
   try {
-    const payload =
-      typeof file === "string"
-        ? file
-        : `data:image/jpeg;base64,${file.toString("base64")}`;
-
-    const result: UploadApiResponse = await cloudinary.uploader.upload(payload, {
-      folder: options?.folder ?? "dazzle-glam",
-      public_id: options?.publicId,
-      resource_type: "image",
-      overwrite: false,
-    });
-
-    return {
-      url: result.secure_url,
-      publicId: result.public_id,
-      width: result.width,
-      height: result.height,
-      format: result.format,
-      bytes: result.bytes,
-    };
+    return await uploadImageOrThrow(file, options);
   } catch (error) {
     console.error("[cloudinary] uploadImage failed", error);
     return null;
   }
+}
+
+export async function uploadImageOrThrow(
+  file: string | Buffer,
+  options?: {
+    folder?: string;
+    publicId?: string;
+    filename?: string;
+    mimeType?: string;
+  }
+): Promise<UploadImageResult> {
+  if (!configureCloudinary()) {
+    throw new Error(
+      "Cloudinary is not configured. Add CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET in Vercel env vars."
+    );
+  }
+
+  const payload =
+    typeof file === "string"
+      ? file
+      : `data:${options?.mimeType || "image/jpeg"};base64,${file.toString("base64")}`;
+
+  const result: UploadApiResponse = await cloudinary.uploader.upload(payload, {
+    folder: options?.folder ?? "dazzle-glam",
+    public_id: options?.publicId,
+    resource_type: "image",
+    overwrite: false,
+  });
+
+  return {
+    url: result.secure_url,
+    publicId: result.public_id,
+    width: result.width,
+    height: result.height,
+    format: result.format,
+    bytes: result.bytes,
+  };
+}
+
+export async function uploadFileToCloudinary(
+  file: File,
+  folder: string
+): Promise<UploadImageResult> {
+  const buffer = Buffer.from(await file.arrayBuffer());
+  return uploadImageOrThrow(buffer, {
+    folder: `dazzle-glam/${folder}`,
+    mimeType: file.type || "image/jpeg",
+  });
 }
 
 export async function deleteImage(publicId: string): Promise<boolean> {

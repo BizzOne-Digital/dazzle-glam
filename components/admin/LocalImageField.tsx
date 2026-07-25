@@ -87,6 +87,9 @@ export function LocalImageField({
           {value && (
             <p className="max-w-[220px] truncate text-[11px] text-white/40">{value}</p>
           )}
+          <p className="text-[10px] uppercase tracking-wider text-white/30">
+            Folder: {folder}
+          </p>
         </div>
       </div>
     </div>

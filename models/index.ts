@@ -6,4 +6,5 @@ export * from "./Content";
 export * from "./SizeInquiry";
 export * from "./ProductSizes";
 export * from "./SiteSettings";
+export * from "./Upload";
 export { ShippingMethod, type IShippingMethod } from "./Settings";
