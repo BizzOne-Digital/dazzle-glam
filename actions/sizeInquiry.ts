@@ -149,7 +149,7 @@ export async function updateProductSizesAndNotify(
   const { ProductSizes } = await import("@/models/ProductSizes");
   await ProductSizes.findOneAndUpdate(
     { productId },
-    { productId, productSlug, sizes: newSizes },
+    { $set: { productId, productSlug, sizes: newSizes } },
     { upsert: true, new: true }
   );
 

@@ -13,11 +13,20 @@ import {
   notifyCustomerSizeAvailable,
   type ISizeInquiryPlain,
 } from "@/actions/sizeInquiry";
+import {
+  ALL_SIZES as STOCK_SIZES,
+  getProductSizeStock,
+  updateProductSizeStock,
+} from "@/actions/sizeStock";
 import { deleteProductAdmin, updateProductAdmin } from "@/actions/products";
 import type { DemoProduct } from "@/lib/data/demo";
 
 const ALL_SIZES = ["5", "6", "7", "8", "9", "10", "11", "12"];
-type Tab = "details" | "sizes";
+type Tab = "details" | "sizes" | "stock";
+
+function emptyStock(): Record<string, number> {
+  return Object.fromEntries(ALL_SIZES.map((s) => [s, 0]));
+}
 
 export default function EditProductPage() {
   const params = useParams<{ id: string }>();
@@ -40,6 +49,10 @@ export default function EditProductPage() {
   const [inquiries, setInquiries] = useState<ISizeInquiryPlain[]>([]);
   const [inquiriesLoading, setInquiriesLoading] = useState(false);
   const [notifyingId, setNotifyingId] = useState<string | null>(null);
+
+  const [sizeStock, setSizeStock] = useState<Record<string, number>>(emptyStock);
+  const [stockLoaded, setStockLoaded] = useState(false);
+  const [stockLoading, setStockLoading] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -79,6 +92,13 @@ export default function EditProductPage() {
       }
       void fetchInquiries();
     }
+    if (tab === "stock" && product && !stockLoaded) {
+      void (async () => {
+        const res = await getProductSizeStock(product.id);
+        if (res.success) setSizeStock(res.sizeStock);
+        setStockLoaded(true);
+      })();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab, product]);
 
@@ -93,17 +113,30 @@ export default function EditProductPage() {
   const setImageAt = (index: number, url: string) => {
     setImages((prev) => {
       const next = [...prev];
+      while (next.length < index) next.push("");
       if (!url) {
-        next.splice(index, 1);
-        return next;
+        next[index] = "";
+        // keep slots; trailing empties trimmed on save
+        return next.slice(0, 3);
       }
       next[index] = url;
       return next.slice(0, 3);
     });
   };
 
+  const moveImage = (from: number, to: number) => {
+    setImages((prev) => {
+      const next = [...prev];
+      while (next.length < 3) next.push("");
+      if (to < 0 || to > 2 || from === to) return next.slice(0, 3);
+      const [item] = next.splice(from, 1);
+      next.splice(to, 0, item);
+      return next.slice(0, 3);
+    });
+  };
+
   const addImageSlot = () => {
-    if (images.length >= 3) {
+    if (images.filter(Boolean).length >= 3 || images.length >= 3) {
       toast.error("Maximum 3 images per product");
       return;
     }
@@ -113,7 +146,8 @@ export default function EditProductPage() {
   const onSubmitDetails = async (e: FormEvent) => {
     e.preventDefault();
     if (!product) return;
-    const cleanImages = images.filter(Boolean).slice(0, 3);
+    // Preserve order; drop empty slots only
+    const cleanImages = images.map((u) => u.trim()).filter(Boolean).slice(0, 3);
     if (cleanImages.length < 1) {
       toast.error("At least 1 image is required");
       return;
@@ -130,7 +164,10 @@ export default function EditProductPage() {
     setLoading(false);
     if (result.success) {
       toast.success("Product updated");
-      if (result.data) setProduct(result.data);
+      if (result.data) {
+        setProduct(result.data);
+        setImages((result.data.images || []).slice(0, 3));
+      }
     } else toast.error(result.error || "Update failed");
   };
 
@@ -169,6 +206,24 @@ export default function EditProductPage() {
     } else toast.error(result.message);
   };
 
+  const saveSizeStock = async () => {
+    if (!product) return;
+    setStockLoading(true);
+    try {
+      const res = await updateProductSizeStock(
+        product.id,
+        product.slug,
+        sizeStock
+      );
+      if (res.success) toast.success(res.message);
+      else toast.error("Failed to save size stock");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to save");
+    } finally {
+      setStockLoading(false);
+    }
+  };
+
   const onDelete = async () => {
     if (!product) return;
     if (!confirm("Delete this product permanently?")) return;
@@ -198,26 +253,34 @@ export default function EditProductPage() {
       </div>
 
       <div className="flex gap-1 rounded-lg border border-white/10 p-1">
-        {(["details", "sizes"] as Tab[]).map((t) => (
+        {(
+          [
+            { id: "details", label: "Details" },
+            { id: "sizes", label: "Sizes & Inquiries" },
+            { id: "stock", label: "Size Stock" },
+          ] as const
+        ).map((t) => (
           <button
-            key={t}
+            key={t.id}
             type="button"
-            onClick={() => setTab(t)}
-            className={`relative flex-1 rounded-md py-2 text-sm font-medium uppercase tracking-[0.12em] transition ${
-              tab === t ? "bg-fuchsia/20 text-fuchsia" : "text-white/50 hover:text-white"
+            onClick={() => setTab(t.id)}
+            className={`relative flex-1 rounded-md px-1 py-2 text-[11px] font-medium uppercase tracking-[0.08em] transition sm:text-sm sm:tracking-[0.12em] ${
+              tab === t.id
+                ? "bg-fuchsia/20 text-fuchsia"
+                : "text-white/50 hover:text-white"
             }`}
           >
-            {t === "sizes" ? (
+            {t.id === "sizes" ? (
               <>
-                Sizes & Inquiries
+                {t.label}
                 {pendingCount > 0 && (
-                  <span className="ml-2 rounded-full bg-fuchsia px-1.5 py-0.5 text-[10px] text-white">
+                  <span className="ml-1 rounded-full bg-fuchsia px-1.5 py-0.5 text-[10px] text-white sm:ml-2">
                     {pendingCount}
                   </span>
                 )}
               </>
             ) : (
-              t
+              t.label
             )}
           </button>
         ))}
@@ -253,20 +316,68 @@ export default function EditProductPage() {
           />
 
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-white/70">Images (max 3)</p>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <p className="text-sm text-white/70">Images (max 3)</p>
+                <p className="text-xs text-white/40">
+                  Image 1 = main shop / product photo. Use arrows to change order.
+                </p>
+              </div>
               <Button type="button" size="sm" variant="secondary" onClick={addImageSlot}>
                 Add image slot
               </Button>
             </div>
             {imageSlots.map((img, i) => (
-              <LocalImageField
-                key={`img-${i}`}
-                label={`Image ${i + 1}${i < 2 ? " (required pair recommended)" : " (optional extra)"}`}
-                folder="products"
-                value={img}
-                onChange={(url) => setImageAt(i, url)}
-              />
+              <div
+                key={`img-${i}-${img || "empty"}`}
+                className="rounded-xl border border-white/10 bg-white/[0.02] p-4"
+              >
+                <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-sm font-medium text-white">
+                    Image {i + 1}
+                    {i === 0 ? (
+                      <span className="ml-2 text-xs font-normal text-fuchsia">
+                        Main
+                      </span>
+                    ) : null}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="secondary"
+                      disabled={i === 0}
+                      onClick={() => moveImage(i, i - 1)}
+                    >
+                      ↑ Move up
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="secondary"
+                      disabled={i >= imageSlots.length - 1}
+                      onClick={() => moveImage(i, i + 1)}
+                    >
+                      ↓ Move down
+                    </Button>
+                    {i > 0 && img ? (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => moveImage(i, 0)}
+                      >
+                        Set as #1
+                      </Button>
+                    ) : null}
+                  </div>
+                </div>
+                <LocalImageField
+                  folder="products"
+                  value={img}
+                  onChange={(url) => setImageAt(i, url)}
+                />
+              </div>
             ))}
           </div>
 
@@ -274,6 +385,59 @@ export default function EditProductPage() {
             Save Changes
           </Button>
         </form>
+      )}
+
+      {tab === "stock" && (
+        <div className="rounded-xl border border-white/10 p-6">
+          <h2 className="mb-1 font-heading text-xl text-white">Size Stock</h2>
+          <p className="mb-5 text-sm text-white/50">
+            Admin-only inventory notes for your reference. Customers never see
+            these quantities on the website.
+          </p>
+          {!stockLoaded ? (
+            <p className="text-sm text-white/40">Loading size stock…</p>
+          ) : (
+            <div className="space-y-3">
+              <div className="grid grid-cols-[4rem_1fr] gap-3 border-b border-white/10 pb-2 text-[10px] uppercase tracking-wider text-silver">
+                <span>Size</span>
+                <span>Stock qty</span>
+              </div>
+              {STOCK_SIZES.map((size) => (
+                <div
+                  key={size}
+                  className="grid grid-cols-[4rem_1fr] items-center gap-3"
+                >
+                  <span className="font-medium text-white">Size {size}</span>
+                  <Input
+                    type="number"
+                    min={0}
+                    step={1}
+                    value={sizeStock[size] ?? 0}
+                    onChange={(e) =>
+                      setSizeStock((prev) => ({
+                        ...prev,
+                        [size]: Math.max(0, Number(e.target.value) || 0),
+                      }))
+                    }
+                    aria-label={`Stock for size ${size}`}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            <Button
+              onClick={() => void saveSizeStock()}
+              loading={stockLoading}
+              disabled={!stockLoaded}
+            >
+              Save size stock
+            </Button>
+            <p className="text-xs text-white/35">
+              Example: Size 5 → 3, Size 6 → 0, Size 7 → 3
+            </p>
+          </div>
+        </div>
       )}
 
       {tab === "sizes" && (

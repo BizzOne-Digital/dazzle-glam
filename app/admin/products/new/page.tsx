@@ -22,14 +22,26 @@ export default function NewProductPage() {
   const setImageAt = (index: number, url: string) => {
     setImages((prev) => {
       const next = [...prev];
+      while (next.length <= index) next.push("");
       next[index] = url;
-      return next;
+      return next.slice(0, 3);
+    });
+  };
+
+  const moveImage = (from: number, to: number) => {
+    setImages((prev) => {
+      const next = [...prev];
+      while (next.length < 3) next.push("");
+      if (to < 0 || to > 2 || from === to) return next.slice(0, 3);
+      const [item] = next.splice(from, 1);
+      next.splice(to, 0, item);
+      return next.slice(0, 3);
     });
   };
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    const clean = images.filter(Boolean).slice(0, 3);
+    const clean = images.map((u) => u.trim()).filter(Boolean).slice(0, 3);
     if (clean.length < 1) {
       toast.error("Upload at least 1 image");
       return;
@@ -84,36 +96,74 @@ export default function NewProductPage() {
           onChange={(e) => setDescription(e.target.value)}
           required
         />
-        <LocalImageField
-          label="Image 1"
-          folder="products"
-          value={images[0]}
-          onChange={(url) => setImageAt(0, url)}
-        />
-        <LocalImageField
-          label="Image 2"
-          folder="products"
-          value={images[1]}
-          onChange={(url) => setImageAt(1, url)}
-        />
-        {images.length < 3 && (
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            onClick={() => setImages((prev) => [...prev, ""])}
-          >
-            Add 3rd image (optional)
-          </Button>
-        )}
-        {images[2] !== undefined && (
-          <LocalImageField
-            label="Image 3 (optional)"
-            folder="products"
-            value={images[2]}
-            onChange={(url) => setImageAt(2, url)}
-          />
-        )}
+        <div className="space-y-4">
+          <div>
+            <p className="text-sm text-white/70">Images (max 3)</p>
+            <p className="text-xs text-white/40">
+              Image 1 is the main photo. Use arrows to change order.
+            </p>
+          </div>
+          {images.map((img, i) => (
+            <div
+              key={`new-img-${i}`}
+              className="rounded-xl border border-white/10 bg-white/[0.02] p-4"
+            >
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <p className="text-sm font-medium text-white">
+                  Image {i + 1}
+                  {i === 0 ? (
+                    <span className="ml-2 text-xs font-normal text-fuchsia">Main</span>
+                  ) : null}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    disabled={i === 0}
+                    onClick={() => moveImage(i, i - 1)}
+                  >
+                    ↑ Move up
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    disabled={i >= images.length - 1}
+                    onClick={() => moveImage(i, i + 1)}
+                  >
+                    ↓ Move down
+                  </Button>
+                  {i > 0 && img ? (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => moveImage(i, 0)}
+                    >
+                      Set as #1
+                    </Button>
+                  ) : null}
+                </div>
+              </div>
+              <LocalImageField
+                folder="products"
+                value={img}
+                onChange={(url) => setImageAt(i, url)}
+              />
+            </div>
+          ))}
+          {images.length < 3 && (
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => setImages((prev) => [...prev, ""])}
+            >
+              Add image slot
+            </Button>
+          )}
+        </div>
         <Button type="submit" loading={loading}>
           Create Product
         </Button>

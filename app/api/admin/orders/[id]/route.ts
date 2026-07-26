@@ -14,20 +14,22 @@ export async function GET(_req: Request, { params }: Params) {
   try {
     const { id } = await params;
     await connectDB();
-    const { id } = await params;
 
-    let order = null;
+    let order: Record<string, unknown> | null = null;
     if (/^[a-f\d]{24}$/i.test(id)) {
-      order = await Order.findById(id).lean();
+      order = (await Order.findById(id).lean()) as Record<string, unknown> | null;
     }
     if (!order) {
-      order = await Order.findOne({ orderNumber: id }).lean();
+      order = (await Order.findOne({ orderNumber: id }).lean()) as Record<
+        string,
+        unknown
+      > | null;
     }
     if (!order) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
-    const payload = JSON.parse(JSON.stringify(order));
+    const payload = JSON.parse(JSON.stringify(order)) as Record<string, unknown>;
     payload._id = String(order._id);
 
     return NextResponse.json({ order: payload });
