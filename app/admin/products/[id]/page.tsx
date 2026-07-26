@@ -14,7 +14,6 @@ import {
   type ISizeInquiryPlain,
 } from "@/actions/sizeInquiry";
 import {
-  ALL_SIZES as STOCK_SIZES,
   getProductSizeStock,
   updateProductSizeStock,
 } from "@/actions/sizeStock";
@@ -94,9 +93,16 @@ export default function EditProductPage() {
     }
     if (tab === "stock" && product && !stockLoaded) {
       void (async () => {
-        const res = await getProductSizeStock(product.id);
-        if (res.success) setSizeStock(res.sizeStock);
-        setStockLoaded(true);
+        try {
+          const res = await getProductSizeStock(product.id);
+          if (res.success) setSizeStock(res.sizeStock);
+        } catch (err) {
+          toast.error(
+            err instanceof Error ? err.message : "Failed to load size stock"
+          );
+        } finally {
+          setStockLoaded(true);
+        }
       })();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -105,9 +111,16 @@ export default function EditProductPage() {
   const fetchInquiries = async () => {
     if (!product) return;
     setInquiriesLoading(true);
-    const result = await getProductInquiries(product.id);
-    if (result.success) setInquiries(result.data);
-    setInquiriesLoading(false);
+    try {
+      const result = await getProductInquiries(product.id);
+      if (result.success) setInquiries(result.data);
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Failed to load inquiries"
+      );
+    } finally {
+      setInquiriesLoading(false);
+    }
   };
 
   const setImageAt = (index: number, url: string) => {
@@ -402,7 +415,7 @@ export default function EditProductPage() {
                 <span>Size</span>
                 <span>Stock qty</span>
               </div>
-              {STOCK_SIZES.map((size) => (
+              {ALL_SIZES.map((size) => (
                 <div
                   key={size}
                   className="grid grid-cols-[4rem_1fr] items-center gap-3"

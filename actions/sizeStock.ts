@@ -81,5 +81,3 @@ export async function updateProductSizeStock(
   revalidatePath(`/admin/products/${productId}`);
   return { success: true as const, message: "Size stock saved (admin only)" };
 }
-
-export { ALL_SIZES };
