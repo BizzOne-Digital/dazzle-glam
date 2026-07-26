@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   Area,
@@ -22,38 +23,57 @@ const revenue = [
   { month: "Jul", total: 9200 },
 ];
 
-const recentOrders = [
-  { id: "DG-1042", customer: "Aaliyah M.", total: 145.98, status: "processing" },
-  { id: "DG-1041", customer: "Priya S.", total: 79.99, status: "shipped" },
-  { id: "DG-1040", customer: "Jordan K.", total: 59.99, status: "delivered" },
-  { id: "DG-1039", customer: "Maya R.", total: 118.97, status: "pending" },
-];
+type RecentOrder = {
+  _id: string;
+  orderNumber: string;
+  email: string;
+  total: number;
+  status: string;
+  shippingAddress?: { firstName?: string; lastName?: string };
+};
 
 export default function AdminDashboardPage() {
+  const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
+  const [orderCount, setOrderCount] = useState(0);
+
+  useEffect(() => {
+    fetch("/api/admin/orders")
+      .then((r) => r.json())
+      .then((data) => {
+        const list = Array.isArray(data.orders) ? data.orders : [];
+        setOrderCount(list.length);
+        setRecentOrders(list.slice(0, 5));
+      })
+      .catch(() => undefined);
+  }, []);
+
   const stats = [
-    { label: "Total Sales", value: formatCurrency(45280) },
-    { label: "Orders", value: "186" },
-    { label: "Customers", value: "142" },
+    { label: "Orders", value: String(orderCount) },
     { label: "Products", value: String(demoProducts.length) },
-    { label: "Low Stock", value: String(demoProducts.filter((p) => p.stock <= 10).length) },
-    { label: "Subscribers", value: "328" },
-    { label: "Unread Messages", value: "4" },
+    {
+      label: "Low Stock",
+      value: String(demoProducts.filter((p) => p.stock <= 10).length),
+    },
   ];
 
   return (
     <div className="space-y-8">
       <div>
         <h1 className="font-heading text-3xl md:text-4xl">Dashboard</h1>
-        <p className="mt-1 text-sm text-white/50">Overview of Dazzle Glam performance</p>
+        <p className="mt-1 text-sm text-white/50">
+          Overview of Dazzle Glam performance
+        </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {stats.map((s) => (
           <div
             key={s.label}
             className="rounded-xl border border-white/10 bg-white/[0.03] p-5"
           >
-            <p className="text-[10px] uppercase tracking-[0.25em] text-silver">{s.label}</p>
+            <p className="text-[10px] uppercase tracking-[0.25em] text-silver">
+              {s.label}
+            </p>
             <p className="mt-2 font-heading text-3xl text-white">{s.value}</p>
           </div>
         ))}
@@ -99,21 +119,34 @@ export default function AdminDashboardPage() {
             </Link>
           </div>
           <ul className="mt-4 space-y-3">
-            {recentOrders.map((o) => (
-              <li
-                key={o.id}
-                className="flex items-center justify-between border-b border-white/5 pb-3 text-sm"
-              >
-                <div>
-                  <p className="font-medium">{o.id}</p>
-                  <p className="text-white/45">{o.customer}</p>
-                </div>
-                <div className="text-right">
-                  <p>{formatCurrency(o.total)}</p>
-                  <p className="capitalize text-fuchsia">{o.status}</p>
-                </div>
-              </li>
-            ))}
+            {recentOrders.length === 0 && (
+              <li className="text-sm text-white/40">No orders yet.</li>
+            )}
+            {recentOrders.map((o) => {
+              const customer =
+                `${o.shippingAddress?.firstName || ""} ${o.shippingAddress?.lastName || ""}`.trim() ||
+                o.email;
+              return (
+                <li
+                  key={o._id}
+                  className="flex items-center justify-between border-b border-white/5 pb-3 text-sm"
+                >
+                  <div>
+                    <Link
+                      href={`/admin/orders/${o._id}`}
+                      className="font-medium text-fuchsia hover:underline"
+                    >
+                      {o.orderNumber}
+                    </Link>
+                    <p className="text-white/45">{customer}</p>
+                  </div>
+                  <div className="text-right">
+                    <p>{formatCurrency(o.total)}</p>
+                    <p className="capitalize text-white/50">{o.status}</p>
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         </div>
       </div>

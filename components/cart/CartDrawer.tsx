@@ -17,8 +17,7 @@ export function CartDrawer() {
   const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
   const discount = subtotal >= 65 ? subtotal * 0.1 : 0;
   const discountedSubtotal = subtotal - discount;
-  /** Temporary: shipping disabled for Stripe testing */
-  const shipping = 0;
+  const shipping = discountedSubtotal >= 100 ? 0 : discountedSubtotal > 0 ? 8 : 0;
   const total = discountedSubtotal + shipping;
   const totalQty = items.reduce((n, i) => n + i.quantity, 0);
 
@@ -47,12 +46,17 @@ export function CartDrawer() {
                   <span>−{formatCurrency(discount)}</span>
                 </div>
               )}
-              {shipping === 0 && subtotal > 0 && (
+              {shipping === 0 && subtotal > 0 ? (
                 <div className="flex items-center justify-between text-emerald-400">
                   <span className="uppercase tracking-[0.14em]">Shipping</span>
                   <span>Free 🎉</span>
                 </div>
-              )}
+              ) : subtotal > 0 ? (
+                <div className="flex items-center justify-between text-white/50">
+                  <span className="uppercase tracking-[0.14em]">Shipping</span>
+                  <span>{formatCurrency(shipping)}</span>
+                </div>
+              ) : null}
             </div>
             <div className="flex items-center justify-between font-body text-sm">
               <span className="uppercase tracking-[0.14em] text-silver">Total</span>
@@ -66,7 +70,7 @@ export function CartDrawer() {
               </p>
             )}
             <p className="font-body text-xs text-white/40">
-              Taxes calculated at checkout. Shipping waived for testing.
+              Taxes calculated at checkout. Free shipping on orders over $100.
             </p>
             <Link
               href="/checkout"

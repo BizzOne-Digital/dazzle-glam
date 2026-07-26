@@ -72,10 +72,10 @@ export async function POST(req: Request) {
       subtotal,
       tax,
       total,
+      shippingCost: rawShippingCost,
     } = body;
 
-    // Temporary: shipping disabled for Stripe testing
-    const shippingCost = 0;
+    const shippingCost = Math.max(0, Number(rawShippingCost) || 0);
 
     // Create Stripe checkout session
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map(
@@ -105,7 +105,7 @@ export async function POST(req: Request) {
         price_data: {
           currency: "cad",
           product_data: {
-            name: `Shipping (${shippingMethod})`,
+            name: `Shipping (${shippingMethod === "express" ? "Express" : "Standard"})`,
           },
           unit_amount: Math.round(shippingCost * 100),
         },

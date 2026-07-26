@@ -135,7 +135,8 @@ export async function sendOrderConfirmationEmail({
 
         <h2 style="font-size:22px;margin:0 0 12px">Thank you for your order!</h2>
         <p style="color:#ccc;line-height:1.6;margin:0 0 20px">
-          Hi ${customerName || "there"}, we received your order and will start preparing it shortly.
+          Hi ${customerName || "there"}, thank you for shopping with Dazzle Glam.
+          We've received your order and will start preparing it shortly.
         </p>
 
         <div style="background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:16px;margin:0 0 20px">
@@ -167,10 +168,11 @@ export async function sendOrderConfirmationEmail({
         <p style="color:#ccc;line-height:1.6;margin:0 0 24px">${addressHtml(shippingAddress)}</p>
 
         <p style="color:#ccc;line-height:1.6">
-          We'll email you again when your order ships.
+          Questions about your order? Reply to this email or contact us at dazzleglamcollection@gmail.com.
+          We'll send another email when your order ships.
         </p>
         <p style="color:#666;font-size:12px;text-align:center;margin-top:32px">
-          Dazzle Glam · dazzleglamjewelry.ca
+          With love,<br>Dazzle Glam Jewelry Collection<br>dazzleglamjewelry.ca
         </p>
       </div>
     `,

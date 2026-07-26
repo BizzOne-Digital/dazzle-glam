@@ -5,7 +5,6 @@ import {
   Customer,
   Discount,
   Order,
-  SiteSettings,
   type ICart,
   type IOrder,
 } from "@/models";
@@ -15,31 +14,30 @@ import type { Types } from "mongoose";
 export async function createOrderNumber(prefix?: string): Promise<string> {
   await connectDB();
 
-  let orderPrefix = prefix;
-  if (!orderPrefix) {
-    const settings = (await SiteSettings.findOne().lean()) as {
-      ecommerce?: { orderPrefix?: string };
-    } | null;
-    orderPrefix = settings?.ecommerce?.orderPrefix ?? "DG";
+  const orderPrefix = prefix || "DG";
+
+  // Sequential DG-XXXX (4+ digit number)
+  const existing = await Order.find({
+    orderNumber: new RegExp(`^${orderPrefix}-\\d+$`),
+  })
+    .select("orderNumber")
+    .lean();
+
+  let max = 1000;
+  for (const row of existing) {
+    const n = parseInt(String(row.orderNumber).split("-").pop() || "", 10);
+    if (Number.isFinite(n) && n > max) max = n;
   }
 
-  const stamp = new Date()
-    .toISOString()
-    .replace(/[-:TZ.]/g, "")
-    .slice(0, 12);
-  const random = Math.floor(Math.random() * 9000 + 1000);
-
-  let candidate = `${orderPrefix}-${stamp}-${random}`;
-  let attempts = 0;
-
-  while (attempts < 5) {
+  let next = max + 1;
+  for (let attempt = 0; attempt < 20; attempt++) {
+    const candidate = `${orderPrefix}-${String(next).padStart(4, "0")}`;
     const exists = await Order.exists({ orderNumber: candidate });
     if (!exists) return candidate;
-    attempts += 1;
-    candidate = `${orderPrefix}-${stamp}-${Math.floor(Math.random() * 9000 + 1000)}`;
+    next += 1;
   }
 
-  return `${orderPrefix}-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+  return `${orderPrefix}-${Date.now().toString().slice(-6)}`;
 }
 
 export interface CreateOrderFromCartInput {

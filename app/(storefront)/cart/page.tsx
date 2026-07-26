@@ -28,9 +28,8 @@ export default function CartPage() {
   const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
   const discount = subtotal >= 65 ? subtotal * 0.1 : 0;
   const discountedSubtotal = subtotal - discount;
-  /** Temporary: shipping disabled for Stripe testing */
-  const shipping = 0;
-  const tax = discountedSubtotal * 0.13;
+  const shipping = discountedSubtotal >= 100 ? 0 : discountedSubtotal > 0 ? 8 : 0;
+  const tax = (discountedSubtotal + shipping) * 0.13;
   const total = discountedSubtotal + shipping + tax;
 
   if (items.length === 0) {

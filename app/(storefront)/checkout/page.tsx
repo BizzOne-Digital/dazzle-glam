@@ -12,19 +12,28 @@ import { useCartStore } from "@/lib/store/cart";
 import { formatCurrency } from "@/lib/utils";
 import { placeholderImages } from "@/config/site";
 import { ShieldCheck } from "lucide-react";
+import {
+  EXPRESS_SHIPPING_COST,
+  FREE_SHIPPING_THRESHOLD,
+  STANDARD_SHIPPING_COST,
+  calcShippingCost,
+  shippingMethodLabel,
+  type ShippingMethodId,
+} from "@/lib/shipping";
 
 export default function CheckoutPage() {
   const items = useCartStore((s) => s.items);
   const clearCart = useCartStore((s) => s.clearCart);
   const [loading, setLoading] = useState(false);
   const [sameBilling, setSameBilling] = useState(true);
+  const [shippingMethod, setShippingMethod] =
+    useState<ShippingMethodId>("standard");
 
   const subtotal = items.reduce((s, i) => s + i.price * i.quantity, 0);
-  const shippingMethod = "standard";
-  /** Temporary: shipping disabled for Stripe testing */
-  const shippingCost = 0;
-  const tax = subtotal * 0.13;
+  const shippingCost = calcShippingCost(subtotal, shippingMethod);
+  const tax = (subtotal + shippingCost) * 0.13;
   const total = subtotal + shippingCost + tax;
+  const freeShipping = subtotal >= FREE_SHIPPING_THRESHOLD;
 
   if (items.length === 0) {
     return (
@@ -43,9 +52,9 @@ export default function CheckoutPage() {
 
     try {
       const formData = new FormData(e.currentTarget);
-      
+
       const checkoutData = {
-        items: items.map(item => ({
+        items: items.map((item) => ({
           id: item.id,
           name: item.name,
           price: item.price,
@@ -71,45 +80,36 @@ export default function CheckoutPage() {
         total,
       };
 
-      // Create Stripe checkout session
       const response = await fetch("/api/stripe/checkout", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(checkoutData),
       });
 
       let data;
       try {
         data = await response.json();
-      } catch (parseError) {
-        console.error("Failed to parse API response:", parseError);
+      } catch {
         throw new Error("Invalid response from payment server");
       }
 
-      console.log("API Response:", { status: response.status, data });
-
       if (!response.ok) {
-        console.error("Stripe API error:", data);
-        const errorMsg = data?.error || data?.message || `Server error: ${response.status}`;
+        const errorMsg =
+          data?.error || data?.message || `Server error: ${response.status}`;
         throw new Error(errorMsg);
       }
 
       if (data.url) {
-        console.log("Redirecting to Stripe:", data.url);
-        // Clear cart before redirecting to Stripe
         clearCart();
-        // Redirect to Stripe checkout
         window.location.href = data.url;
       } else {
-        console.error("No URL in response:", data);
-        throw new Error("No checkout URL received from Stripe. Please check server logs.");
+        throw new Error("No checkout URL received from Stripe.");
       }
     } catch (error) {
       console.error("Checkout error:", error);
-      const errorMessage = error instanceof Error ? error.message : "Failed to process checkout";
-      toast.error(errorMessage);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to process checkout"
+      );
       setLoading(false);
     }
   };
@@ -117,15 +117,25 @@ export default function CheckoutPage() {
   return (
     <div className="pb-20 pt-8">
       <div className="relative mb-10 h-40 overflow-hidden">
-        <Image src={placeholderImages.hero[1]} alt="" fill className="object-cover opacity-40" />
+        <Image
+          src={placeholderImages.hero[1]}
+          alt=""
+          fill
+          className="object-cover opacity-40"
+        />
         <div className="absolute inset-0 bg-black/70" />
         <div className="absolute inset-0 flex items-center justify-center">
-          <h1 className="font-heading text-4xl text-white md:text-5xl">Checkout</h1>
+          <h1 className="font-heading text-4xl text-white md:text-5xl">
+            Checkout
+          </h1>
         </div>
       </div>
 
       <Container>
-        <form onSubmit={onSubmit} className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr]">
+        <form
+          onSubmit={onSubmit}
+          className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr]"
+        >
           <div className="space-y-8">
             <section className="rounded-2xl border border-white/10 p-6">
               <h2 className="font-heading text-2xl">Customer</h2>
@@ -138,10 +148,19 @@ export default function CheckoutPage() {
             </section>
 
             <section className="rounded-2xl border border-white/10 p-6">
-              <h2 className="font-heading text-2xl">Shipping</h2>
+              <h2 className="font-heading text-2xl">Shipping address</h2>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                <Input name="line1" required placeholder="Address" className="sm:col-span-2" />
-                <Input name="line2" placeholder="Apt / suite" className="sm:col-span-2" />
+                <Input
+                  name="line1"
+                  required
+                  placeholder="Address"
+                  className="sm:col-span-2"
+                />
+                <Input
+                  name="line2"
+                  placeholder="Apt / suite"
+                  className="sm:col-span-2"
+                />
                 <Input name="city" required placeholder="City" />
                 <Select
                   name="province"
@@ -165,7 +184,7 @@ export default function CheckoutPage() {
                   ]}
                 />
                 <Input name="postalCode" required placeholder="Postal code" />
-                <div className="flex h-12 items-center rounded-sm border border-white/12 bg-white/5 px-4 font-body text-sm text-white/50 cursor-not-allowed select-none">
+                <div className="flex h-12 cursor-not-allowed select-none items-center rounded-sm border border-white/12 bg-white/5 px-4 font-body text-sm text-white/50">
                   Canada
                 </div>
                 <input type="hidden" name="country" value="Canada" />
@@ -181,6 +200,78 @@ export default function CheckoutPage() {
               </label>
             </section>
 
+            <section className="rounded-2xl border border-white/10 p-6">
+              <h2 className="font-heading text-2xl">Delivery method</h2>
+              {freeShipping ? (
+                <p className="mt-3 text-sm text-emerald-400">
+                  Free shipping unlocked on orders over{" "}
+                  {formatCurrency(FREE_SHIPPING_THRESHOLD)}.
+                </p>
+              ) : (
+                <p className="mt-3 text-sm text-white/50">
+                  Add {formatCurrency(FREE_SHIPPING_THRESHOLD - subtotal)} more
+                  for free shipping.
+                </p>
+              )}
+              <div className="mt-4 space-y-3">
+                <label
+                  className={`flex cursor-pointer items-center justify-between rounded-xl border p-4 ${
+                    shippingMethod === "standard"
+                      ? "border-fuchsia/50 bg-fuchsia/10"
+                      : "border-white/10"
+                  }`}
+                >
+                  <span className="flex items-center gap-3">
+                    <input
+                      type="radio"
+                      name="shippingMethod"
+                      checked={shippingMethod === "standard"}
+                      onChange={() => setShippingMethod("standard")}
+                      className="accent-fuchsia"
+                    />
+                    <span>
+                      <span className="block font-medium">Standard</span>
+                      <span className="text-xs text-white/45">
+                        5–8 business days
+                      </span>
+                    </span>
+                  </span>
+                  <span className="text-sm">
+                    {freeShipping
+                      ? "Free"
+                      : formatCurrency(STANDARD_SHIPPING_COST)}
+                  </span>
+                </label>
+                <label
+                  className={`flex cursor-pointer items-center justify-between rounded-xl border p-4 ${
+                    shippingMethod === "express"
+                      ? "border-fuchsia/50 bg-fuchsia/10"
+                      : "border-white/10"
+                  }`}
+                >
+                  <span className="flex items-center gap-3">
+                    <input
+                      type="radio"
+                      name="shippingMethod"
+                      checked={shippingMethod === "express"}
+                      onChange={() => setShippingMethod("express")}
+                      className="accent-fuchsia"
+                    />
+                    <span>
+                      <span className="block font-medium">Express</span>
+                      <span className="text-xs text-white/45">
+                        2–4 business days
+                      </span>
+                    </span>
+                  </span>
+                  <span className="text-sm">
+                    {freeShipping
+                      ? "Free"
+                      : formatCurrency(EXPRESS_SHIPPING_COST)}
+                  </span>
+                </label>
+              </div>
+            </section>
           </div>
 
           <aside className="h-fit rounded-2xl border border-silver/20 bg-black/50 p-6">
@@ -190,14 +281,21 @@ export default function CheckoutPage() {
                 <li key={item.id} className="flex gap-3 text-sm">
                   <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded">
                     {item.image && (
-                      <Image src={item.image} alt="" fill className="object-cover" />
+                      <Image
+                        src={item.image}
+                        alt=""
+                        fill
+                        className="object-cover"
+                      />
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="line-clamp-2 break-words">{item.name}</p>
                     <p className="text-white/40">Qty {item.quantity}</p>
                   </div>
-                  <p className="shrink-0">{formatCurrency(item.price * item.quantity)}</p>
+                  <p className="shrink-0">
+                    {formatCurrency(item.price * item.quantity)}
+                  </p>
                 </li>
               ))}
             </ul>
@@ -207,11 +305,15 @@ export default function CheckoutPage() {
                 <dd>{formatCurrency(subtotal)}</dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-white/50">Shipping</dt>
-                <dd className="text-emerald-400">Free</dd>
+                <dt className="text-white/50">
+                  Shipping ({shippingMethodLabel(shippingMethod)})
+                </dt>
+                <dd className={shippingCost === 0 ? "text-emerald-400" : ""}>
+                  {shippingCost === 0 ? "Free" : formatCurrency(shippingCost)}
+                </dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-white/50">Tax</dt>
+                <dt className="text-white/50">Tax (HST 13%)</dt>
                 <dd>{formatCurrency(tax)}</dd>
               </div>
               <div className="flex justify-between text-base">
@@ -219,12 +321,13 @@ export default function CheckoutPage() {
                 <dd className="text-fuchsia">{formatCurrency(total)}</dd>
               </div>
             </dl>
-            
+
             <div className="mt-4 rounded-lg border border-fuchsia/20 bg-fuchsia/5 p-3 text-xs text-white/60">
               <div className="flex items-start gap-2">
                 <ShieldCheck className="h-4 w-4 shrink-0 text-fuchsia" />
                 <p>
-                  Secure payment powered by Stripe. Your payment information is encrypted and never stored on our servers.
+                  Secure payment powered by Stripe. Your payment information is
+                  encrypted and never stored on our servers.
                 </p>
               </div>
             </div>
