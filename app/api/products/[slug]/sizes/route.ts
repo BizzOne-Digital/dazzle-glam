@@ -5,34 +5,39 @@ import { demoProducts } from "@/lib/data/demo";
 
 /**
  * GET /api/products/[slug]/sizes
- * Returns the live sizes for a product.
- * Checks MongoDB for admin-set sizes first; falls back to demo data (empty).
+ * Returns admin-managed sizes for any product slug.
  */
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ slug: string }> }
 ) {
   const { slug } = await params;
-
   const demo = demoProducts.find((p) => p.slug === slug);
-  if (!demo) {
-    return NextResponse.json({ sizes: [] });
-  }
 
   try {
     await connectDB();
-    const doc = await ProductSizes.findOne({ productId: demo.id }).lean() as
-      | { sizes: string[] }
-      | null;
 
-    // If a doc exists (even with empty sizes), use it — admin has touched this product
-    if (doc !== null) {
-      return NextResponse.json({ sizes: doc.sizes ?? [] });
+    // Preferred lookup: slug (works for both demo + Mongo products)
+    const bySlug = (await ProductSizes.findOne({ productSlug: slug }).lean()) as
+      | { sizes?: string[] }
+      | null;
+    if (bySlug) {
+      return NextResponse.json({ sizes: bySlug.sizes ?? [] });
+    }
+
+    // Backward compatibility: older records stored by productId only
+    if (demo) {
+      const byDemoId = (await ProductSizes.findOne({ productId: demo.id }).lean()) as
+        | { sizes?: string[] }
+        | null;
+      if (byDemoId) {
+        return NextResponse.json({ sizes: byDemoId.sizes ?? [] });
+      }
     }
   } catch {
     // DB not connected — fall through
   }
 
-  // No DB record yet → fall back to demo data (currently empty for all products)
-  return NextResponse.json({ sizes: demo.sizes });
+  // Fallback for demo catalog or unknown slug
+  return NextResponse.json({ sizes: demo?.sizes ?? [] });
 }

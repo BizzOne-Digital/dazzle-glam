@@ -215,11 +215,7 @@ export default function ProductPage() {
               <p
                 className={`mt-2 text-sm ${product.stock > 0 ? "text-emerald-400" : "text-red-400"}`}
               >
-                {product.stock > 0
-                  ? product.stock <= 5
-                    ? `Only ${product.stock} left`
-                    : "In stock"
-                  : "Out of stock"}
+                {product.stock > 0 ? "In stock" : "Out of stock"}
               </p>
 
               {/* ── Size Selector ── */}
