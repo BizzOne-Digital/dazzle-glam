@@ -29,6 +29,39 @@ export default async function HomePage() {
         secondaryCta: sectionText(sections, "hero", "secondaryCta", ""),
         secondaryHref: sectionText(sections, "hero", "secondaryHref", "/shop"),
       }}
+      showcaseContent={{
+        label: sectionText(sections, "showcase", "label", "Our work in motion"),
+        body: sectionText(
+          sections,
+          "showcase",
+          "body",
+          "Dazzle Glam turns everyday looks into *statement moments* — bold pieces designed to amplify confidence and own every room."
+        ),
+        feature1Title: sectionText(
+          sections,
+          "showcase",
+          "feature1Title",
+          "Statement Design"
+        ),
+        feature1Description: sectionText(
+          sections,
+          "showcase",
+          "feature1Description",
+          "Pieces that command attention from across the room."
+        ),
+        feature2Title: sectionText(
+          sections,
+          "showcase",
+          "feature2Title",
+          "Everyday Glam"
+        ),
+        feature2Description: sectionText(
+          sections,
+          "showcase",
+          "feature2Description",
+          "High-fashion energy made for real life."
+        ),
+      }}
     />
   );
 }

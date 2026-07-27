@@ -59,23 +59,42 @@ export default function ContentManagementPage() {
   };
 
   const loadPageContent = (pageKey: string) => {
+    const template = (PAGE_TEMPLATES[pageKey] || {}) as Record<string, unknown>;
     const page = pages.find((p) => p.pageKey === pageKey);
+
     if (page) {
-      setContent(page.sections || {});
+      // Merge template so new default sections (e.g. showcase) appear in admin
+      const saved = (page.sections || {}) as Record<string, unknown>;
+      const merged: Record<string, unknown> = { ...template };
+      for (const [key, value] of Object.entries(saved)) {
+        const base = template[key];
+        if (
+          value &&
+          typeof value === "object" &&
+          !Array.isArray(value) &&
+          base &&
+          typeof base === "object" &&
+          !Array.isArray(base)
+        ) {
+          merged[key] = {
+            ...(base as Record<string, unknown>),
+            ...(value as Record<string, unknown>),
+          };
+        } else {
+          merged[key] = value;
+        }
+      }
+      setContent(merged);
       setSeo(page.seo || { title: "", description: "", keywords: [] });
       setIsPublished(page.isPublished);
-    } else {
-      // Load from template if page doesn't exist
-      const template = PAGE_TEMPLATES[pageKey as keyof typeof PAGE_TEMPLATES];
-      if (template) {
-        setContent(template);
-        setSeo({
-          title: `${pageKey.charAt(0).toUpperCase() + pageKey.slice(1)} | Dazzle Glam`,
-          description: "",
-          keywords: [],
-        });
-        setIsPublished(true);
-      }
+    } else if (template && Object.keys(template).length) {
+      setContent(template);
+      setSeo({
+        title: `${pageKey.charAt(0).toUpperCase() + pageKey.slice(1)} | Dazzle Glam`,
+        description: "",
+        keywords: [],
+      });
+      setIsPublished(true);
     }
   };
 

@@ -26,6 +26,14 @@ export const defaultPageContent: Record<string, PageSections> = {
       description:
         "We design pieces that amplify character, command attention, and transform every look into a bold statement.",
     },
+    showcase: {
+      label: "Our work in motion",
+      body: "Dazzle Glam turns everyday looks into *statement moments* — bold pieces designed to amplify confidence and own every room.",
+      feature1Title: "Statement Design",
+      feature1Description: "Pieces that command attention from across the room.",
+      feature2Title: "Everyday Glam",
+      feature2Description: "High-fashion energy made for real life.",
+    },
     featured: {
       eyebrow: "Featured",
       title: "Spotlight Piece",
@@ -117,7 +125,27 @@ export async function getPageSections(pageKey: string): Promise<PageSections> {
   const content = await getPageContent(pageKey);
   const defaults = defaultPageContent[pageKey] || {};
   if (!content?.sections) return defaults;
-  return { ...defaults, ...content.sections };
+
+  const merged: PageSections = { ...defaults };
+  for (const [key, value] of Object.entries(content.sections)) {
+    const base = defaults[key];
+    if (
+      value &&
+      typeof value === "object" &&
+      !Array.isArray(value) &&
+      base &&
+      typeof base === "object" &&
+      !Array.isArray(base)
+    ) {
+      merged[key] = {
+        ...(base as Record<string, unknown>),
+        ...(value as Record<string, unknown>),
+      };
+    } else {
+      merged[key] = value as PageSections[string];
+    }
+  }
+  return merged;
 }
 
 /**

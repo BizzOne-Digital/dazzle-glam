@@ -11,6 +11,7 @@ import { GallerySection } from "@/components/home/GallerySection";
 import { TestimonialsSection } from "@/components/home/TestimonialsSection";
 import { NewsletterSection } from "@/components/home/NewsletterSection";
 import { FinalCtaSection } from "@/components/home/FinalCtaSection";
+import { ShowcaseSection } from "@/components/home/ShowcaseSection";
 import { MarqueeText } from "@/components/animations/Marquee";
 import { marqueeWords } from "@/config/site";
 
@@ -32,8 +33,10 @@ function RevealBlock({
 
 export function HomeExperience({
   heroContent,
+  showcaseContent,
 }: {
   heroContent?: import("@/components/home/HeroSection").HeroContent;
+  showcaseContent?: import("@/components/home/ShowcaseSection").ShowcaseContent;
 }) {
   return (
     <div className="home-snap-root">
@@ -56,6 +59,12 @@ export function HomeExperience({
       <SnapSection>
         <RevealBlock direction="left">
           <ManifestoSection />
+        </RevealBlock>
+      </SnapSection>
+
+      <SnapSection>
+        <RevealBlock direction="right" delay={0.05}>
+          <ShowcaseSection content={showcaseContent} />
         </RevealBlock>
       </SnapSection>
 
