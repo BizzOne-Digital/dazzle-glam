@@ -39,6 +39,7 @@ type OrderEmailItem = {
   quantity: number;
   price: number;
   total: number;
+  variantLabel?: string;
 };
 
 type OrderEmailAddress = {
@@ -68,14 +69,22 @@ type OrderEmailPayload = {
 
 function orderItemsHtml(items: OrderEmailItem[], currency: string) {
   return items
-    .map(
-      (item) => `
+    .map((item) => {
+      const size = item.variantLabel?.trim();
+      return `
       <tr>
-        <td style="padding:10px 0;border-bottom:1px solid #333;color:#fff">${item.name}</td>
+        <td style="padding:10px 0;border-bottom:1px solid #333;color:#fff">
+          <div style="font-weight:600">${item.name}</div>
+          ${
+            size
+              ? `<div style="color:#ff1493;font-size:12px;margin-top:4px">${size}</div>`
+              : ""
+          }
+        </td>
         <td style="padding:10px 0;border-bottom:1px solid #333;color:#aaa;text-align:center">${item.quantity}</td>
         <td style="padding:10px 0;border-bottom:1px solid #333;color:#fff;text-align:right">${formatMoney(item.total, currency)}</td>
-      </tr>`
-    )
+      </tr>`;
+    })
     .join("");
 }
 
@@ -147,7 +156,7 @@ export async function sendOrderConfirmationEmail({
         <table style="width:100%;border-collapse:collapse;margin-bottom:20px">
           <thead>
             <tr>
-              <th style="text-align:left;color:#888;font-size:12px;padding-bottom:8px">Item</th>
+              <th style="text-align:left;color:#888;font-size:12px;padding-bottom:8px">Ring / Item</th>
               <th style="text-align:center;color:#888;font-size:12px;padding-bottom:8px">Qty</th>
               <th style="text-align:right;color:#888;font-size:12px;padding-bottom:8px">Total</th>
             </tr>
@@ -223,7 +232,7 @@ export async function sendNewOrderAdminEmail({
         <table style="width:100%;border-collapse:collapse;margin-bottom:20px">
           <thead>
             <tr>
-              <th style="text-align:left;color:#888;font-size:12px;padding-bottom:8px">Item</th>
+              <th style="text-align:left;color:#888;font-size:12px;padding-bottom:8px">Ring / Item</th>
               <th style="text-align:center;color:#888;font-size:12px;padding-bottom:8px">Qty</th>
               <th style="text-align:right;color:#888;font-size:12px;padding-bottom:8px">Total</th>
             </tr>

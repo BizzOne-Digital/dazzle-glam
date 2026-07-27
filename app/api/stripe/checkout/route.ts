@@ -7,6 +7,7 @@ interface CheckoutItem {
   price: number;
   quantity: number;
   image?: string;
+  variantLabel?: string;
 }
 
 interface ShippingAddress {
@@ -79,25 +80,34 @@ export async function POST(req: Request) {
 
     // Create Stripe checkout session
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map(
-      (item) => ({
-        price_data: {
-          currency: "cad",
-          product_data: {
-            name: item.name,
-            ...(item.image && item.image.startsWith("http")
-              ? { images: [item.image] }
-              : {}),
-            metadata: {
-              cartItemId: item.id,
-              productId: item.id.includes("::")
-                ? item.id.split("::")[0]
-                : item.id,
+      (item) => {
+        const sizeLabel = item.variantLabel?.trim();
+        const displayName = sizeLabel
+          ? `${item.name} (${sizeLabel})`
+          : item.name;
+
+        return {
+          price_data: {
+            currency: "cad",
+            product_data: {
+              name: displayName,
+              ...(item.image && item.image.startsWith("http")
+                ? { images: [item.image] }
+                : {}),
+              metadata: {
+                cartItemId: item.id,
+                productId: item.id.includes("::")
+                  ? item.id.split("::")[0]
+                  : item.id,
+                productName: item.name,
+                variantLabel: sizeLabel || "",
+              },
             },
+            unit_amount: Math.round(item.price * 100),
           },
-          unit_amount: Math.round(item.price * 100),
-        },
-        quantity: item.quantity,
-      })
+          quantity: item.quantity,
+        };
+      }
     );
 
     if (shippingCost > 0) {

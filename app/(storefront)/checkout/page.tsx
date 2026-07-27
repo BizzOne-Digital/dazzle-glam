@@ -60,6 +60,7 @@ export default function CheckoutPage() {
           price: item.price,
           quantity: item.quantity,
           image: item.image,
+          variantLabel: item.variantLabel,
         })),
         customerEmail: formData.get("email") as string,
         customerPhone: formData.get("phone") as string,
@@ -291,6 +292,9 @@ export default function CheckoutPage() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="line-clamp-2 break-words">{item.name}</p>
+                    {item.variantLabel && (
+                      <p className="text-white/50">{item.variantLabel}</p>
+                    )}
                     <p className="text-white/40">Qty {item.quantity}</p>
                   </div>
                   <p className="shrink-0">

@@ -33,6 +33,7 @@ type AdminOrderRow = {
     quantity: number;
     price: number;
     total: number;
+    variantLabel?: string;
   }>;
   shippingAddress?: {
     firstName?: string;
@@ -243,22 +244,40 @@ export default function AdminOrdersPage() {
             </div>
 
             <div className="rounded-xl border border-white/10 p-6">
-              <h2 className="font-heading text-xl">Items</h2>
-              <ul className="mt-4 space-y-3 text-sm">
-                {(detail.items || []).map((item, i) => (
-                  <li
-                    key={`${item.name}-${i}`}
-                    className="flex justify-between gap-3"
-                  >
-                    <span>
-                      {item.name} × {item.quantity}
-                    </span>
-                    <span>
-                      {formatCurrency(item.total ?? item.price * item.quantity)}
-                    </span>
-                  </li>
-                ))}
-              </ul>
+              <h2 className="font-heading text-xl">Order summary</h2>
+              <div className="mt-4 overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-white/10 text-left text-white/45">
+                      <th className="pb-2 font-medium">Ring / Item</th>
+                      <th className="pb-2 font-medium">Size</th>
+                      <th className="pb-2 text-center font-medium">Qty</th>
+                      <th className="pb-2 text-right font-medium">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(detail.items || []).map((item, i) => (
+                      <tr
+                        key={`${item.name}-${i}`}
+                        className="border-b border-white/5"
+                      >
+                        <td className="py-3 pr-3 text-white">{item.name}</td>
+                        <td className="py-3 pr-3 text-fuchsia">
+                          {item.variantLabel || "—"}
+                        </td>
+                        <td className="py-3 text-center text-white/80">
+                          {item.quantity}
+                        </td>
+                        <td className="py-3 text-right">
+                          {formatCurrency(
+                            item.total ?? item.price * item.quantity
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
               <dl className="mt-5 space-y-2 border-t border-white/10 pt-4 text-sm">
                 <div className="flex justify-between">
                   <dt className="text-white/45">Subtotal</dt>

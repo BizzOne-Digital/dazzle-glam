@@ -22,6 +22,17 @@ function resolveProductId(raw?: string | null) {
   return mongoose.Types.ObjectId.isValid(productId) ? productId : undefined;
 }
 
+function extractSizeFromDescription(description?: string | null) {
+  if (!description) return undefined;
+  const match = description.match(/\((Size\s+[^)]+)\)/i);
+  return match?.[1]?.trim();
+}
+
+function cleanProductName(description?: string | null, fallback = "Item") {
+  if (!description) return fallback;
+  return description.replace(/\s*\((Size\s+[^)]+)\)\s*$/i, "").trim() || fallback;
+}
+
 export async function fulfillStripeCheckoutSession(
   session: Stripe.Checkout.Session,
   stripe: Stripe
@@ -69,11 +80,17 @@ export async function fulfillStripeCheckoutSession(
 
       return {
         product: resolveProductId(cartId),
-        name: item.description || productObj?.name || "Item",
+        name:
+          productObj?.metadata?.productName ||
+          cleanProductName(item.description, productObj?.name || "Item"),
         image: productObj?.images?.[0] || "",
         quantity: qty,
         price: unitPrice,
         total: lineTotal,
+        variantLabel:
+          productObj?.metadata?.variantLabel ||
+          extractSizeFromDescription(item.description) ||
+          undefined,
       };
     });
 
@@ -141,6 +158,7 @@ export async function sendOrderEmails(order: IOrder) {
       quantity: item.quantity,
       price: item.price,
       total: item.total ?? item.price * item.quantity,
+      variantLabel: item.variantLabel,
     })),
     shippingAddress: {
       name: customerName,

@@ -115,6 +115,7 @@ export default function ProductPage() {
       price: product.price,
       image: product.images[0],
       quantity: qty,
+      variantId: selectedSize || undefined,
       variantLabel: selectedSize ? `Size ${selectedSize}` : undefined,
     });
     toast.success("Added to bag");
