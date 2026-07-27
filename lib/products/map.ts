@@ -17,6 +17,7 @@ export type MongoProductLike = {
   isFeatured?: boolean;
   isBestSeller?: boolean;
   isNewArrival?: boolean;
+  isComingSoon?: boolean;
   status?: string;
 };
 
@@ -42,7 +43,14 @@ export function mapMongoProduct(p: MongoProductLike): DemoProduct {
     isFeatured: !!p.isFeatured,
     isBestSeller: !!p.isBestSeller,
     isNewArrival: !!p.isNewArrival,
-    badge: p.isBestSeller ? "bestseller" : p.isNewArrival ? "new" : undefined,
+    isComingSoon: !!p.isComingSoon,
+    badge: p.isComingSoon
+      ? "coming soon"
+      : p.isBestSeller
+        ? "bestseller"
+        : p.isNewArrival
+          ? "new"
+          : undefined,
     careInstructions: p.careInstructions || "Wipe with a soft cloth after wear.",
     dimensions: p.dimensions,
   };
@@ -50,6 +58,7 @@ export function mapMongoProduct(p: MongoProductLike): DemoProduct {
 
 export function toCardFromMongo(p: MongoProductLike) {
   const mapped = mapMongoProduct(p);
+  const comingSoon = !!mapped.isComingSoon;
   return {
     id: mapped.id,
     name: mapped.name,
@@ -58,6 +67,7 @@ export function toCardFromMongo(p: MongoProductLike) {
     image: mapped.images[0],
     hoverImage: mapped.images[1],
     badge: mapped.badge,
-    inStock: mapped.stock > 0,
+    isComingSoon: comingSoon,
+    inStock: mapped.stock > 0 && !comingSoon,
   };
 }

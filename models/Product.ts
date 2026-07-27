@@ -44,6 +44,7 @@ export interface IProduct {
   isFeatured: boolean;
   isBestSeller: boolean;
   isNewArrival: boolean;
+  isComingSoon: boolean;
   isOnSale: boolean;
   relatedProducts: mongoose.Types.ObjectId[];
   seo: SeoFields;
@@ -118,6 +119,7 @@ const ProductSchema = new Schema<IProduct>(
     isFeatured: { type: Boolean, default: false },
     isBestSeller: { type: Boolean, default: false },
     isNewArrival: { type: Boolean, default: false },
+    isComingSoon: { type: Boolean, default: false },
     isOnSale: { type: Boolean, default: false },
     relatedProducts: [{ type: Schema.Types.ObjectId, ref: "Product" }],
     seo: {
@@ -139,7 +141,11 @@ const ProductSchema = new Schema<IProduct>(
 
 ProductSchema.index({ name: "text", description: "text", tags: "text" });
 ProductSchema.index({ price: 1, status: 1 });
-ProductSchema.index({ isFeatured: 1, isBestSeller: 1, isNewArrival: 1 });
+ProductSchema.index({ isBestSeller: 1, isNewArrival: 1, isComingSoon: 1 });
 
-export const Product =
-  models.Product || model<IProduct>("Product", ProductSchema);
+// Re-register after schema changes (Next.js HMR keeps stale models without new fields)
+if (models.Product) {
+  delete models.Product;
+}
+
+export const Product = model<IProduct>("Product", ProductSchema);

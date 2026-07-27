@@ -26,7 +26,7 @@ export function FeaturedProductSection() {
 
   const product =
     catalog.find((p) => p.slug === "sapphire-birthstone-promise-ring") ||
-    catalog.find((p) => p.isFeatured) ||
+    catalog.find((p) => p.isBestSeller) ||
     catalog[0];
 
   if (!product) return null;

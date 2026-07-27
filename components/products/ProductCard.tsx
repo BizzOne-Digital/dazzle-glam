@@ -18,8 +18,9 @@ export interface ProductCardData {
   price: number;
   image: string;
   hoverImage?: string;
-  badge?: "new" | "bestseller" | string;
+  badge?: "new" | "bestseller" | "coming soon" | string;
   inStock?: boolean;
+  isComingSoon?: boolean;
 }
 
 export interface ProductCardProps {
@@ -37,17 +38,19 @@ export function ProductCard({
   const [quickOpen, setQuickOpen] = useState(false);
   const addItem = useCartStore((s) => s.addItem);
 
-  const inStock = product.inStock !== false;
+  const comingSoon =
+    !!product.isComingSoon || product.badge === "coming soon";
+  const inStock = !comingSoon && product.inStock !== false;
   const showBadge = product.badge && product.badge !== "sale";
 
   const badgeVariant =
-    product.badge === "new"
-      ? "new"
-      : product.badge === "bestseller"
+    product.badge === "new" ||
+    product.badge === "bestseller" ||
+    product.badge === "coming soon"
+      ? "fuchsia"
+      : product.badge
         ? "fuchsia"
-        : product.badge
-          ? "fuchsia"
-          : undefined;
+        : undefined;
 
   const handleWishlist = (e: MouseEvent) => {
     e.preventDefault();
@@ -61,6 +64,10 @@ export function ProductCard({
   const handleAddToCart = (e?: MouseEvent) => {
     e?.preventDefault();
     e?.stopPropagation();
+    if (comingSoon) {
+      toast.error("This piece is coming soon");
+      return;
+    }
     if (!inStock) {
       toast.error("This piece is currently sold out");
       return;
@@ -127,21 +134,23 @@ export function ProductCard({
           </button>
         </Link>
 
-        {/* Add to cart button — outside the Link so it doesn't block navigation */}
-        <div className="absolute inset-x-2 bottom-[4.5rem] z-10 flex gap-2 translate-y-3 opacity-0 transition duration-400 sm:inset-x-3 sm:bottom-[5rem] group-hover:translate-y-0 group-hover:opacity-100">
-          <Button
-            type="button"
-            variant="primary"
-            size="sm"
-            className="flex-1"
-            onClick={handleAddToCart}
-            disabled={!inStock}
-            aria-label="Add to cart"
-          >
-            <ShoppingBag className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Add</span>
-          </Button>
-        </div>
+        {/* Add to cart — hidden for Coming Soon */}
+        {!comingSoon && (
+          <div className="absolute inset-x-2 bottom-[4.5rem] z-10 flex gap-2 translate-y-3 opacity-0 transition duration-400 sm:inset-x-3 sm:bottom-[5rem] group-hover:translate-y-0 group-hover:opacity-100">
+            <Button
+              type="button"
+              variant="primary"
+              size="sm"
+              className="flex-1"
+              onClick={handleAddToCart}
+              disabled={!inStock}
+              aria-label="Add to cart"
+            >
+              <ShoppingBag className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Add</span>
+            </Button>
+          </div>
+        )}
 
         <div className="mt-3.5 space-y-1.5">
           <Link href={href}>
@@ -152,10 +161,16 @@ export function ProductCard({
           <p className="font-body text-sm text-white">
             {formatCurrency(product.price)}
           </p>
-          {!inStock && (
-            <p className="font-body text-xs uppercase tracking-wider text-white/45">
-              Sold out
+          {comingSoon ? (
+            <p className="font-body text-xs uppercase tracking-wider text-silver">
+              Coming soon
             </p>
+          ) : (
+            !inStock && (
+              <p className="font-body text-xs uppercase tracking-wider text-white/45">
+                Sold out
+              </p>
+            )
           )}
         </div>
       </article>
@@ -185,17 +200,23 @@ export function ProductCard({
               to turn every entrance into a moment.
             </p>
             <div className="mt-auto flex flex-col gap-3 pt-8">
-              <Button
-                variant="primary"
-                fullWidth
-                onClick={() => {
-                  handleAddToCart();
-                  setQuickOpen(false);
-                }}
-                disabled={!inStock}
-              >
-                Add to bag
-              </Button>
+              {comingSoon ? (
+                <Button variant="secondary" fullWidth disabled>
+                  Coming Soon
+                </Button>
+              ) : (
+                <Button
+                  variant="primary"
+                  fullWidth
+                  onClick={() => {
+                    handleAddToCart();
+                    setQuickOpen(false);
+                  }}
+                  disabled={!inStock}
+                >
+                  Add to bag
+                </Button>
+              )}
               <Link
                 href={href}
                 onClick={() => setQuickOpen(false)}

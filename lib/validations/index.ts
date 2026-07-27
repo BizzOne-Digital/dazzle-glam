@@ -107,6 +107,7 @@ export const productSchema = z.object({
   isFeatured: z.boolean().default(false),
   isBestSeller: z.boolean().default(false),
   isNewArrival: z.boolean().default(false),
+  isComingSoon: z.boolean().default(false),
   isOnSale: z.boolean().default(false),
   relatedProducts: z.array(objectId).default([]),
   seo: seoSchema.optional(),

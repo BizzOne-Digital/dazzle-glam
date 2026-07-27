@@ -41,6 +41,9 @@ export default function EditProductPage() {
   const [stock, setStock] = useState(0);
   const [description, setDescription] = useState("");
   const [images, setImages] = useState<string[]>([]);
+  const [isNewArrival, setIsNewArrival] = useState(false);
+  const [isBestSeller, setIsBestSeller] = useState(false);
+  const [isComingSoon, setIsComingSoon] = useState(false);
 
   const [enabledSizes, setEnabledSizes] = useState<string[]>([]);
   const [sizesLoaded, setSizesLoaded] = useState(false);
@@ -68,6 +71,24 @@ export default function EditProductPage() {
         setStock(p.stock);
         setDescription(p.description);
         setImages((p.images || []).slice(0, 3));
+        // Only one flag allowed — prefer Coming Soon > Bestseller > New
+        if (p.isComingSoon) {
+          setIsComingSoon(true);
+          setIsBestSeller(false);
+          setIsNewArrival(false);
+        } else if (p.isBestSeller) {
+          setIsComingSoon(false);
+          setIsBestSeller(true);
+          setIsNewArrival(false);
+        } else if (p.isNewArrival) {
+          setIsComingSoon(false);
+          setIsBestSeller(false);
+          setIsNewArrival(true);
+        } else {
+          setIsComingSoon(false);
+          setIsBestSeller(false);
+          setIsNewArrival(false);
+        }
       } catch (err) {
         toast.error(err instanceof Error ? err.message : "Failed to load");
         setProduct(null);
@@ -158,7 +179,7 @@ export default function EditProductPage() {
 
   const onSubmitDetails = async (e: FormEvent) => {
     e.preventDefault();
-    if (!product) return;
+    if (!product || loading) return;
     // Preserve order; drop empty slots only
     const cleanImages = images.map((u) => u.trim()).filter(Boolean).slice(0, 3);
     if (cleanImages.length < 1) {
@@ -166,22 +187,50 @@ export default function EditProductPage() {
       return;
     }
     setLoading(true);
-    const result = await updateProductAdmin(product.id, {
-      name,
-      slug,
-      price,
-      stock,
-      description,
-      images: cleanImages,
-    });
-    setLoading(false);
-    if (result.success) {
-      toast.success("Product updated");
-      if (result.data) {
-        setProduct(result.data);
-        setImages((result.data.images || []).slice(0, 3));
+    try {
+      const result = await updateProductAdmin(product.id, {
+        name,
+        slug,
+        price,
+        stock,
+        description,
+        images: cleanImages,
+        isNewArrival,
+        isBestSeller,
+        isComingSoon,
+      });
+      if (result.success) {
+        toast.success("Product updated");
+        if (result.data) {
+          setProduct(result.data);
+          setImages((result.data.images || []).slice(0, 3));
+          if (result.data.isComingSoon) {
+            setIsComingSoon(true);
+            setIsBestSeller(false);
+            setIsNewArrival(false);
+          } else if (result.data.isBestSeller) {
+            setIsComingSoon(false);
+            setIsBestSeller(true);
+            setIsNewArrival(false);
+          } else if (result.data.isNewArrival) {
+            setIsComingSoon(false);
+            setIsBestSeller(false);
+            setIsNewArrival(true);
+          } else {
+            setIsComingSoon(false);
+            setIsBestSeller(false);
+            setIsNewArrival(false);
+          }
+        }
+      } else {
+        toast.error(result.error || "Update failed");
       }
-    } else toast.error(result.error || "Update failed");
+    } catch (err) {
+      console.error("Product update failed:", err);
+      toast.error(err instanceof Error ? err.message : "Update failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const toggleSize = (size: string) => {
@@ -327,6 +376,68 @@ export default function EditProductPage() {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
+
+          <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+            <p className="mb-3 text-sm text-white/70">Product flag (pick one)</p>
+            <div className="flex flex-wrap gap-4 text-sm text-white/80">
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="productFlag"
+                  className="accent-fuchsia"
+                  checked={!isNewArrival && !isBestSeller && !isComingSoon}
+                  onChange={() => {
+                    setIsNewArrival(false);
+                    setIsBestSeller(false);
+                    setIsComingSoon(false);
+                  }}
+                />
+                None
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="productFlag"
+                  className="accent-fuchsia"
+                  checked={isNewArrival}
+                  onChange={() => {
+                    setIsNewArrival(true);
+                    setIsBestSeller(false);
+                    setIsComingSoon(false);
+                  }}
+                />
+                New
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="productFlag"
+                  className="accent-fuchsia"
+                  checked={isBestSeller}
+                  onChange={() => {
+                    setIsNewArrival(false);
+                    setIsBestSeller(true);
+                    setIsComingSoon(false);
+                  }}
+                />
+                Bestseller
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="productFlag"
+                  className="accent-fuchsia"
+                  checked={isComingSoon}
+                  onChange={() => {
+                    setIsNewArrival(false);
+                    setIsBestSeller(false);
+                    setIsComingSoon(true);
+                  }}
+                />
+                Coming Soon
+              </label>
+            </div>
+          </div>
 
           <div className="space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-2">

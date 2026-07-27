@@ -109,10 +109,17 @@ export async function addToCart(
   const product = (await Product.findOne({
     _id: productId,
     status: "published",
-  }).lean()) as { _id: Types.ObjectId } | null;
+  }).lean()) as {
+    _id: Types.ObjectId;
+    isComingSoon?: boolean;
+  } | null;
 
   if (!product) {
     return { success: false, message: "Product not found" };
+  }
+
+  if (product.isComingSoon) {
+    return { success: false, message: "This piece is coming soon" };
   }
 
   try {

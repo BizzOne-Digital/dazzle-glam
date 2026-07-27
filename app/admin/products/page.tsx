@@ -7,13 +7,14 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { formatCurrency } from "@/lib/utils";
-import { deleteProductAdmin } from "@/actions/products";
+import { deleteProductAdmin, duplicateProductAdmin } from "@/actions/products";
 import type { DemoProduct } from "@/lib/data/demo";
 
 export default function AdminProductsPage() {
   const [q, setQ] = useState("");
   const [products, setProducts] = useState<DemoProduct[]>([]);
   const [loading, setLoading] = useState(true);
+  const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -45,6 +46,23 @@ export default function AdminProductsPage() {
       toast.success("Product deleted");
       await load();
     } else toast.error(res.error || "Delete failed");
+  };
+
+  const onDuplicate = async (id: string) => {
+    setDuplicatingId(id);
+    try {
+      const res = await duplicateProductAdmin(id);
+      if (res.success && res.data) {
+        toast.success("Product duplicated");
+        await load();
+      } else {
+        toast.error(res.error || "Duplicate failed");
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Duplicate failed");
+    } finally {
+      setDuplicatingId(null);
+    }
   };
 
   return (
@@ -94,15 +112,27 @@ export default function AdminProductsPage() {
                 <td className="p-3">{formatCurrency(p.price)}</td>
                 <td className="p-3">{p.stock}</td>
                 <td className="p-3 text-xs text-fuchsia">
-                  {[p.isNewArrival && "New", p.isBestSeller && "Best", p.isFeatured && "Featured"]
+                  {[
+                    p.isComingSoon && "Coming Soon",
+                    p.isNewArrival && "New",
+                    p.isBestSeller && "Bestseller",
+                  ]
                     .filter(Boolean)
                     .join(" · ") || "—"}
                 </td>
                 <td className="p-3">
-                  <div className="flex gap-3">
+                  <div className="flex flex-wrap gap-3">
                     <Link href={`/admin/products/${p.id}`} className="text-fuchsia hover:underline">
                       Edit
                     </Link>
+                    <button
+                      type="button"
+                      className="text-fuchsia/80 hover:underline disabled:opacity-50"
+                      disabled={duplicatingId === p.id}
+                      onClick={() => void onDuplicate(p.id)}
+                    >
+                      {duplicatingId === p.id ? "Duplicating…" : "Duplicate"}
+                    </button>
                     <button
                       type="button"
                       className="text-white/40 hover:text-white"

@@ -97,8 +97,13 @@ export default function ProductPage() {
   }
 
   const hasSizes = availableSizes.length > 0;
+  const comingSoon = !!product.isComingSoon || product.badge === "coming soon";
 
   const add = () => {
+    if (comingSoon) {
+      toast.error("This piece is coming soon");
+      return;
+    }
     if (hasSizes && !selectedSize) {
       setSizeError(true);
       toast.error("Please select a size first");
@@ -166,7 +171,11 @@ export default function ProductPage() {
                 />
                 {product.badge && (
                   <div className="absolute left-4 top-4">
-                    <Badge>{product.badge}</Badge>
+                    <Badge
+                      variant={product.badge === "new" ? "new" : "fuchsia"}
+                    >
+                      {product.badge}
+                    </Badge>
                   </div>
                 )}
               </motion.div>
@@ -213,9 +222,19 @@ export default function ProductPage() {
                 Materials: {product.materials.join(", ")}
               </p>
               <p
-                className={`mt-2 text-sm ${product.stock > 0 ? "text-emerald-400" : "text-red-400"}`}
+                className={`mt-2 text-sm ${
+                  comingSoon
+                    ? "text-silver"
+                    : product.stock > 0
+                      ? "text-emerald-400"
+                      : "text-red-400"
+                }`}
               >
-                {product.stock > 0 ? "In stock" : "Out of stock"}
+                {comingSoon
+                  ? "Coming soon"
+                  : product.stock > 0
+                    ? "In stock"
+                    : "Out of stock"}
               </p>
 
               {/* ── Size Selector ── */}
@@ -397,34 +416,44 @@ export default function ProductPage() {
               )}
 
               <div className="mt-6 flex items-center gap-3">
-                <div className="flex items-center rounded-sm border border-white/15">
-                  <button
-                    type="button"
-                    className="p-3"
-                    aria-label="Decrease quantity"
-                    onClick={() => setQty((q) => Math.max(1, q - 1))}
-                  >
-                    <Minus className="h-4 w-4" />
-                  </button>
-                  <span className="w-10 text-center">{qty}</span>
-                  <button
-                    type="button"
-                    className="p-3"
-                    aria-label="Increase quantity"
-                    onClick={() => setQty((q) => q + 1)}
-                  >
-                    <Plus className="h-4 w-4" />
-                  </button>
-                </div>
-                <Button onClick={add} disabled={product.stock < 1} className="flex-1">
-                  Add to Bag
-                </Button>
+                {!comingSoon && (
+                  <div className="flex items-center rounded-sm border border-white/15">
+                    <button
+                      type="button"
+                      className="p-3"
+                      aria-label="Decrease quantity"
+                      onClick={() => setQty((q) => Math.max(1, q - 1))}
+                    >
+                      <Minus className="h-4 w-4" />
+                    </button>
+                    <span className="w-10 text-center">{qty}</span>
+                    <button
+                      type="button"
+                      className="p-3"
+                      aria-label="Increase quantity"
+                      onClick={() => setQty((q) => q + 1)}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
+                {comingSoon ? (
+                  <Button disabled className="flex-1" variant="secondary">
+                    Coming Soon
+                  </Button>
+                ) : (
+                  <Button onClick={add} disabled={product.stock < 1} className="flex-1">
+                    Add to Bag
+                  </Button>
+                )}
               </div>
 
               <div className="mt-3 flex gap-2">
-                <Button variant="secondary" className="flex-1" onClick={add}>
-                  Buy Now
-                </Button>
+                {!comingSoon && (
+                  <Button variant="secondary" className="flex-1" onClick={add}>
+                    Buy Now
+                  </Button>
+                )}
                 <Button
                   variant="ghost"
                   size="icon"
@@ -498,9 +527,15 @@ export default function ProductPage() {
             <p className="line-clamp-1 text-sm">{product.name}</p>
             <p className="text-silver">{formatCurrency(product.price)}</p>
           </div>
-          <Button className="shrink-0" onClick={add}>
-            Add to Bag
-          </Button>
+          {comingSoon ? (
+            <Button className="shrink-0" variant="secondary" disabled>
+              Coming Soon
+            </Button>
+          ) : (
+            <Button className="shrink-0" onClick={add}>
+              Add to Bag
+            </Button>
+          )}
         </div>
       </div>
     </PageEnter>

@@ -18,6 +18,9 @@ export default function NewProductPage() {
   const [stock, setStock] = useState(10);
   const [description, setDescription] = useState("");
   const [images, setImages] = useState<string[]>(["", ""]);
+  const [isNewArrival, setIsNewArrival] = useState(false);
+  const [isBestSeller, setIsBestSeller] = useState(false);
+  const [isComingSoon, setIsComingSoon] = useState(false);
 
   const setImageAt = (index: number, url: string) => {
     setImages((prev) => {
@@ -41,25 +44,37 @@ export default function NewProductPage() {
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    if (loading) return;
     const clean = images.map((u) => u.trim()).filter(Boolean).slice(0, 3);
     if (clean.length < 1) {
       toast.error("Upload at least 1 image");
       return;
     }
     setLoading(true);
-    const result = await createProductAdmin({
-      name,
-      slug: slug || undefined,
-      description,
-      price,
-      stock,
-      images: clean,
-    });
-    setLoading(false);
-    if (result.success && result.data) {
-      toast.success("Product created");
-      router.push(`/admin/products/${result.data.id}`);
-    } else toast.error(result.error || "Create failed");
+    try {
+      const result = await createProductAdmin({
+        name,
+        slug: slug || undefined,
+        description,
+        price,
+        stock,
+        images: clean,
+        isNewArrival,
+        isBestSeller,
+        isComingSoon,
+      });
+      if (result.success && result.data) {
+        toast.success("Product created");
+        router.push(`/admin/products/${result.data.id}`);
+      } else {
+        toast.error(result.error || "Create failed");
+      }
+    } catch (err) {
+      console.error("Product create failed:", err);
+      toast.error(err instanceof Error ? err.message : "Create failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -96,6 +111,69 @@ export default function NewProductPage() {
           onChange={(e) => setDescription(e.target.value)}
           required
         />
+
+        <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+          <p className="mb-3 text-sm text-white/70">Product flag (pick one)</p>
+          <div className="flex flex-wrap gap-4 text-sm text-white/80">
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="productFlag"
+                className="accent-fuchsia"
+                checked={!isNewArrival && !isBestSeller && !isComingSoon}
+                onChange={() => {
+                  setIsNewArrival(false);
+                  setIsBestSeller(false);
+                  setIsComingSoon(false);
+                }}
+              />
+              None
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="productFlag"
+                className="accent-fuchsia"
+                checked={isNewArrival}
+                onChange={() => {
+                  setIsNewArrival(true);
+                  setIsBestSeller(false);
+                  setIsComingSoon(false);
+                }}
+              />
+              New
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="productFlag"
+                className="accent-fuchsia"
+                checked={isBestSeller}
+                onChange={() => {
+                  setIsNewArrival(false);
+                  setIsBestSeller(true);
+                  setIsComingSoon(false);
+                }}
+              />
+              Bestseller
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="productFlag"
+                className="accent-fuchsia"
+                checked={isComingSoon}
+                onChange={() => {
+                  setIsNewArrival(false);
+                  setIsBestSeller(false);
+                  setIsComingSoon(true);
+                }}
+              />
+              Coming Soon
+            </label>
+          </div>
+        </div>
+
         <div className="space-y-4">
           <div>
             <p className="text-sm text-white/70">Images (max 3)</p>

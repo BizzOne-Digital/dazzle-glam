@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { connectDB } from "@/lib/db/connect";
-import { requireAdmin } from "@/lib/auth/session";
+import { getSession, requireAdmin } from "@/lib/auth/session";
 import { Product } from "@/models/Product";
 import { deleteLocalUpload } from "@/lib/upload/local";
 import { mapMongoProduct, type MongoProductLike } from "@/lib/products/map";
@@ -15,6 +15,26 @@ function slugify(input: string) {
     .replace(/(^-|-$)/g, "");
 }
 
+async function assertAdminAction() {
+  const session = await getSession();
+  if (!session?.user || session.user.role !== "admin") {
+    return null;
+  }
+  return session.user;
+}
+
+function revalidateProductPaths(id: string, slug: string) {
+  try {
+    revalidatePath("/shop");
+    revalidatePath("/");
+    revalidatePath(`/products/${slug}`);
+    revalidatePath("/admin/products");
+    revalidatePath(`/admin/products/${id}`);
+  } catch (err) {
+    console.error("revalidatePath failed:", err);
+  }
+}
+
 export async function updateProductAdmin(
   id: string,
   data: {
@@ -25,63 +45,95 @@ export async function updateProductAdmin(
     price?: number;
     stock?: number;
     images?: string[];
-    isFeatured?: boolean;
     isBestSeller?: boolean;
     isNewArrival?: boolean;
+    isComingSoon?: boolean;
     status?: "draft" | "published" | "archived";
     careInstructions?: string;
   }
 ) {
-  await requireAdmin();
-  await connectDB();
+  try {
+    const admin = await assertAdminAction();
+    if (!admin) return { success: false, error: "Unauthorized" };
 
-  const product = await Product.findById(id);
-  if (!product) return { success: false, error: "Product not found" };
+    await connectDB();
 
-  if (data.name !== undefined) product.name = data.name;
-  if (data.slug !== undefined) product.slug = slugify(data.slug) || product.slug;
-  if (data.description !== undefined) product.description = data.description;
-  if (data.shortDescription !== undefined) {
-    product.shortDescription = data.shortDescription;
-  }
-  if (data.price !== undefined) product.price = Number(data.price);
-  if (data.stock !== undefined) product.stock = Number(data.stock);
-  if (data.careInstructions !== undefined) {
-    product.careInstructions = data.careInstructions;
-  }
-  if (data.isFeatured !== undefined) product.isFeatured = data.isFeatured;
-  if (data.isBestSeller !== undefined) product.isBestSeller = data.isBestSeller;
-  if (data.isNewArrival !== undefined) product.isNewArrival = data.isNewArrival;
-  if (data.status !== undefined) product.status = data.status;
+    const product = await Product.findById(id);
+    if (!product) return { success: false, error: "Product not found" };
 
-  if (data.images) {
-    const images = data.images.filter(Boolean).slice(0, 3);
-    if (images.length < 1) {
-      return { success: false, error: "At least 1 image is required" };
+    if (data.name !== undefined) product.name = data.name;
+    if (data.slug !== undefined) product.slug = slugify(data.slug) || product.slug;
+    if (data.description !== undefined) product.description = data.description;
+    if (data.shortDescription !== undefined) {
+      product.shortDescription = data.shortDescription;
     }
-    const prev = (product.media || []).map((m: { url: string }) => m.url);
-    for (const url of prev) {
-      if (!images.includes(url)) await deleteLocalUpload(url);
+    if (data.price !== undefined) product.price = Number(data.price);
+    if (data.stock !== undefined) product.stock = Number(data.stock);
+    if (data.careInstructions !== undefined) {
+      product.careInstructions = data.careInstructions;
     }
-    product.media = images.map((url, i) => ({
-      url,
-      alt: product.name,
-      type: "image" as const,
-      sortOrder: i,
-    }));
+    if (
+      data.isBestSeller !== undefined ||
+      data.isNewArrival !== undefined ||
+      data.isComingSoon !== undefined
+    ) {
+      // Enforce single flag
+      const comingSoon = !!data.isComingSoon;
+      const bestSeller = !comingSoon && !!data.isBestSeller;
+      const newArrival = !comingSoon && !bestSeller && !!data.isNewArrival;
+      product.isComingSoon = comingSoon;
+      product.isBestSeller = bestSeller;
+      product.isNewArrival = newArrival;
+    }
+    if (data.status !== undefined) product.status = data.status;
+
+    if (data.images) {
+      const images = data.images.filter(Boolean).slice(0, 3);
+      if (images.length < 1) {
+        return { success: false, error: "At least 1 image is required" };
+      }
+      const prev = (product.media || []).map((m: { url: string }) => m.url);
+      for (const url of prev) {
+        if (!images.includes(url)) await deleteLocalUpload(url);
+      }
+      product.media = images.map((url, i) => ({
+        url,
+        alt: product.name,
+        type: "image" as const,
+        sortOrder: i,
+      }));
+    }
+
+    await product.save();
+
+    // Ensure flag fields persist even if an older in-memory schema missed them
+    await Product.collection.updateOne(
+      { _id: product._id },
+      {
+        $set: {
+          isComingSoon: !!product.isComingSoon,
+          isBestSeller: !!product.isBestSeller,
+          isNewArrival: !!product.isNewArrival,
+        },
+      }
+    );
+
+    const fresh = await Product.findById(id).lean();
+    revalidateProductPaths(id, product.slug);
+
+    return {
+      success: true,
+      data: mapMongoProduct(
+        (fresh || product.toObject()) as unknown as MongoProductLike
+      ),
+    };
+  } catch (err) {
+    console.error("updateProductAdmin failed:", err);
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : "Update failed",
+    };
   }
-
-  await product.save();
-  revalidatePath("/shop");
-  revalidatePath("/");
-  revalidatePath(`/products/${product.slug}`);
-  revalidatePath("/admin/products");
-  revalidatePath(`/admin/products/${id}`);
-
-  return {
-    success: true,
-    data: mapMongoProduct(product.toObject() as unknown as MongoProductLike),
-  };
 }
 
 export async function deleteProductAdmin(id: string) {
@@ -100,6 +152,128 @@ export async function deleteProductAdmin(id: string) {
   return { success: true };
 }
 
+/** Duplicate a product with media, flags, sizes availability, and size stock */
+export async function duplicateProductAdmin(id: string) {
+  await requireAdmin();
+  await connectDB();
+
+  const source = await Product.findById(id).lean();
+  if (!source) return { success: false, error: "Product not found" };
+
+  const baseName = `${source.name} (Copy)`;
+  let baseSlug = slugify(`${source.slug}-copy`);
+  let candidate = baseSlug;
+  let n = 2;
+  while (await Product.exists({ slug: candidate })) {
+    candidate = `${baseSlug}-${n}`;
+    n += 1;
+  }
+
+  const src = source as Record<string, unknown>;
+  const media = Array.isArray(src.media)
+    ? (src.media as Array<Record<string, unknown>>).map((m, i) => ({
+        url: String(m.url || ""),
+        publicId: m.publicId,
+        alt: String(m.alt || baseName),
+        type: (m.type as "image" | "video") || "image",
+        sortOrder: typeof m.sortOrder === "number" ? m.sortOrder : i,
+      }))
+    : [];
+
+  const variants = Array.isArray(src.variants)
+    ? (src.variants as Array<Record<string, unknown>>).map((v) => ({
+        name: String(v.name || "Variant"),
+        sku: v.sku,
+        color: v.color,
+        colorHex: v.colorHex,
+        material: v.material,
+        size: v.size,
+        price: v.price,
+        compareAtPrice: v.compareAtPrice,
+        stock: Number(v.stock ?? 0),
+        image: v.image,
+      }))
+    : [];
+
+  const created = await Product.create({
+    name: baseName,
+    slug: candidate,
+    sku: src.sku ? `${String(src.sku)}-COPY` : undefined,
+    barcode: src.barcode,
+    description: source.description,
+    shortDescription: source.shortDescription,
+    price: source.price,
+    compareAtPrice: source.compareAtPrice,
+    cost: src.cost,
+    stock: source.stock,
+    lowStockLimit: source.lowStockLimit ?? 5,
+    status: source.status || "published",
+    media,
+    variants,
+    materials: source.materials || [],
+    colors: source.colors || [],
+    sizes: source.sizes || [],
+    dimensions: source.dimensions,
+    weight: src.weight,
+    careInstructions: source.careInstructions,
+    shippingDetails: src.shippingDetails,
+    categories: source.categories || [],
+    collections: source.collections || [],
+    tags: source.tags || [],
+    isFeatured: false,
+    isBestSeller: !!source.isBestSeller,
+    isNewArrival: !!source.isNewArrival,
+    isComingSoon: !!(source as { isComingSoon?: boolean }).isComingSoon,
+    isOnSale: !!source.isOnSale,
+    relatedProducts: [],
+    seo: source.seo || {},
+    publishedAt: source.status === "published" ? new Date() : undefined,
+    salesCount: 0,
+    averageRating: 0,
+    reviewCount: 0,
+  });
+
+  // Copy available sizes + admin size stock notes
+  const { ProductSizes } = await import("@/models/ProductSizes");
+  const sizeDoc = (await ProductSizes.findOne({
+    $or: [{ productId: id }, { productSlug: source.slug }],
+  }).lean()) as {
+    sizes?: string[];
+    sizeStock?: Map<string, number> | Record<string, number>;
+  } | null;
+
+  if (sizeDoc) {
+    const sizeStockRaw =
+      sizeDoc.sizeStock instanceof Map
+        ? Object.fromEntries(sizeDoc.sizeStock.entries())
+        : { ...(sizeDoc.sizeStock || {}) };
+
+    await ProductSizes.findOneAndUpdate(
+      { productId: String(created._id) },
+      {
+        $set: {
+          productId: String(created._id),
+          productSlug: candidate,
+          sizes: sizeDoc.sizes || [],
+          sizeStock: sizeStockRaw,
+        },
+      },
+      { upsert: true, new: true }
+    );
+  }
+
+  revalidatePath("/shop");
+  revalidatePath("/");
+  revalidatePath("/admin/products");
+
+  return {
+    success: true,
+    data: mapMongoProduct(
+      (created.toObject ? created.toObject() : created) as unknown as MongoProductLike
+    ),
+  };
+}
+
 export async function createProductAdmin(data: {
   name: string;
   slug?: string;
@@ -107,46 +281,74 @@ export async function createProductAdmin(data: {
   price: number;
   stock?: number;
   images: string[];
+  isBestSeller?: boolean;
+  isNewArrival?: boolean;
+  isComingSoon?: boolean;
 }) {
-  await requireAdmin();
-  await connectDB();
-  const images = (data.images || []).filter(Boolean).slice(0, 3);
-  if (images.length < 1) {
-    return { success: false, error: "At least 1 image is required" };
+  try {
+    const admin = await assertAdminAction();
+    if (!admin) return { success: false, error: "Unauthorized" };
+
+    await connectDB();
+    const images = (data.images || []).filter(Boolean).slice(0, 3);
+    if (images.length < 1) {
+      return { success: false, error: "At least 1 image is required" };
+    }
+
+    const slug = slugify(data.slug || data.name);
+    const exists = await Product.findOne({ slug });
+    if (exists) return { success: false, error: "Slug already exists" };
+
+    const product = await Product.create({
+      name: data.name,
+      slug,
+      description: data.description,
+      shortDescription: data.description.slice(0, 120),
+      price: Number(data.price),
+      stock: Number(data.stock ?? 0),
+      status: "published",
+      publishedAt: new Date(),
+      media: images.map((url, i) => ({
+        url,
+        alt: data.name,
+        type: "image",
+        sortOrder: i,
+      })),
+      materials: [],
+      colors: [],
+      sizes: [],
+      careInstructions: "Wipe with a soft cloth after wear.",
+      isComingSoon: !!data.isComingSoon,
+      isBestSeller: !data.isComingSoon && !!data.isBestSeller,
+      isNewArrival: !data.isComingSoon && !data.isBestSeller && !!data.isNewArrival,
+      isFeatured: false,
+    });
+
+    await Product.collection.updateOne(
+      { _id: product._id },
+      {
+        $set: {
+          isComingSoon: !!product.isComingSoon,
+          isBestSeller: !!product.isBestSeller,
+          isNewArrival: !!product.isNewArrival,
+        },
+      }
+    );
+
+    const fresh = await Product.findById(product._id).lean();
+    revalidateProductPaths(String(product._id), slug);
+    return {
+      success: true,
+      data: mapMongoProduct(
+        (fresh ||
+          (product.toObject ? product.toObject() : product)) as unknown as MongoProductLike
+      ),
+    };
+  } catch (err) {
+    console.error("createProductAdmin failed:", err);
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : "Create failed",
+    };
   }
-
-  const slug = slugify(data.slug || data.name);
-  const exists = await Product.findOne({ slug });
-  if (exists) return { success: false, error: "Slug already exists" };
-
-  const product = await Product.create({
-    name: data.name,
-    slug,
-    description: data.description,
-    shortDescription: data.description.slice(0, 120),
-    price: Number(data.price),
-    stock: Number(data.stock ?? 0),
-    status: "published",
-    publishedAt: new Date(),
-    media: images.map((url, i) => ({
-      url,
-      alt: data.name,
-      type: "image",
-      sortOrder: i,
-    })),
-    materials: [],
-    colors: [],
-    sizes: [],
-    careInstructions: "Wipe with a soft cloth after wear.",
-  });
-
-  revalidatePath("/shop");
-  revalidatePath("/");
-  revalidatePath("/admin/products");
-  return {
-    success: true,
-    data: mapMongoProduct(
-      (product.toObject ? product.toObject() : product) as unknown as MongoProductLike
-    ),
-  };
 }

@@ -14,10 +14,11 @@ export interface DemoProduct {
   /** Available ring sizes. Empty array = no sizes set yet (triggers inquiry flow) */
   sizes: string[];
   images: string[];
-  badge?: "new" | "bestseller";
+  badge?: "new" | "bestseller" | "coming soon";
   isFeatured?: boolean;
   isBestSeller?: boolean;
   isNewArrival?: boolean;
+  isComingSoon?: boolean;
   careInstructions: string;
   dimensions?: string;
 }
@@ -491,6 +492,7 @@ export const demoServices = [
 ];
 
 export function toCardProduct(p: DemoProduct) {
+  const comingSoon = !!p.isComingSoon || p.badge === "coming soon";
   return {
     id: p.id,
     name: p.name,
@@ -498,7 +500,8 @@ export function toCardProduct(p: DemoProduct) {
     price: p.price,
     image: p.images[0],
     hoverImage: p.images[1],
-    badge: p.badge,
-    inStock: p.stock > 0,
+    badge: comingSoon ? "coming soon" : p.badge,
+    isComingSoon: comingSoon,
+    inStock: p.stock > 0 && !comingSoon,
   };
 }
