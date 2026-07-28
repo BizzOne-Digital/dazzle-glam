@@ -163,7 +163,14 @@ export function ProductCard({
             </h3>
           </Link>
           <div className="flex items-center gap-2">
-            <p className="font-body text-sm text-white">
+            <p
+              className={`font-body text-sm ${
+                product.isOnSale &&
+                (product.compareAtPrice || 0) > product.price
+                  ? "font-semibold text-red-500"
+                  : "text-white"
+              }`}
+            >
               {formatCurrency(product.price)}
             </p>
             {product.isOnSale &&
@@ -205,7 +212,14 @@ export function ProductCard({
           </div>
           <div className="flex flex-col">
             <div className="flex items-center gap-3">
-              <span className="font-heading text-3xl text-white">
+              <span
+                className={`font-heading text-3xl ${
+                  product.isOnSale &&
+                  (product.compareAtPrice || 0) > product.price
+                    ? "text-red-500"
+                    : "text-white"
+                }`}
+              >
                 {formatCurrency(product.price)}
               </span>
               {product.isOnSale &&

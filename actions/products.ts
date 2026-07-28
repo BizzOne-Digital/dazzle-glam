@@ -50,6 +50,8 @@ export async function updateProductAdmin(
     isComingSoon?: boolean;
     isOnSale?: boolean;
     compareAtPrice?: number;
+    sku?: string;
+    supplier?: string;
     status?: "draft" | "published" | "archived";
     careInstructions?: string;
   }
@@ -71,6 +73,10 @@ export async function updateProductAdmin(
     }
     if (data.price !== undefined) product.price = Number(data.price);
     if (data.stock !== undefined) product.stock = Number(data.stock);
+    if (data.sku !== undefined) product.sku = data.sku.trim() || undefined;
+    if (data.supplier !== undefined) {
+      product.supplier = data.supplier.trim() || undefined;
+    }
     if (data.compareAtPrice !== undefined) {
       product.compareAtPrice = Number(data.compareAtPrice) || undefined;
     }
@@ -128,6 +134,8 @@ export async function updateProductAdmin(
           isNewArrival: !!product.isNewArrival,
           isOnSale: !!product.isOnSale,
           compareAtPrice: product.compareAtPrice || null,
+          sku: product.sku || null,
+          supplier: product.supplier || null,
         },
       }
     );
@@ -213,6 +221,7 @@ export async function duplicateProductAdmin(id: string) {
     name: baseName,
     slug: candidate,
     sku: src.sku ? `${String(src.sku)}-COPY` : undefined,
+    supplier: typeof src.supplier === "string" ? src.supplier : undefined,
     barcode: src.barcode,
     description: source.description,
     shortDescription: source.shortDescription,
@@ -300,6 +309,8 @@ export async function createProductAdmin(data: {
   isComingSoon?: boolean;
   isOnSale?: boolean;
   compareAtPrice?: number;
+  sku?: string;
+  supplier?: string;
 }) {
   try {
     const admin = await assertAdminAction();
@@ -321,6 +332,8 @@ export async function createProductAdmin(data: {
     const product = await Product.create({
       name: data.name,
       slug,
+      sku: data.sku?.trim() || undefined,
+      supplier: data.supplier?.trim() || undefined,
       description: data.description,
       shortDescription: data.description.slice(0, 120),
       price: Number(data.price),
@@ -354,6 +367,8 @@ export async function createProductAdmin(data: {
           isNewArrival: !!product.isNewArrival,
           isOnSale: !!product.isOnSale,
           compareAtPrice: product.compareAtPrice || null,
+          sku: product.sku || null,
+          supplier: product.supplier || null,
         },
       }
     );

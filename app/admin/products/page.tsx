@@ -106,12 +106,27 @@ export default function AdminProductsPage() {
                     <div>
                       <p className="max-w-xs truncate font-medium">{p.name}</p>
                       <p className="text-xs text-white/40">{p.slug}</p>
+                      {(p.sku || p.supplier) && (
+                        <p className="text-xs text-white/35">
+                          {[p.sku && `SKU: ${p.sku}`, p.supplier && `Supplier: ${p.supplier}`]
+                            .filter(Boolean)
+                            .join(" · ")}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </td>
                 <td className="p-3">
                   <div className="flex flex-col">
-                    <span>{formatCurrency(p.price)}</span>
+                    <span
+                      className={
+                        p.isOnSale && (p.compareAtPrice || 0) > p.price
+                          ? "font-medium text-red-400"
+                          : undefined
+                      }
+                    >
+                      {formatCurrency(p.price)}
+                    </span>
                     {p.isOnSale && (p.compareAtPrice || 0) > p.price && (
                       <span className="text-xs text-white/45 line-through">
                         {formatCurrency(p.compareAtPrice || 0)}

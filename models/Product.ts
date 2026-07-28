@@ -20,6 +20,7 @@ export interface IProduct {
   name: string;
   slug: string;
   sku?: string;
+  supplier?: string;
   barcode?: string;
   description: string;
   shortDescription?: string;
@@ -90,6 +91,7 @@ const ProductSchema = new Schema<IProduct>(
     name: { type: String, required: true },
     slug: { type: String, required: true, unique: true, index: true },
     sku: { type: String, index: true },
+    supplier: { type: String, index: true },
     barcode: String,
     description: { type: String, required: true },
     shortDescription: String,

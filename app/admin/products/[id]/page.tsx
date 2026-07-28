@@ -37,6 +37,8 @@ export default function EditProductPage() {
 
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
+  const [sku, setSku] = useState("");
+  const [supplier, setSupplier] = useState("");
   const [price, setPrice] = useState(0);
   const [compareAtPrice, setCompareAtPrice] = useState(0);
   const [stock, setStock] = useState(0);
@@ -69,6 +71,8 @@ export default function EditProductPage() {
         setProduct(p);
         setName(p.name);
         setSlug(p.slug);
+        setSku(p.sku || "");
+        setSupplier(p.supplier || "");
         setPrice(p.price);
         setCompareAtPrice(p.compareAtPrice || 0);
         setIsOnSale(!!p.isOnSale);
@@ -199,6 +203,8 @@ export default function EditProductPage() {
       const result = await updateProductAdmin(product.id, {
         name,
         slug,
+        sku,
+        supplier,
         price,
         compareAtPrice: isOnSale ? compareAtPrice : 0,
         isOnSale,
@@ -214,6 +220,8 @@ export default function EditProductPage() {
         if (result.data) {
           setProduct(result.data);
           setPrice(result.data.price);
+          setSku(result.data.sku || "");
+          setSupplier(result.data.supplier || "");
           setCompareAtPrice(result.data.compareAtPrice || 0);
           setIsOnSale(!!result.data.isOnSale);
           setImages((result.data.images || []).slice(0, 3));
@@ -368,6 +376,20 @@ export default function EditProductPage() {
         >
           <Input label="Name" value={name} onChange={(e) => setName(e.target.value)} required />
           <Input label="Slug" value={slug} onChange={(e) => setSlug(e.target.value)} />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Input
+              label="SKU"
+              value={sku}
+              onChange={(e) => setSku(e.target.value)}
+              placeholder="e.g. DG-RING-001"
+            />
+            <Input
+              label="Supplier name"
+              value={supplier}
+              onChange={(e) => setSupplier(e.target.value)}
+              placeholder="Supplier / vendor"
+            />
+          </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <Input
               label="Price"

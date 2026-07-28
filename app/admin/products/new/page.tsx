@@ -14,6 +14,8 @@ export default function NewProductPage() {
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
+  const [sku, setSku] = useState("");
+  const [supplier, setSupplier] = useState("");
   const [price, setPrice] = useState(0);
   const [compareAtPrice, setCompareAtPrice] = useState(0);
   const [stock, setStock] = useState(10);
@@ -61,6 +63,8 @@ export default function NewProductPage() {
       const result = await createProductAdmin({
         name,
         slug: slug || undefined,
+        sku: sku || undefined,
+        supplier: supplier || undefined,
         description,
         price,
         compareAtPrice: isOnSale ? compareAtPrice : 0,
@@ -96,6 +100,20 @@ export default function NewProductPage() {
           onChange={(e) => setSlug(e.target.value)}
           placeholder="auto-from-name"
         />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Input
+            label="SKU"
+            value={sku}
+            onChange={(e) => setSku(e.target.value)}
+            placeholder="e.g. DG-RING-001"
+          />
+          <Input
+            label="Supplier name"
+            value={supplier}
+            onChange={(e) => setSupplier(e.target.value)}
+            placeholder="Supplier / vendor"
+          />
+        </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <Input
             label="Price"

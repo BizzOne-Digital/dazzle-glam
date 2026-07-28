@@ -216,7 +216,16 @@ export default function ProductPage() {
                 {product.name}
               </h1>
               <div className="mt-4 flex items-center gap-3">
-                <span className="text-2xl text-silver">{formatCurrency(product.price)}</span>
+                <span
+                  className={`text-2xl ${
+                    product.isOnSale &&
+                    (product.compareAtPrice || 0) > product.price
+                      ? "font-semibold text-red-500"
+                      : "text-silver"
+                  }`}
+                >
+                  {formatCurrency(product.price)}
+                </span>
                 {product.isOnSale &&
                   (product.compareAtPrice || 0) > product.price && (
                     <span className="text-white/45 line-through">
@@ -532,7 +541,16 @@ export default function ProductPage() {
         <div className="flex items-center gap-3">
           <div className="min-w-0 flex-1">
             <p className="line-clamp-1 text-sm">{product.name}</p>
-            <p className="text-silver">{formatCurrency(product.price)}</p>
+            <p
+              className={
+                product.isOnSale &&
+                (product.compareAtPrice || 0) > product.price
+                  ? "font-semibold text-red-500"
+                  : "text-silver"
+              }
+            >
+              {formatCurrency(product.price)}
+            </p>
           </div>
           {comingSoon ? (
             <Button className="shrink-0" variant="secondary" disabled>

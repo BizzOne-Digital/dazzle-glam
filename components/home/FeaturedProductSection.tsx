@@ -100,7 +100,22 @@ export function FeaturedProductSection() {
               {displayName}
             </h2>
             <p className="mt-3 text-2xl font-medium text-silver">
-              {formatCurrency(product.price)}
+              <span
+                className={
+                  product.isOnSale &&
+                  (product.compareAtPrice || 0) > product.price
+                    ? "text-red-500"
+                    : undefined
+                }
+              >
+                {formatCurrency(product.price)}
+              </span>
+              {product.isOnSale &&
+                (product.compareAtPrice || 0) > product.price && (
+                  <span className="ml-3 text-lg text-white/45 line-through">
+                    {formatCurrency(product.compareAtPrice || 0)}
+                  </span>
+                )}
             </p>
             <p className="mx-auto mt-5 max-w-md text-base leading-relaxed text-white/70 lg:mx-0">
               {product.shortDescription || product.description.slice(0, 140)}

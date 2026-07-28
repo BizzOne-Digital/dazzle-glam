@@ -73,6 +73,7 @@ export const productSchema = z.object({
   name: z.string().min(1).max(200),
   slug: slugSchema,
   sku: z.string().optional(),
+  supplier: z.string().optional(),
   barcode: z.string().optional(),
   description: z.string().min(1),
   shortDescription: z.string().max(500).optional(),

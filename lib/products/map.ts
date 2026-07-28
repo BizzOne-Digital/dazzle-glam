@@ -20,6 +20,8 @@ export type MongoProductLike = {
   isComingSoon?: boolean;
   isOnSale?: boolean;
   compareAtPrice?: number;
+  sku?: string;
+  supplier?: string;
   status?: string;
 };
 
@@ -50,6 +52,8 @@ export function mapMongoProduct(p: MongoProductLike): DemoProduct {
     isComingSoon: !!p.isComingSoon,
     isOnSale: sale,
     compareAtPrice: sale ? p.compareAtPrice : undefined,
+    sku: p.sku || undefined,
+    supplier: p.supplier || undefined,
     badge: p.isComingSoon
       ? "coming soon"
       : sale

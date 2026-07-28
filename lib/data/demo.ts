@@ -21,6 +21,8 @@ export interface DemoProduct {
   isComingSoon?: boolean;
   isOnSale?: boolean;
   compareAtPrice?: number;
+  sku?: string;
+  supplier?: string;
   careInstructions: string;
   dimensions?: string;
 }
