@@ -18,13 +18,16 @@ async function main() {
 
   await connectDB();
 
+  const hashed = await hashPassword(password);
   const existing = await AdminUser.findOne({ email: email.toLowerCase() });
   if (existing) {
-    console.log("Admin already exists:", email);
+    existing.password = hashed;
+    existing.isActive = true;
+    await existing.save();
+    console.log("Admin password updated:", email);
     process.exit(0);
   }
 
-  const hashed = await hashPassword(password);
   await AdminUser.create({
     name: "Dazzle Glam Admin",
     email: email.toLowerCase(),
