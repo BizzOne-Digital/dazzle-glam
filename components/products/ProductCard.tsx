@@ -21,6 +21,8 @@ export interface ProductCardData {
   badge?: "new" | "bestseller" | "coming soon" | string;
   inStock?: boolean;
   isComingSoon?: boolean;
+  isOnSale?: boolean;
+  compareAtPrice?: number;
 }
 
 export interface ProductCardProps {
@@ -41,12 +43,14 @@ export function ProductCard({
   const comingSoon =
     !!product.isComingSoon || product.badge === "coming soon";
   const inStock = !comingSoon && product.inStock !== false;
-  const showBadge = product.badge && product.badge !== "sale";
+  const showBadge = !!product.badge;
 
   const badgeVariant =
-    product.badge === "new" ||
-    product.badge === "bestseller" ||
-    product.badge === "coming soon"
+    product.badge === "sale"
+      ? "sale"
+      : product.badge === "new" ||
+          product.badge === "bestseller" ||
+          product.badge === "coming soon"
       ? "fuchsia"
       : product.badge
         ? "fuchsia"
@@ -158,9 +162,17 @@ export function ProductCard({
               {product.name}
             </h3>
           </Link>
-          <p className="font-body text-sm text-white">
-            {formatCurrency(product.price)}
-          </p>
+          <div className="flex items-center gap-2">
+            <p className="font-body text-sm text-white">
+              {formatCurrency(product.price)}
+            </p>
+            {product.isOnSale &&
+              (product.compareAtPrice || 0) > product.price && (
+                <p className="font-body text-xs text-white/45 line-through">
+                  {formatCurrency(product.compareAtPrice || 0)}
+                </p>
+              )}
+          </div>
           {comingSoon ? (
             <p className="font-body text-xs uppercase tracking-wider text-silver">
               Coming soon
@@ -192,9 +204,17 @@ export function ProductCard({
             />
           </div>
           <div className="flex flex-col">
-            <span className="font-heading text-3xl text-white">
-              {formatCurrency(product.price)}
-            </span>
+            <div className="flex items-center gap-3">
+              <span className="font-heading text-3xl text-white">
+                {formatCurrency(product.price)}
+              </span>
+              {product.isOnSale &&
+                (product.compareAtPrice || 0) > product.price && (
+                  <span className="text-white/45 line-through">
+                    {formatCurrency(product.compareAtPrice || 0)}
+                  </span>
+                )}
+            </div>
             <p className="mt-4 font-body text-sm leading-relaxed text-white/55">
               A signature Dazzle Glam piece — bold energy, luminous finish, made
               to turn every entrance into a moment.

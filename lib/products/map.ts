@@ -18,6 +18,8 @@ export type MongoProductLike = {
   isBestSeller?: boolean;
   isNewArrival?: boolean;
   isComingSoon?: boolean;
+  isOnSale?: boolean;
+  compareAtPrice?: number;
   status?: string;
 };
 
@@ -26,6 +28,8 @@ export function mapMongoProduct(p: MongoProductLike): DemoProduct {
     .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
     .map((m) => m.url)
     .filter(Boolean);
+
+  const sale = !!p.isOnSale && (p.compareAtPrice || 0) > p.price;
 
   return {
     id: typeof p._id === "string" ? p._id : p._id.toString(),
@@ -44,8 +48,12 @@ export function mapMongoProduct(p: MongoProductLike): DemoProduct {
     isBestSeller: !!p.isBestSeller,
     isNewArrival: !!p.isNewArrival,
     isComingSoon: !!p.isComingSoon,
+    isOnSale: sale,
+    compareAtPrice: sale ? p.compareAtPrice : undefined,
     badge: p.isComingSoon
       ? "coming soon"
+      : sale
+        ? "sale"
       : p.isBestSeller
         ? "bestseller"
         : p.isNewArrival
@@ -68,6 +76,8 @@ export function toCardFromMongo(p: MongoProductLike) {
     hoverImage: mapped.images[1],
     badge: mapped.badge,
     isComingSoon: comingSoon,
+    isOnSale: !!mapped.isOnSale,
+    compareAtPrice: mapped.compareAtPrice,
     inStock: mapped.stock > 0 && !comingSoon,
   };
 }

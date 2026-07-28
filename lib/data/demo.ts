@@ -14,11 +14,13 @@ export interface DemoProduct {
   /** Available ring sizes. Empty array = no sizes set yet (triggers inquiry flow) */
   sizes: string[];
   images: string[];
-  badge?: "new" | "bestseller" | "coming soon";
+  badge?: "new" | "bestseller" | "coming soon" | "sale";
   isFeatured?: boolean;
   isBestSeller?: boolean;
   isNewArrival?: boolean;
   isComingSoon?: boolean;
+  isOnSale?: boolean;
+  compareAtPrice?: number;
   careInstructions: string;
   dimensions?: string;
 }
@@ -493,6 +495,7 @@ export const demoServices = [
 
 export function toCardProduct(p: DemoProduct) {
   const comingSoon = !!p.isComingSoon || p.badge === "coming soon";
+  const sale = !!p.isOnSale && (p.compareAtPrice || 0) > p.price;
   return {
     id: p.id,
     name: p.name,
@@ -500,8 +503,10 @@ export function toCardProduct(p: DemoProduct) {
     price: p.price,
     image: p.images[0],
     hoverImage: p.images[1],
-    badge: comingSoon ? "coming soon" : p.badge,
+    badge: comingSoon ? "coming soon" : sale ? "sale" : p.badge,
     isComingSoon: comingSoon,
+    isOnSale: sale,
+    compareAtPrice: sale ? p.compareAtPrice : undefined,
     inStock: p.stock > 0 && !comingSoon,
   };
 }

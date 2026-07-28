@@ -11,8 +11,10 @@ export function calcShippingCost(
   method: ShippingMethodId = "standard"
 ): number {
   if (subtotal <= 0) return 0;
+  // Free shipping only applies to Standard — Express is always paid
+  if (method === "express") return EXPRESS_SHIPPING_COST;
   if (subtotal >= FREE_SHIPPING_THRESHOLD) return 0;
-  return method === "express" ? EXPRESS_SHIPPING_COST : STANDARD_SHIPPING_COST;
+  return STANDARD_SHIPPING_COST;
 }
 
 export function shippingMethodLabel(method: ShippingMethodId): string {

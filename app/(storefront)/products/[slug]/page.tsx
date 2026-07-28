@@ -173,7 +173,7 @@ export default function ProductPage() {
                 {product.badge && (
                   <div className="absolute left-4 top-4">
                     <Badge
-                      variant={product.badge === "new" ? "new" : "fuchsia"}
+                      variant={product.badge === "sale" ? "sale" : "fuchsia"}
                     >
                       {product.badge}
                     </Badge>
@@ -217,6 +217,12 @@ export default function ProductPage() {
               </h1>
               <div className="mt-4 flex items-center gap-3">
                 <span className="text-2xl text-silver">{formatCurrency(product.price)}</span>
+                {product.isOnSale &&
+                  (product.compareAtPrice || 0) > product.price && (
+                    <span className="text-white/45 line-through">
+                      {formatCurrency(product.compareAtPrice || 0)}
+                    </span>
+                  )}
               </div>
               <p className="mt-5 text-white/65">{product.shortDescription}</p>
               <p className="mt-3 text-sm text-white/45">

@@ -205,13 +205,14 @@ export default function CheckoutPage() {
               <h2 className="font-heading text-2xl">Delivery method</h2>
               {freeShipping ? (
                 <p className="mt-3 text-sm text-emerald-400">
-                  Free shipping unlocked on orders over{" "}
-                  {formatCurrency(FREE_SHIPPING_THRESHOLD)}.
+                  Free standard shipping unlocked on orders over{" "}
+                  {formatCurrency(FREE_SHIPPING_THRESHOLD)}. Express is{" "}
+                  {formatCurrency(EXPRESS_SHIPPING_COST)}.
                 </p>
               ) : (
                 <p className="mt-3 text-sm text-white/50">
                   Add {formatCurrency(FREE_SHIPPING_THRESHOLD - subtotal)} more
-                  for free shipping.
+                  for free standard shipping.
                 </p>
               )}
               <div className="mt-4 space-y-3">
@@ -266,9 +267,7 @@ export default function CheckoutPage() {
                     </span>
                   </span>
                   <span className="text-sm">
-                    {freeShipping
-                      ? "Free"
-                      : formatCurrency(EXPRESS_SHIPPING_COST)}
+                    {formatCurrency(EXPRESS_SHIPPING_COST)}
                   </span>
                 </label>
               </div>

@@ -109,11 +109,21 @@ export default function AdminProductsPage() {
                     </div>
                   </div>
                 </td>
-                <td className="p-3">{formatCurrency(p.price)}</td>
+                <td className="p-3">
+                  <div className="flex flex-col">
+                    <span>{formatCurrency(p.price)}</span>
+                    {p.isOnSale && (p.compareAtPrice || 0) > p.price && (
+                      <span className="text-xs text-white/45 line-through">
+                        {formatCurrency(p.compareAtPrice || 0)}
+                      </span>
+                    )}
+                  </div>
+                </td>
                 <td className="p-3">{p.stock}</td>
                 <td className="p-3 text-xs text-fuchsia">
                   {[
                     p.isComingSoon && "Coming Soon",
+                    p.isOnSale && "Sale",
                     p.isNewArrival && "New",
                     p.isBestSeller && "Bestseller",
                   ]

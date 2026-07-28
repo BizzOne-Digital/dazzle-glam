@@ -48,6 +48,8 @@ export async function updateProductAdmin(
     isBestSeller?: boolean;
     isNewArrival?: boolean;
     isComingSoon?: boolean;
+    isOnSale?: boolean;
+    compareAtPrice?: number;
     status?: "draft" | "published" | "archived";
     careInstructions?: string;
   }
@@ -69,6 +71,16 @@ export async function updateProductAdmin(
     }
     if (data.price !== undefined) product.price = Number(data.price);
     if (data.stock !== undefined) product.stock = Number(data.stock);
+    if (data.compareAtPrice !== undefined) {
+      product.compareAtPrice = Number(data.compareAtPrice) || undefined;
+    }
+    if (data.isOnSale !== undefined) {
+      product.isOnSale = !!data.isOnSale;
+    }
+    if (product.isOnSale && (product.compareAtPrice || 0) <= product.price) {
+      product.isOnSale = false;
+      product.compareAtPrice = undefined;
+    }
     if (data.careInstructions !== undefined) {
       product.careInstructions = data.careInstructions;
     }
@@ -114,6 +126,8 @@ export async function updateProductAdmin(
           isComingSoon: !!product.isComingSoon,
           isBestSeller: !!product.isBestSeller,
           isNewArrival: !!product.isNewArrival,
+          isOnSale: !!product.isOnSale,
+          compareAtPrice: product.compareAtPrice || null,
         },
       }
     );
@@ -284,6 +298,8 @@ export async function createProductAdmin(data: {
   isBestSeller?: boolean;
   isNewArrival?: boolean;
   isComingSoon?: boolean;
+  isOnSale?: boolean;
+  compareAtPrice?: number;
 }) {
   try {
     const admin = await assertAdminAction();
@@ -298,6 +314,9 @@ export async function createProductAdmin(data: {
     const slug = slugify(data.slug || data.name);
     const exists = await Product.findOne({ slug });
     if (exists) return { success: false, error: "Slug already exists" };
+
+    const saleActive =
+      !!data.isOnSale && Number(data.compareAtPrice || 0) > Number(data.price);
 
     const product = await Product.create({
       name: data.name,
@@ -321,6 +340,8 @@ export async function createProductAdmin(data: {
       isComingSoon: !!data.isComingSoon,
       isBestSeller: !data.isComingSoon && !!data.isBestSeller,
       isNewArrival: !data.isComingSoon && !data.isBestSeller && !!data.isNewArrival,
+      isOnSale: saleActive,
+      compareAtPrice: saleActive ? Number(data.compareAtPrice) : undefined,
       isFeatured: false,
     });
 
@@ -331,6 +352,8 @@ export async function createProductAdmin(data: {
           isComingSoon: !!product.isComingSoon,
           isBestSeller: !!product.isBestSeller,
           isNewArrival: !!product.isNewArrival,
+          isOnSale: !!product.isOnSale,
+          compareAtPrice: product.compareAtPrice || null,
         },
       }
     );

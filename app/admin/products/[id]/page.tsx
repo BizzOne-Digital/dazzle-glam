@@ -38,9 +38,11 @@ export default function EditProductPage() {
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [price, setPrice] = useState(0);
+  const [compareAtPrice, setCompareAtPrice] = useState(0);
   const [stock, setStock] = useState(0);
   const [description, setDescription] = useState("");
   const [images, setImages] = useState<string[]>([]);
+  const [isOnSale, setIsOnSale] = useState(false);
   const [isNewArrival, setIsNewArrival] = useState(false);
   const [isBestSeller, setIsBestSeller] = useState(false);
   const [isComingSoon, setIsComingSoon] = useState(false);
@@ -68,6 +70,8 @@ export default function EditProductPage() {
         setName(p.name);
         setSlug(p.slug);
         setPrice(p.price);
+        setCompareAtPrice(p.compareAtPrice || 0);
+        setIsOnSale(!!p.isOnSale);
         setStock(p.stock);
         setDescription(p.description);
         setImages((p.images || []).slice(0, 3));
@@ -186,12 +190,18 @@ export default function EditProductPage() {
       toast.error("At least 1 image is required");
       return;
     }
+    if (isOnSale && compareAtPrice <= price) {
+      toast.error("Original price must be higher than sale price");
+      return;
+    }
     setLoading(true);
     try {
       const result = await updateProductAdmin(product.id, {
         name,
         slug,
         price,
+        compareAtPrice: isOnSale ? compareAtPrice : 0,
+        isOnSale,
         stock,
         description,
         images: cleanImages,
@@ -203,6 +213,9 @@ export default function EditProductPage() {
         toast.success("Product updated");
         if (result.data) {
           setProduct(result.data);
+          setPrice(result.data.price);
+          setCompareAtPrice(result.data.compareAtPrice || 0);
+          setIsOnSale(!!result.data.isOnSale);
           setImages((result.data.images || []).slice(0, 3));
           if (result.data.isComingSoon) {
             setIsComingSoon(true);
@@ -369,6 +382,31 @@ export default function EditProductPage() {
               value={stock}
               onChange={(e) => setStock(Number(e.target.value))}
             />
+          </div>
+          <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+            <label className="mb-3 flex items-center gap-2 text-sm text-white/80">
+              <input
+                type="checkbox"
+                className="accent-fuchsia"
+                checked={isOnSale}
+                onChange={(e) => setIsOnSale(e.target.checked)}
+              />
+              Mark as Sale
+            </label>
+            <Input
+              label="Original price (compare at)"
+              type="number"
+              step="0.01"
+              min="0"
+              value={compareAtPrice}
+              disabled={!isOnSale}
+              onChange={(e) => setCompareAtPrice(Number(e.target.value))}
+            />
+            {isOnSale && compareAtPrice <= price && (
+              <p className="mt-2 text-xs text-amber-300">
+                Original price should be higher than sale price.
+              </p>
+            )}
           </div>
           <Textarea
             label="Description"

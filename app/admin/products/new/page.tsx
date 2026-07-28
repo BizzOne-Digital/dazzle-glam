@@ -15,9 +15,11 @@ export default function NewProductPage() {
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [price, setPrice] = useState(0);
+  const [compareAtPrice, setCompareAtPrice] = useState(0);
   const [stock, setStock] = useState(10);
   const [description, setDescription] = useState("");
   const [images, setImages] = useState<string[]>(["", ""]);
+  const [isOnSale, setIsOnSale] = useState(false);
   const [isNewArrival, setIsNewArrival] = useState(false);
   const [isBestSeller, setIsBestSeller] = useState(false);
   const [isComingSoon, setIsComingSoon] = useState(false);
@@ -50,6 +52,10 @@ export default function NewProductPage() {
       toast.error("Upload at least 1 image");
       return;
     }
+    if (isOnSale && compareAtPrice <= price) {
+      toast.error("Original price must be higher than sale price");
+      return;
+    }
     setLoading(true);
     try {
       const result = await createProductAdmin({
@@ -57,6 +63,8 @@ export default function NewProductPage() {
         slug: slug || undefined,
         description,
         price,
+        compareAtPrice: isOnSale ? compareAtPrice : 0,
+        isOnSale,
         stock,
         images: clean,
         isNewArrival,
@@ -103,6 +111,31 @@ export default function NewProductPage() {
             value={stock}
             onChange={(e) => setStock(Number(e.target.value))}
           />
+        </div>
+        <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+          <label className="mb-3 flex items-center gap-2 text-sm text-white/80">
+            <input
+              type="checkbox"
+              className="accent-fuchsia"
+              checked={isOnSale}
+              onChange={(e) => setIsOnSale(e.target.checked)}
+            />
+            Mark as Sale
+          </label>
+          <Input
+            label="Original price (compare at)"
+            type="number"
+            step="0.01"
+            min="0"
+            value={compareAtPrice}
+            disabled={!isOnSale}
+            onChange={(e) => setCompareAtPrice(Number(e.target.value))}
+          />
+          {isOnSale && compareAtPrice <= price && (
+            <p className="mt-2 text-xs text-amber-300">
+              Original price should be higher than sale price.
+            </p>
+          )}
         </div>
         <Textarea
           label="Description"
