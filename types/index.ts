@@ -97,8 +97,5 @@ export interface CartLine {
   name: string;
   image?: string;
   variantLabel?: string;
-<<<<<<< HEAD
-=======
   sku?: string;
->>>>>>> 7ac483d (fix)
 }

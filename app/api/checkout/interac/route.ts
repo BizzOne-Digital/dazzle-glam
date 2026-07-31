@@ -11,7 +11,7 @@ import {
   type ShippingMethodId,
 } from "@/lib/shipping";
 import { getSiteSettings } from "@/actions/settings";
-import { Order } from "@/models/Commerce";
+import { Order, type IOrderItem } from "@/models/Commerce";
 
 interface CheckoutItem {
   id: string;
@@ -143,7 +143,7 @@ export async function POST(req: Request) {
       customerName,
       customerEmail: order.email,
       customerPhone: order.phone,
-      items: order.items.map((item) => ({
+      items: order.items.map((item: IOrderItem) => ({
         name: item.name,
         quantity: item.quantity,
         price: item.price,

@@ -9,13 +9,8 @@ export default function ShippingPage() {
     <AnimatedLegalLayout title="Shipping Policy" images={images}>
       <p>We ship Canada-wide with tracked delivery options.</p>
       <ul className="list-disc space-y-2 pl-5">
-<<<<<<< HEAD
-        <li>Standard: 3–6 business days</li>
-        <li>Express: 1–3 business days</li>
-=======
         <li>Standard: 4–7 days</li>
         <li>Express: 2–4 business days</li>
->>>>>>> 7ac483d (fix)
         <li>Free shipping on qualifying orders (threshold configurable in admin)</li>
       </ul>
       <p>Most orders leave our studio within 2–4 business days.</p>

@@ -83,9 +83,6 @@ export function toCardFromMongo(p: MongoProductLike) {
     isOnSale: !!mapped.isOnSale,
     compareAtPrice: mapped.compareAtPrice,
     inStock: mapped.stock > 0 && !comingSoon,
-<<<<<<< HEAD
-=======
     sku: mapped.sku,
->>>>>>> 7ac483d (fix)
   };
 }

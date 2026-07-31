@@ -105,10 +105,7 @@ export interface IOrder {
   paymentStatus: PaymentStatus;
   fulfillmentStatus: FulfillmentStatus;
   shippingMethod?: string;
-<<<<<<< HEAD
-=======
   paymentMethod?: "stripe" | "interac";
->>>>>>> 7ac483d (fix)
   trackingNumber?: string;
   courier?: string;
   stripePaymentIntentId?: string;
@@ -194,14 +191,11 @@ const OrderSchema = new Schema<IOrder>(
       default: "unfulfilled",
     },
     shippingMethod: String,
-<<<<<<< HEAD
-=======
     paymentMethod: {
       type: String,
       enum: ["stripe", "interac"],
       default: "stripe",
     },
->>>>>>> 7ac483d (fix)
     trackingNumber: String,
     courier: String,
     stripePaymentIntentId: String,

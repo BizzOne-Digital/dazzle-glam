@@ -42,11 +42,7 @@ export default function WishlistPage() {
           </EmptyState>
         </ScrollReveal>
 
-<<<<<<< HEAD
-        <StaggerGrid className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-4" stagger={0.08}>
-=======
         <StaggerGrid className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5" stagger={0.08}>
->>>>>>> 7ac483d (fix)
           {demoProducts
             .filter((p) => p.isBestSeller)
             .slice(0, 4)

@@ -117,10 +117,7 @@ export default function ProductPage() {
       quantity: qty,
       variantId: selectedSize || undefined,
       variantLabel: selectedSize ? `Size ${selectedSize}` : undefined,
-<<<<<<< HEAD
-=======
       sku: product.sku,
->>>>>>> 7ac483d (fix)
     });
     toast.success("Added to bag");
   };
@@ -219,11 +216,7 @@ export default function ProductPage() {
               <h1 className="mt-2 font-heading text-3xl text-white md:text-5xl">
                 {product.name}
               </h1>
-<<<<<<< HEAD
-              <div className="mt-4 flex items-center gap-3">
-=======
               <div className="mt-4 flex flex-wrap items-center gap-3">
->>>>>>> 7ac483d (fix)
                 <span
                   className={`text-2xl ${
                     product.isOnSale &&
@@ -240,14 +233,11 @@ export default function ProductPage() {
                       {formatCurrency(product.compareAtPrice || 0)}
                     </span>
                   )}
-<<<<<<< HEAD
-=======
                 {product.sku && (
                   <span className="rounded border border-white/15 px-2.5 py-1 font-body text-xs tracking-wide text-white/55">
                     SKU {product.sku}
                   </span>
                 )}
->>>>>>> 7ac483d (fix)
               </div>
               <p className="mt-5 text-white/65">{product.shortDescription}</p>
               <p className="mt-3 text-sm text-white/45">
@@ -548,11 +538,7 @@ export default function ProductPage() {
         <ScrollReveal direction="up" className="mt-20">
           <h2 className="font-heading text-3xl text-white">You May Also Love</h2>
           <div className="mt-8">
-<<<<<<< HEAD
-            <ProductGrid products={related} columns={4} />
-=======
             <ProductGrid products={related} columns={5} />
->>>>>>> 7ac483d (fix)
           </div>
         </ScrollReveal>
       </Container>

@@ -9,10 +9,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { ProductCard } from "@/components/products/ProductCard";
 import { useCartStore } from "@/lib/store/cart";
 import { formatCurrency } from "@/lib/utils";
-<<<<<<< HEAD
-=======
 import { calcShippingCost } from "@/lib/shipping";
->>>>>>> 7ac483d (fix)
 import { demoProducts, toCardProduct } from "@/lib/data/demo";
 import { ScrollReveal } from "@/components/animations/ScrollReveal";
 import {
@@ -32,11 +29,7 @@ export default function CartPage() {
   const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
   const discount = subtotal >= 65 ? subtotal * 0.1 : 0;
   const discountedSubtotal = subtotal - discount;
-<<<<<<< HEAD
-  const shipping = discountedSubtotal >= 100 ? 0 : discountedSubtotal > 0 ? 8 : 0;
-=======
   const shipping = calcShippingCost(discountedSubtotal, "standard");
->>>>>>> 7ac483d (fix)
   const tax = (discountedSubtotal + shipping) * 0.13;
   const total = discountedSubtotal + shipping + tax;
 
@@ -57,13 +50,8 @@ export default function CartPage() {
           </ScrollReveal>
           <div className="mt-16">
             <h2 className="font-heading text-2xl">Recommended</h2>
-<<<<<<< HEAD
-            <StaggerGrid className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4" stagger={0.08}>
-              {demoProducts.slice(0, 4).map((p) => (
-=======
             <StaggerGrid className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5" stagger={0.08}>
               {demoProducts.slice(0, 5).map((p) => (
->>>>>>> 7ac483d (fix)
                 <MotionItem key={p.id}>
                   <HoverLift>
                     <ProductCard product={toCardProduct(p)} />
@@ -108,15 +96,12 @@ export default function CartPage() {
                     >
                       {item.name}
                     </Link>
-<<<<<<< HEAD
-=======
                     <p className="mt-1 text-sm text-white/50">
                       Variant: {item.variantLabel || "Standard"}
                     </p>
                     <p className="text-sm text-white/50">
                       SKU: {item.sku || "—"}
                     </p>
->>>>>>> 7ac483d (fix)
                     <p className="mt-1 text-silver">{formatCurrency(item.price)}</p>
                     <div className="mt-3 flex items-center gap-3">
                       <div className="flex items-center rounded border border-white/15">
