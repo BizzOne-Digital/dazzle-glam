@@ -3,6 +3,10 @@
 import { useState, type FormEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
+<<<<<<< HEAD
+=======
+import { useRouter } from "next/navigation";
+>>>>>>> 7ac483d (fix)
 import { toast } from "sonner";
 import { Container } from "@/components/ui/Container";
 import { Input } from "@/components/ui/Input";
@@ -11,23 +15,42 @@ import { Select } from "@/components/ui/Select";
 import { useCartStore } from "@/lib/store/cart";
 import { formatCurrency } from "@/lib/utils";
 import { placeholderImages } from "@/config/site";
+<<<<<<< HEAD
 import { ShieldCheck } from "lucide-react";
+=======
+import { CreditCard, Landmark, ShieldCheck } from "lucide-react";
+>>>>>>> 7ac483d (fix)
 import {
   EXPRESS_SHIPPING_COST,
   FREE_SHIPPING_THRESHOLD,
   STANDARD_SHIPPING_COST,
   calcShippingCost,
+<<<<<<< HEAD
+=======
+  shippingEta,
+>>>>>>> 7ac483d (fix)
   shippingMethodLabel,
   type ShippingMethodId,
 } from "@/lib/shipping";
 
+<<<<<<< HEAD
 export default function CheckoutPage() {
+=======
+type PaymentMethod = "stripe" | "interac";
+
+export default function CheckoutPage() {
+  const router = useRouter();
+>>>>>>> 7ac483d (fix)
   const items = useCartStore((s) => s.items);
   const clearCart = useCartStore((s) => s.clearCart);
   const [loading, setLoading] = useState(false);
   const [sameBilling, setSameBilling] = useState(true);
   const [shippingMethod, setShippingMethod] =
     useState<ShippingMethodId>("standard");
+<<<<<<< HEAD
+=======
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("stripe");
+>>>>>>> 7ac483d (fix)
 
   const subtotal = items.reduce((s, i) => s + i.price * i.quantity, 0);
   const shippingCost = calcShippingCost(subtotal, shippingMethod);
@@ -46,12 +69,46 @@ export default function CheckoutPage() {
     );
   }
 
+<<<<<<< HEAD
+=======
+  const buildCheckoutPayload = (formData: FormData) => ({
+    items: items.map((item) => ({
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      quantity: item.quantity,
+      image: item.image,
+      variantLabel: item.variantLabel,
+      sku: item.sku,
+    })),
+    customerEmail: formData.get("email") as string,
+    customerPhone: formData.get("phone") as string,
+    firstName: formData.get("firstName") as string,
+    lastName: formData.get("lastName") as string,
+    shippingAddress: {
+      line1: formData.get("line1") as string,
+      line2: formData.get("line2") as string,
+      city: formData.get("city") as string,
+      province: formData.get("province") as string,
+      postalCode: formData.get("postalCode") as string,
+      country: "Canada",
+    },
+    shippingMethod,
+    paymentMethod,
+    subtotal,
+    shippingCost,
+    tax,
+    total,
+  });
+
+>>>>>>> 7ac483d (fix)
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
 
     try {
       const formData = new FormData(e.currentTarget);
+<<<<<<< HEAD
 
       const checkoutData = {
         items: items.map((item) => ({
@@ -80,6 +137,39 @@ export default function CheckoutPage() {
         tax,
         total,
       };
+=======
+      const checkoutData = buildCheckoutPayload(formData);
+
+      if (paymentMethod === "interac") {
+        const response = await fetch("/api/checkout/interac", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(checkoutData),
+        });
+
+        let data;
+        try {
+          data = await response.json();
+        } catch {
+          throw new Error("Invalid response from payment server");
+        }
+
+        if (!response.ok) {
+          throw new Error(
+            data?.error || data?.message || `Server error: ${response.status}`
+          );
+        }
+
+        clearCart();
+        const params = new URLSearchParams({
+          order: data.orderNumber || "",
+          email: checkoutData.customerEmail,
+          total: String(total),
+        });
+        router.push(`/checkout/interac?${params.toString()}`);
+        return;
+      }
+>>>>>>> 7ac483d (fix)
 
       const response = await fetch("/api/stripe/checkout", {
         method: "POST",
@@ -212,7 +302,12 @@ export default function CheckoutPage() {
               ) : (
                 <p className="mt-3 text-sm text-white/50">
                   Add {formatCurrency(FREE_SHIPPING_THRESHOLD - subtotal)} more
+<<<<<<< HEAD
                   for free standard shipping.
+=======
+                  for free standard shipping. Standard is{" "}
+                  {formatCurrency(STANDARD_SHIPPING_COST)}.
+>>>>>>> 7ac483d (fix)
                 </p>
               )}
               <div className="mt-4 space-y-3">
@@ -234,7 +329,11 @@ export default function CheckoutPage() {
                     <span>
                       <span className="block font-medium">Standard</span>
                       <span className="text-xs text-white/45">
+<<<<<<< HEAD
                         5–8 business days
+=======
+                        {shippingEta("standard")}
+>>>>>>> 7ac483d (fix)
                       </span>
                     </span>
                   </span>
@@ -262,7 +361,11 @@ export default function CheckoutPage() {
                     <span>
                       <span className="block font-medium">Express</span>
                       <span className="text-xs text-white/45">
+<<<<<<< HEAD
                         2–4 business days
+=======
+                        {shippingEta("express")}
+>>>>>>> 7ac483d (fix)
                       </span>
                     </span>
                   </span>
@@ -272,6 +375,59 @@ export default function CheckoutPage() {
                 </label>
               </div>
             </section>
+<<<<<<< HEAD
+=======
+
+            <section className="rounded-2xl border border-white/10 p-6">
+              <h2 className="font-heading text-2xl">Payment method</h2>
+              <div className="mt-4 space-y-3">
+                <label
+                  className={`flex cursor-pointer items-center gap-3 rounded-xl border p-4 ${
+                    paymentMethod === "stripe"
+                      ? "border-fuchsia/50 bg-fuchsia/10"
+                      : "border-white/10"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    checked={paymentMethod === "stripe"}
+                    onChange={() => setPaymentMethod("stripe")}
+                    className="accent-fuchsia"
+                  />
+                  <CreditCard className="h-5 w-5 text-fuchsia" />
+                  <span>
+                    <span className="block font-medium">Credit / Debit Card</span>
+                    <span className="text-xs text-white/45">
+                      Secure payment via Stripe
+                    </span>
+                  </span>
+                </label>
+                <label
+                  className={`flex cursor-pointer items-center gap-3 rounded-xl border p-4 ${
+                    paymentMethod === "interac"
+                      ? "border-fuchsia/50 bg-fuchsia/10"
+                      : "border-white/10"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    checked={paymentMethod === "interac"}
+                    onChange={() => setPaymentMethod("interac")}
+                    className="accent-fuchsia"
+                  />
+                  <Landmark className="h-5 w-5 text-fuchsia" />
+                  <span>
+                    <span className="block font-medium">Interac e-Transfer</span>
+                    <span className="text-xs text-white/45">
+                      Pay by Interac — order held until payment is received
+                    </span>
+                  </span>
+                </label>
+              </div>
+            </section>
+>>>>>>> 7ac483d (fix)
           </div>
 
           <aside className="h-fit rounded-2xl border border-silver/20 bg-black/50 p-6">
@@ -291,9 +447,18 @@ export default function CheckoutPage() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="line-clamp-2 break-words">{item.name}</p>
+<<<<<<< HEAD
                     {item.variantLabel && (
                       <p className="text-white/50">{item.variantLabel}</p>
                     )}
+=======
+                    <p className="text-white/50">
+                      Variant: {item.variantLabel || "Standard"}
+                    </p>
+                    <p className="text-white/50">
+                      SKU: {item.sku || "—"}
+                    </p>
+>>>>>>> 7ac483d (fix)
                     <p className="text-white/40">Qty {item.quantity}</p>
                   </div>
                   <p className="shrink-0">
@@ -329,14 +494,26 @@ export default function CheckoutPage() {
               <div className="flex items-start gap-2">
                 <ShieldCheck className="h-4 w-4 shrink-0 text-fuchsia" />
                 <p>
+<<<<<<< HEAD
                   Secure payment powered by Stripe. Your payment information is
                   encrypted and never stored on our servers.
+=======
+                  {paymentMethod === "interac"
+                    ? "After placing your order you will receive Interac e-Transfer instructions. Your order is confirmed once payment arrives."
+                    : "Secure payment powered by Stripe. Your payment information is encrypted and never stored on our servers."}
+>>>>>>> 7ac483d (fix)
                 </p>
               </div>
             </div>
 
             <Button type="submit" fullWidth className="mt-6" loading={loading}>
+<<<<<<< HEAD
               Pay Securely with Stripe
+=======
+              {paymentMethod === "interac"
+                ? "Place Order — Pay by Interac"
+                : "Pay Securely with Stripe"}
+>>>>>>> 7ac483d (fix)
             </Button>
           </aside>
         </form>

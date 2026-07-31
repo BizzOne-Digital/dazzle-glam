@@ -24,6 +24,10 @@ type OrderDetail = {
     total: number;
     image?: string;
     variantLabel?: string;
+<<<<<<< HEAD
+=======
+    sku?: string;
+>>>>>>> 7ac483d (fix)
   }>;
   shippingAddress?: {
     firstName?: string;
@@ -167,7 +171,12 @@ export default function AdminOrderDetailPage() {
             <thead>
               <tr className="border-b border-white/10 text-left text-white/45">
                 <th className="pb-2 font-medium">Ring / Item</th>
+<<<<<<< HEAD
                 <th className="pb-2 font-medium">Size</th>
+=======
+                <th className="pb-2 font-medium">Variant</th>
+                <th className="pb-2 font-medium">SKU</th>
+>>>>>>> 7ac483d (fix)
                 <th className="pb-2 text-center font-medium">Qty</th>
                 <th className="pb-2 text-right font-medium">Total</th>
               </tr>
@@ -179,6 +188,10 @@ export default function AdminOrderDetailPage() {
                   <td className="py-3 pr-3 text-fuchsia">
                     {item.variantLabel || "—"}
                   </td>
+<<<<<<< HEAD
+=======
+                  <td className="py-3 pr-3 text-white/60">{item.sku || "—"}</td>
+>>>>>>> 7ac483d (fix)
                   <td className="py-3 text-center text-white/80">{item.quantity}</td>
                   <td className="py-3 text-right">
                     {formatCurrency(item.total ?? item.price * item.quantity)}

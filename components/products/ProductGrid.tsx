@@ -14,7 +14,11 @@ import { StaggerGrid, MotionItem, HoverLift } from "@/components/animations/Page
 export interface ProductGridProps {
   products: ProductCardData[];
   className?: string;
+<<<<<<< HEAD
   columns?: 2 | 3 | 4;
+=======
+  columns?: 2 | 3 | 4 | 5;
+>>>>>>> 7ac483d (fix)
   loading?: boolean;
   skeletonCount?: number;
   emptyTitle?: string;
@@ -26,12 +30,20 @@ const columnStyles = {
   2: "grid-cols-2",
   3: "grid-cols-2 md:grid-cols-3",
   4: "grid-cols-2 md:grid-cols-3 xl:grid-cols-4",
+<<<<<<< HEAD
+=======
+  5: "grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5",
+>>>>>>> 7ac483d (fix)
 };
 
 export function ProductGrid({
   products,
   className,
+<<<<<<< HEAD
   columns = 4,
+=======
+  columns = 5,
+>>>>>>> 7ac483d (fix)
   loading = false,
   skeletonCount = 8,
   emptyTitle = "No pieces found",

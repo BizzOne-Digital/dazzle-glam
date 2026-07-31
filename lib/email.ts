@@ -40,6 +40,10 @@ type OrderEmailItem = {
   price: number;
   total: number;
   variantLabel?: string;
+<<<<<<< HEAD
+=======
+  sku?: string;
+>>>>>>> 7ac483d (fix)
 };
 
 type OrderEmailAddress = {
@@ -71,13 +75,25 @@ function orderItemsHtml(items: OrderEmailItem[], currency: string) {
   return items
     .map((item) => {
       const size = item.variantLabel?.trim();
+<<<<<<< HEAD
+=======
+      const sku = item.sku?.trim();
+      const meta = [size && `Variant: ${size}`, sku && `SKU: ${sku}`]
+        .filter(Boolean)
+        .join(" · ");
+>>>>>>> 7ac483d (fix)
       return `
       <tr>
         <td style="padding:10px 0;border-bottom:1px solid #333;color:#fff">
           <div style="font-weight:600">${item.name}</div>
           ${
+<<<<<<< HEAD
             size
               ? `<div style="color:#ff1493;font-size:12px;margin-top:4px">${size}</div>`
+=======
+            meta
+              ? `<div style="color:#ff1493;font-size:12px;margin-top:4px">${meta}</div>`
+>>>>>>> 7ac483d (fix)
               : ""
           }
         </td>

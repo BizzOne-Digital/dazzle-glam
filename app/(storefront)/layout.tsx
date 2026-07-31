@@ -4,6 +4,10 @@ import { usePathname } from "next/navigation";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
+<<<<<<< HEAD
+=======
+import { CookieConsent } from "@/components/layout/CookieConsent";
+>>>>>>> 7ac483d (fix)
 import { announcementDefaults } from "@/config/site";
 import { cn } from "@/lib/utils";
 
@@ -34,6 +38,10 @@ export default function StorefrontLayout({
       </main>
 
       <Footer />
+<<<<<<< HEAD
+=======
+      <CookieConsent />
+>>>>>>> 7ac483d (fix)
     </>
   );
 }

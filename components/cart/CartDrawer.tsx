@@ -7,6 +7,10 @@ import { Drawer } from "@/components/ui/Drawer";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useCartStore } from "@/lib/store/cart";
 import { formatCurrency } from "@/lib/utils";
+<<<<<<< HEAD
+=======
+import { calcShippingCost } from "@/lib/shipping";
+>>>>>>> 7ac483d (fix)
 
 export function CartDrawer() {
   const isOpen = useCartStore((s) => s.isOpen);
@@ -17,7 +21,11 @@ export function CartDrawer() {
   const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
   const discount = subtotal >= 65 ? subtotal * 0.1 : 0;
   const discountedSubtotal = subtotal - discount;
+<<<<<<< HEAD
   const shipping = discountedSubtotal >= 100 ? 0 : discountedSubtotal > 0 ? 8 : 0;
+=======
+  const shipping = calcShippingCost(discountedSubtotal, "standard");
+>>>>>>> 7ac483d (fix)
   const total = discountedSubtotal + shipping;
   const totalQty = items.reduce((n, i) => n + i.quantity, 0);
 
@@ -131,11 +139,20 @@ export function CartDrawer() {
                     <p className="truncate font-heading text-lg text-white">
                       {item.name}
                     </p>
+<<<<<<< HEAD
                     {item.variantLabel && (
                       <p className="mt-0.5 font-body text-xs text-white/45">
                         {item.variantLabel}
                       </p>
                     )}
+=======
+                    <p className="mt-0.5 font-body text-xs text-white/45">
+                      Variant: {item.variantLabel || "Standard"}
+                    </p>
+                    <p className="font-body text-xs text-white/45">
+                      SKU: {item.sku || "—"}
+                    </p>
+>>>>>>> 7ac483d (fix)
                   </div>
                   <button
                     type="button"

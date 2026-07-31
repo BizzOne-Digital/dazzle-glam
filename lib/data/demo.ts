@@ -510,5 +510,9 @@ export function toCardProduct(p: DemoProduct) {
     isOnSale: sale,
     compareAtPrice: sale ? p.compareAtPrice : undefined,
     inStock: p.stock > 0 && !comingSoon,
+<<<<<<< HEAD
+=======
+    sku: p.sku,
+>>>>>>> 7ac483d (fix)
   };
 }

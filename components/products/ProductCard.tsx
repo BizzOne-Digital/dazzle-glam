@@ -23,6 +23,10 @@ export interface ProductCardData {
   isComingSoon?: boolean;
   isOnSale?: boolean;
   compareAtPrice?: number;
+<<<<<<< HEAD
+=======
+  sku?: string;
+>>>>>>> 7ac483d (fix)
 }
 
 export interface ProductCardProps {
@@ -82,6 +86,10 @@ export function ProductCard({
       price: product.price,
       image: product.image,
       quantity: 1,
+<<<<<<< HEAD
+=======
+      sku: product.sku,
+>>>>>>> 7ac483d (fix)
     });
     toast.success("Added to bag");
   };
@@ -162,7 +170,11 @@ export function ProductCard({
               {product.name}
             </h3>
           </Link>
+<<<<<<< HEAD
           <div className="flex items-center gap-2">
+=======
+          <div className="flex flex-wrap items-center gap-2">
+>>>>>>> 7ac483d (fix)
             <p
               className={`font-body text-sm ${
                 product.isOnSale &&
@@ -179,6 +191,14 @@ export function ProductCard({
                   {formatCurrency(product.compareAtPrice || 0)}
                 </p>
               )}
+<<<<<<< HEAD
+=======
+            {product.sku && (
+              <p className="font-body text-xs text-white/45">
+                SKU {product.sku}
+              </p>
+            )}
+>>>>>>> 7ac483d (fix)
           </div>
           {comingSoon ? (
             <p className="font-body text-xs uppercase tracking-wider text-silver">

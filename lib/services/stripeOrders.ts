@@ -87,6 +87,10 @@ export async function fulfillStripeCheckoutSession(
         quantity: qty,
         price: unitPrice,
         total: lineTotal,
+<<<<<<< HEAD
+=======
+        sku: productObj?.metadata?.sku || undefined,
+>>>>>>> 7ac483d (fix)
         variantLabel:
           productObj?.metadata?.variantLabel ||
           extractSizeFromDescription(item.description) ||
@@ -128,6 +132,10 @@ export async function fulfillStripeCheckoutSession(
     paymentStatus: "paid",
     fulfillmentStatus: "unfulfilled",
     shippingMethod: session.metadata?.shippingMethod || "standard",
+<<<<<<< HEAD
+=======
+    paymentMethod: "stripe",
+>>>>>>> 7ac483d (fix)
     stripeSessionId: session.id,
     stripePaymentIntentId:
       typeof session.payment_intent === "string"
@@ -159,6 +167,10 @@ export async function sendOrderEmails(order: IOrder) {
       price: item.price,
       total: item.total ?? item.price * item.quantity,
       variantLabel: item.variantLabel,
+<<<<<<< HEAD
+=======
+      sku: item.sku,
+>>>>>>> 7ac483d (fix)
     })),
     shippingAddress: {
       name: customerName,
