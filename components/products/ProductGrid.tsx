@@ -60,8 +60,12 @@ export function ProductGrid({
     );
   }
 
+  // Remount when the product set changes so stagger animations don't stay stuck at opacity 0
+  const gridKey = products.map((p) => p.id).join("|");
+
   return (
     <StaggerGrid
+      key={gridKey}
       className={cn("grid gap-x-4 gap-y-10 sm:gap-x-6", columnStyles[columns], className)}
       stagger={0.05}
     >

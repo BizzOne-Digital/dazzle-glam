@@ -165,8 +165,7 @@ export function StaggerGrid({
     <motion.div
       className={className}
       initial="hidden"
-      whileInView="show"
-      viewport={{ once: true, amount: 0.12 }}
+      animate="show"
       variants={{
         hidden: {},
         show: { transition: { staggerChildren: stagger } },

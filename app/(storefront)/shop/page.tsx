@@ -27,6 +27,7 @@ function ShopPageContent() {
   const [sort, setSort] = useState("featured");
   const [filter, setFilter] = useState("all");
   const [maxPrice, setMaxPrice] = useState(100);
+  const [priceTouched, setPriceTouched] = useState(false);
   const [inStockOnly, setInStockOnly] = useState(false);
   const [drawer, setDrawer] = useState(false);
   const [catalog, setCatalog] = useState<DemoProduct[]>(demoProducts);
@@ -36,6 +37,14 @@ function ShopPageContent() {
     description: "Eighteen statement rings — bold energy, luminous finish.",
     image: "/images/hero/products-campaign.png",
   });
+
+  const priceCeiling = useMemo(() => {
+    const highest = catalog.reduce(
+      (max, p) => Math.max(max, Number(p.price) || 0),
+      0
+    );
+    return Math.max(100, Math.ceil(highest));
+  }, [catalog]);
 
   useEffect(() => {
     fetch("/api/products")
@@ -64,6 +73,11 @@ function ShopPageContent() {
       .catch(() => undefined);
   }, []);
 
+  // Keep max-price high enough to show the full catalog until the user moves the slider
+  useEffect(() => {
+    if (!priceTouched) setMaxPrice(priceCeiling);
+  }, [priceCeiling, priceTouched]);
+
   useEffect(() => {
     const cat = searchParams.get("category");
     const f = searchParams.get("filter");
@@ -82,14 +96,14 @@ function ShopPageContent() {
       const s = q.toLowerCase();
       list = list.filter(
         (p) =>
-          p.name.toLowerCase().includes(s) ||
-          p.description.toLowerCase().includes(s)
+          (p.name || "").toLowerCase().includes(s) ||
+          (p.description || "").toLowerCase().includes(s)
       );
     }
     if (filter === "new") list = list.filter((p) => p.isNewArrival);
     if (filter === "bestsellers") list = list.filter((p) => p.isBestSeller);
     if (inStockOnly) list = list.filter((p) => p.stock > 0);
-    list = list.filter((p) => p.price <= maxPrice);
+    list = list.filter((p) => (Number(p.price) || 0) <= maxPrice);
 
     if (sort === "price-asc") list.sort((a, b) => a.price - b.price);
     if (sort === "price-desc") list.sort((a, b) => b.price - a.price);
@@ -144,9 +158,12 @@ function ShopPageContent() {
         <input
           type="range"
           min={30}
-          max={100}
-          value={maxPrice}
-          onChange={(e) => setMaxPrice(Number(e.target.value))}
+          max={priceCeiling}
+          value={Math.min(maxPrice, priceCeiling)}
+          onChange={(e) => {
+            setPriceTouched(true);
+            setMaxPrice(Number(e.target.value));
+          }}
           className="w-full accent-fuchsia"
         />
       </div>
