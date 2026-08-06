@@ -9,6 +9,17 @@ import { Button } from "@/components/ui/Button";
 import { LocalImageField } from "@/components/admin/LocalImageField";
 import { createProductAdmin } from "@/actions/products";
 
+const PRODUCT_CATEGORIES = ["rings", "bracelets", "earrings", "necklaces"] as const;
+const COLOR_PRESETS = [
+  "Gold",
+  "Silver",
+  "Rose Gold",
+  "Black",
+  "White",
+  "Blue",
+  "Multicolor",
+];
+
 export default function NewProductPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -16,6 +27,9 @@ export default function NewProductPage() {
   const [slug, setSlug] = useState("");
   const [sku, setSku] = useState("");
   const [supplier, setSupplier] = useState("");
+  const [category, setCategory] = useState<string>("rings");
+  const [colors, setColors] = useState<string[]>([]);
+  const [customColor, setCustomColor] = useState("");
   const [price, setPrice] = useState(0);
   const [compareAtPrice, setCompareAtPrice] = useState(0);
   const [stock, setStock] = useState(10);
@@ -46,6 +60,19 @@ export default function NewProductPage() {
     });
   };
 
+  const toggleColor = (color: string) => {
+    setColors((prev) =>
+      prev.includes(color) ? prev.filter((c) => c !== color) : [...prev, color]
+    );
+  };
+
+  const addCustomColor = () => {
+    const value = customColor.trim();
+    if (!value) return;
+    setColors((prev) => (prev.includes(value) ? prev : [...prev, value]));
+    setCustomColor("");
+  };
+
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (loading) return;
@@ -65,6 +92,8 @@ export default function NewProductPage() {
         slug: slug || undefined,
         sku: sku || undefined,
         supplier: supplier || undefined,
+        category,
+        colors,
         description,
         price,
         compareAtPrice: isOnSale ? compareAtPrice : 0,
@@ -113,6 +142,79 @@ export default function NewProductPage() {
             onChange={(e) => setSupplier(e.target.value)}
             placeholder="Supplier / vendor"
           />
+        </div>
+        <div>
+          <label className="mb-1.5 block text-sm text-white/70">Category</label>
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="w-full rounded-lg border border-white/15 bg-white/5 px-3 py-2.5 text-sm text-white focus:border-fuchsia focus:outline-none"
+          >
+            {PRODUCT_CATEGORIES.map((c) => (
+              <option key={c} value={c} className="bg-black">
+                {c.charAt(0).toUpperCase() + c.slice(1)}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+          <p className="mb-1 text-sm text-white/70">Color variants</p>
+          <p className="mb-3 text-xs text-white/40">
+            Enable colors customers can choose (ideal for bracelets).
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {COLOR_PRESETS.map((color) => {
+              const on = colors.includes(color);
+              return (
+                <button
+                  key={color}
+                  type="button"
+                  onClick={() => toggleColor(color)}
+                  className={`rounded-lg border px-3 py-1.5 text-sm transition ${
+                    on
+                      ? "border-fuchsia bg-fuchsia/20 text-fuchsia"
+                      : "border-white/15 text-white/70 hover:border-white/30"
+                  }`}
+                >
+                  {color}
+                </button>
+              );
+            })}
+            {colors
+              .filter((c) => !COLOR_PRESETS.includes(c))
+              .map((color) => (
+                <button
+                  key={color}
+                  type="button"
+                  onClick={() => toggleColor(color)}
+                  className="rounded-lg border border-fuchsia bg-fuchsia/20 px-3 py-1.5 text-sm text-fuchsia"
+                >
+                  {color} ×
+                </button>
+              ))}
+          </div>
+          <div className="mt-3 flex gap-2">
+            <Input
+              label="Custom color"
+              value={customColor}
+              onChange={(e) => setCustomColor(e.target.value)}
+              placeholder="e.g. Emerald"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  addCustomColor();
+                }
+              }}
+            />
+            <Button
+              type="button"
+              variant="secondary"
+              className="mt-6 shrink-0"
+              onClick={addCustomColor}
+            >
+              Add
+            </Button>
+          </div>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <Input

@@ -1,6 +1,6 @@
 /** Shared shipping rules for cart + checkout (matches admin defaults). */
 
-export const FREE_SHIPPING_THRESHOLD = 100;
+export const FREE_SHIPPING_THRESHOLD = 50;
 export const STANDARD_SHIPPING_COST = 8;
 export const EXPRESS_SHIPPING_COST = 15;
 

@@ -71,7 +71,7 @@ export function CartDrawer() {
               </p>
             )}
             <p className="font-body text-xs text-white/40">
-              Taxes calculated at checkout. Free shipping on orders over $100.
+              Taxes calculated at checkout. Free shipping on orders over $50.
             </p>
             <Link
               href="/checkout"

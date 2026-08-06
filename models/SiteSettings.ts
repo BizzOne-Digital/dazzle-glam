@@ -59,7 +59,7 @@ const SiteSettingsSchema = new Schema<ISiteSettings>(
     
     // E-commerce
     taxRate: { type: Number, default: 0.13 },
-    freeShippingThreshold: { type: Number, default: 100 },
+    freeShippingThreshold: { type: Number, default: 50 },
     standardShippingCost: { type: Number, default: 8 },
     expressShippingCost: { type: Number, default: 15 },
     discountThreshold: { type: Number, default: 65 },

@@ -37,7 +37,7 @@ export async function getSettings(): Promise<SiteSettingsData> {
     instagramUrl: "https://www.instagram.com/dazzleglamcollection",
     facebookUrl: "https://www.facebook.com/profile.php?id=61591817804914",
     taxRate: 0.13,
-    freeShippingThreshold: 100,
+    freeShippingThreshold: 50,
     standardShippingCost: 8,
     expressShippingCost: 15,
     discountThreshold: 65,

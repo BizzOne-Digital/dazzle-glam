@@ -52,6 +52,8 @@ export async function updateProductAdmin(
     compareAtPrice?: number;
     sku?: string;
     supplier?: string;
+    category?: string;
+    colors?: string[];
     status?: "draft" | "published" | "archived";
     careInstructions?: string;
   }
@@ -76,6 +78,17 @@ export async function updateProductAdmin(
     if (data.sku !== undefined) product.sku = data.sku.trim() || undefined;
     if (data.supplier !== undefined) {
       product.supplier = data.supplier.trim() || undefined;
+    }
+    if (data.category !== undefined) {
+      const cat = data.category.trim().toLowerCase();
+      if (["rings", "bracelets", "earrings", "necklaces"].includes(cat)) {
+        product.category = cat;
+      }
+    }
+    if (data.colors !== undefined) {
+      product.colors = data.colors
+        .map((c) => c.trim())
+        .filter(Boolean);
     }
     if (data.compareAtPrice !== undefined) {
       product.compareAtPrice = Number(data.compareAtPrice) || undefined;
@@ -136,6 +149,8 @@ export async function updateProductAdmin(
           compareAtPrice: product.compareAtPrice || null,
           sku: product.sku || null,
           supplier: product.supplier || null,
+          category: product.category || "rings",
+          colors: product.colors || [],
         },
       }
     );
@@ -233,6 +248,11 @@ export async function duplicateProductAdmin(id: string) {
     status: source.status || "published",
     media,
     variants,
+    category:
+      typeof src.category === "string" &&
+      ["rings", "bracelets", "earrings", "necklaces"].includes(src.category)
+        ? src.category
+        : "rings",
     materials: source.materials || [],
     colors: source.colors || [],
     sizes: source.sizes || [],
@@ -311,6 +331,8 @@ export async function createProductAdmin(data: {
   compareAtPrice?: number;
   sku?: string;
   supplier?: string;
+  category?: string;
+  colors?: string[];
 }) {
   try {
     const admin = await assertAdminAction();
@@ -329,6 +351,13 @@ export async function createProductAdmin(data: {
     const saleActive =
       !!data.isOnSale && Number(data.compareAtPrice || 0) > Number(data.price);
 
+    const category =
+      data.category &&
+      ["rings", "bracelets", "earrings", "necklaces"].includes(data.category)
+        ? data.category
+        : "rings";
+    const colors = (data.colors || []).map((c) => c.trim()).filter(Boolean);
+
     const product = await Product.create({
       name: data.name,
       slug,
@@ -346,8 +375,9 @@ export async function createProductAdmin(data: {
         type: "image",
         sortOrder: i,
       })),
+      category,
       materials: [],
-      colors: [],
+      colors,
       sizes: [],
       careInstructions: "Wipe with a soft cloth after wear.",
       isComingSoon: !!data.isComingSoon,
@@ -369,6 +399,8 @@ export async function createProductAdmin(data: {
           compareAtPrice: product.compareAtPrice || null,
           sku: product.sku || null,
           supplier: product.supplier || null,
+          category,
+          colors,
         },
       }
     );

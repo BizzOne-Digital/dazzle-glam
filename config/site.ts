@@ -34,7 +34,7 @@ export const navigation = [
 
 export const announcementDefaults = [
   "Summer special! - 10% on all orders over $65.00",
-  "Free shipping on orders over $100",
+  "Free shipping on orders over $50",
   "New statement pieces just dropped",
   "Secure checkout & easy returns",
 ] as const;

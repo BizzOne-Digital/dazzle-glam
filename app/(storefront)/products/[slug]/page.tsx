@@ -35,9 +35,19 @@ export default function ProductPage() {
   const [openAcc, setOpenAcc] = useState("details");
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [sizeError, setSizeError] = useState(false);
+  const [selectedColor, setSelectedColor] = useState<string | null>(null);
+  const [colorError, setColorError] = useState(false);
 
   // Live sizes fetched from API (admin-managed via MongoDB)
   const [liveSizes, setLiveSizes] = useState<string[] | null>(null);
+
+  useEffect(() => {
+    setSelectedSize(null);
+    setSelectedColor(null);
+    setSizeError(false);
+    setColorError(false);
+    setLiveSizes(null);
+  }, [params.slug]);
 
   useEffect(() => {
     fetch(`/api/products/by-slug/${params.slug}`)
@@ -66,6 +76,10 @@ export default function ProductPage() {
 
   // Use live sizes if loaded, otherwise fall back to demo data
   const availableSizes = liveSizes ?? product?.sizes ?? [];
+  const availableColors = product?.colors ?? [];
+  const isRing = (product?.category || "rings") === "rings";
+  const showSizeSection = isRing || availableSizes.length > 0;
+  const showColorSection = availableColors.length > 0;
 
   // Inquiry form state
   const [showInquiry, setShowInquiry] = useState(false);
@@ -97,6 +111,7 @@ export default function ProductPage() {
   }
 
   const hasSizes = availableSizes.length > 0;
+  const hasColors = availableColors.length > 0;
   const comingSoon = !!product.isComingSoon || product.badge === "coming soon";
 
   const add = () => {
@@ -109,14 +124,23 @@ export default function ProductPage() {
       toast.error("Please select a size first");
       return;
     }
+    if (hasColors && !selectedColor) {
+      setColorError(true);
+      toast.error("Please select a color first");
+      return;
+    }
+    const variantParts = [
+      selectedSize ? `Size ${selectedSize}` : null,
+      selectedColor || null,
+    ].filter(Boolean);
     addItem({
       productId: product.id,
       name: product.name,
       price: product.price,
       image: product.images[0],
       quantity: qty,
-      variantId: selectedSize || undefined,
-      variantLabel: selectedSize ? `Size ${selectedSize}` : undefined,
+      variantId: selectedSize || selectedColor || undefined,
+      variantLabel: variantParts.length ? variantParts.join(" · ") : undefined,
       sku: product.sku,
     });
     toast.success("Added to bag");
@@ -259,7 +283,49 @@ export default function ProductPage() {
                     : "Out of stock"}
               </p>
 
-              {/* ── Size Selector ── */}
+              {/* ── Color Selector ── */}
+              {showColorSection && (
+                <div className="mt-6">
+                  <div className="mb-2 flex items-center justify-between">
+                    <p className="text-sm uppercase tracking-[0.18em] text-white/70">
+                      Color
+                      {selectedColor && (
+                        <span className="ml-2 text-fuchsia">— {selectedColor}</span>
+                      )}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {availableColors.map((color) => {
+                      const isSelected = selectedColor === color;
+                      return (
+                        <button
+                          key={color}
+                          type="button"
+                          onClick={() => {
+                            setSelectedColor(color);
+                            setColorError(false);
+                          }}
+                          className={`rounded-lg border px-3 py-2 text-sm font-medium transition ${
+                            isSelected
+                              ? "border-fuchsia bg-fuchsia text-white"
+                              : "border-white/20 text-white hover:border-fuchsia hover:text-fuchsia"
+                          }`}
+                        >
+                          {color}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {colorError && (
+                    <p className="mt-2 text-xs text-red-400">
+                      Please select a color to continue
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* ── Size Selector (rings) ── */}
+              {showSizeSection && (
               <div className="mt-6">
                 <div className="mb-2 flex items-center justify-between">
                   <p className="text-sm uppercase tracking-[0.18em] text-white/70">
@@ -337,6 +403,7 @@ export default function ProductPage() {
                   </div>
                 )}
               </div>
+              )}
 
               {/* ── Size Inquiry Form ── */}
               {showInquiry && (

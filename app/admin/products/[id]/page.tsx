@@ -21,6 +21,16 @@ import { deleteProductAdmin, updateProductAdmin } from "@/actions/products";
 import type { DemoProduct } from "@/lib/data/demo";
 
 const ALL_SIZES = ["5", "6", "7", "8", "9", "10", "11", "12"];
+const PRODUCT_CATEGORIES = ["rings", "bracelets", "earrings", "necklaces"] as const;
+const COLOR_PRESETS = [
+  "Gold",
+  "Silver",
+  "Rose Gold",
+  "Black",
+  "White",
+  "Blue",
+  "Multicolor",
+];
 type Tab = "details" | "sizes" | "stock";
 
 function emptyStock(): Record<string, number> {
@@ -39,6 +49,9 @@ export default function EditProductPage() {
   const [slug, setSlug] = useState("");
   const [sku, setSku] = useState("");
   const [supplier, setSupplier] = useState("");
+  const [category, setCategory] = useState<string>("rings");
+  const [colors, setColors] = useState<string[]>([]);
+  const [customColor, setCustomColor] = useState("");
   const [price, setPrice] = useState(0);
   const [compareAtPrice, setCompareAtPrice] = useState(0);
   const [stock, setStock] = useState(0);
@@ -73,6 +86,8 @@ export default function EditProductPage() {
         setSlug(p.slug);
         setSku(p.sku || "");
         setSupplier(p.supplier || "");
+        setCategory(p.category || "rings");
+        setColors(Array.isArray(p.colors) ? p.colors : []);
         setPrice(p.price);
         setCompareAtPrice(p.compareAtPrice || 0);
         setIsOnSale(!!p.isOnSale);
@@ -205,6 +220,8 @@ export default function EditProductPage() {
         slug,
         sku,
         supplier,
+        category,
+        colors,
         price,
         compareAtPrice: isOnSale ? compareAtPrice : 0,
         isOnSale,
@@ -222,6 +239,8 @@ export default function EditProductPage() {
           setPrice(result.data.price);
           setSku(result.data.sku || "");
           setSupplier(result.data.supplier || "");
+          setCategory(result.data.category || "rings");
+          setColors(result.data.colors || []);
           setCompareAtPrice(result.data.compareAtPrice || 0);
           setIsOnSale(!!result.data.isOnSale);
           setImages((result.data.images || []).slice(0, 3));
@@ -258,6 +277,19 @@ export default function EditProductPage() {
     setEnabledSizes((prev) =>
       prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size]
     );
+  };
+
+  const toggleColor = (color: string) => {
+    setColors((prev) =>
+      prev.includes(color) ? prev.filter((c) => c !== color) : [...prev, color]
+    );
+  };
+
+  const addCustomColor = () => {
+    const value = customColor.trim();
+    if (!value) return;
+    setColors((prev) => (prev.includes(value) ? prev : [...prev, value]));
+    setCustomColor("");
   };
 
   const saveSizes = async () => {
@@ -389,6 +421,80 @@ export default function EditProductPage() {
               onChange={(e) => setSupplier(e.target.value)}
               placeholder="Supplier / vendor"
             />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-sm text-white/70">Category</label>
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="w-full rounded-lg border border-white/15 bg-white/5 px-3 py-2.5 text-sm text-white focus:border-fuchsia focus:outline-none"
+            >
+              {PRODUCT_CATEGORIES.map((c) => (
+                <option key={c} value={c} className="bg-black">
+                  {c.charAt(0).toUpperCase() + c.slice(1)}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+            <p className="mb-1 text-sm text-white/70">Color variants</p>
+            <p className="mb-3 text-xs text-white/40">
+              Enable colors customers can choose (ideal for bracelets). Leave
+              empty if this piece has no color options.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {COLOR_PRESETS.map((color) => {
+                const on = colors.includes(color);
+                return (
+                  <button
+                    key={color}
+                    type="button"
+                    onClick={() => toggleColor(color)}
+                    className={`rounded-lg border px-3 py-1.5 text-sm transition ${
+                      on
+                        ? "border-fuchsia bg-fuchsia/20 text-fuchsia"
+                        : "border-white/15 text-white/70 hover:border-white/30"
+                    }`}
+                  >
+                    {color}
+                  </button>
+                );
+              })}
+              {colors
+                .filter((c) => !COLOR_PRESETS.includes(c))
+                .map((color) => (
+                  <button
+                    key={color}
+                    type="button"
+                    onClick={() => toggleColor(color)}
+                    className="rounded-lg border border-fuchsia bg-fuchsia/20 px-3 py-1.5 text-sm text-fuchsia"
+                  >
+                    {color} ×
+                  </button>
+                ))}
+            </div>
+            <div className="mt-3 flex gap-2">
+              <Input
+                label="Custom color"
+                value={customColor}
+                onChange={(e) => setCustomColor(e.target.value)}
+                placeholder="e.g. Emerald"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addCustomColor();
+                  }
+                }}
+              />
+              <Button
+                type="button"
+                variant="secondary"
+                className="mt-6 shrink-0"
+                onClick={addCustomColor}
+              >
+                Add
+              </Button>
+            </div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <Input

@@ -32,7 +32,7 @@ export default function AdminSettingsPage() {
     pinterestUrl: "",
     youtubeUrl: "",
     taxRate: 0.13,
-    freeShippingThreshold: 100,
+    freeShippingThreshold: 50,
     standardShippingCost: 8,
     expressShippingCost: 15,
     discountThreshold: 65,

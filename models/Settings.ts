@@ -112,7 +112,7 @@ const SiteSettingsSchema = new Schema<ISiteSettings>(
     ecommerce: {
       currency: { type: String, default: "CAD" },
       taxRate: { type: Number, default: 0.13 },
-      freeShippingThreshold: { type: Number, default: 150 },
+      freeShippingThreshold: { type: Number, default: 50 },
       lowStockLimit: { type: Number, default: 5 },
       orderPrefix: { type: String, default: "DG" },
       inventoryBehaviour: { type: String, default: "deny" },

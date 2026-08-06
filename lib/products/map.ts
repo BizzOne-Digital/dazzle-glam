@@ -8,6 +8,7 @@ export type MongoProductLike = {
   shortDescription?: string;
   price: number;
   stock: number;
+  category?: string;
   materials?: string[];
   colors?: string[];
   sizes?: string[];
@@ -25,6 +26,8 @@ export type MongoProductLike = {
   status?: string;
 };
 
+const CATEGORIES = new Set(["rings", "bracelets", "earrings", "necklaces"]);
+
 export function mapMongoProduct(p: MongoProductLike): DemoProduct {
   const images = [...(p.media || [])]
     .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
@@ -41,7 +44,8 @@ export function mapMongoProduct(p: MongoProductLike): DemoProduct {
     shortDescription: p.shortDescription || p.description.slice(0, 120),
     price: p.price,
     stock: p.stock,
-    category: "rings",
+    category:
+      p.category && CATEGORIES.has(p.category) ? p.category : "rings",
     materials: p.materials || [],
     colors: p.colors || [],
     sizes: p.sizes || [],

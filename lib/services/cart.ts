@@ -83,7 +83,7 @@ async function getEcommerceDefaults() {
   const settings = (await SiteSettings.findOne().lean()) as ISiteSettings | null;
   return {
     taxRate: settings?.taxRate ?? 0.13,
-    freeShippingThreshold: settings?.freeShippingThreshold ?? 150,
+    freeShippingThreshold: settings?.freeShippingThreshold ?? 50,
     currency: settings?.currency ?? "CAD",
   };
 }

@@ -15,6 +15,7 @@ async function updateSettings() {
           phone: "(416) 905-7500",
           instagramUrl: "https://www.instagram.com/dazzleglamcollection",
           facebookUrl: "https://www.facebook.com/dazzleglamcollection",
+          freeShippingThreshold: 50,
         }
       },
       { upsert: true, new: true }
