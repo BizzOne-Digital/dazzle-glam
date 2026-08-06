@@ -17,6 +17,11 @@ const COLOR_PRESETS = [
   "Black",
   "White",
   "Blue",
+  "Royal Blue",
+  "Red",
+  "Green",
+  "Pink",
+  "Fuchsia",
   "Multicolor",
 ];
 
