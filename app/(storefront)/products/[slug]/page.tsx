@@ -37,6 +37,10 @@ export default function ProductPage() {
   const [sizeError, setSizeError] = useState(false);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [colorError, setColorError] = useState(false);
+  const [selectedSizeOption, setSelectedSizeOption] = useState<string | null>(
+    null
+  );
+  const [sizeOptionError, setSizeOptionError] = useState(false);
 
   // Live sizes fetched from API (admin-managed via MongoDB)
   const [liveSizes, setLiveSizes] = useState<string[] | null>(null);
@@ -44,8 +48,10 @@ export default function ProductPage() {
   useEffect(() => {
     setSelectedSize(null);
     setSelectedColor(null);
+    setSelectedSizeOption(null);
     setSizeError(false);
     setColorError(false);
+    setSizeOptionError(false);
     setLiveSizes(null);
   }, [params.slug]);
 
@@ -77,9 +83,11 @@ export default function ProductPage() {
   // Use live sizes if loaded, otherwise fall back to demo data
   const availableSizes = liveSizes ?? product?.sizes ?? [];
   const availableColors = product?.colors ?? [];
+  const availableSizeOptions = product?.sizeOptions ?? [];
   const isRing = (product?.category || "rings") === "rings";
   const showSizeSection = isRing || availableSizes.length > 0;
   const showColorSection = availableColors.length > 0;
+  const showSizeOptionSection = availableSizeOptions.length > 0;
 
   // Inquiry form state
   const [showInquiry, setShowInquiry] = useState(false);
@@ -112,6 +120,7 @@ export default function ProductPage() {
 
   const hasSizes = availableSizes.length > 0;
   const hasColors = availableColors.length > 0;
+  const hasSizeOptions = availableSizeOptions.length > 0;
   const comingSoon = !!product.isComingSoon || product.badge === "coming soon";
 
   const add = () => {
@@ -124,6 +133,11 @@ export default function ProductPage() {
       toast.error("Please select a size first");
       return;
     }
+    if (hasSizeOptions && !selectedSizeOption) {
+      setSizeOptionError(true);
+      toast.error("Please select a size first");
+      return;
+    }
     if (hasColors && !selectedColor) {
       setColorError(true);
       toast.error("Please select a color first");
@@ -131,6 +145,7 @@ export default function ProductPage() {
     }
     const variantParts = [
       selectedSize ? `Size ${selectedSize}` : null,
+      selectedSizeOption || null,
       selectedColor || null,
     ].filter(Boolean);
     addItem({
@@ -139,7 +154,8 @@ export default function ProductPage() {
       price: product.price,
       image: product.images[0],
       quantity: qty,
-      variantId: selectedSize || selectedColor || undefined,
+      variantId:
+        selectedSize || selectedSizeOption || selectedColor || undefined,
       variantLabel: variantParts.length ? variantParts.join(" · ") : undefined,
       sku: product.sku,
     });
@@ -319,6 +335,49 @@ export default function ProductPage() {
                   {colorError && (
                     <p className="mt-2 text-xs text-red-400">
                       Please select a color to continue
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* ── Apparel / general size Selector ── */}
+              {showSizeOptionSection && (
+                <div className="mt-6">
+                  <div className="mb-2 flex items-center justify-between">
+                    <p className="text-sm uppercase tracking-[0.18em] text-white/70">
+                      Size
+                      {selectedSizeOption && (
+                        <span className="ml-2 text-fuchsia">
+                          — {selectedSizeOption}
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {availableSizeOptions.map((size) => {
+                      const isSelected = selectedSizeOption === size;
+                      return (
+                        <button
+                          key={size}
+                          type="button"
+                          onClick={() => {
+                            setSelectedSizeOption(size);
+                            setSizeOptionError(false);
+                          }}
+                          className={`rounded-lg border px-3 py-2 text-sm font-medium transition ${
+                            isSelected
+                              ? "border-fuchsia bg-fuchsia text-white"
+                              : "border-white/20 text-white hover:border-fuchsia hover:text-fuchsia"
+                          }`}
+                        >
+                          {size}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {sizeOptionError && (
+                    <p className="mt-2 text-xs text-red-400">
+                      Please select a size to continue
                     </p>
                   )}
                 </div>

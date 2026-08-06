@@ -36,6 +36,13 @@ const COLOR_PRESETS = [
   "Fuchsia",
   "Multicolor",
 ];
+const SIZE_OPTION_PRESETS = [
+  "Extra Small",
+  "Small",
+  "Medium",
+  "Large",
+  "Extra Large",
+];
 type Tab = "details" | "sizes" | "stock";
 
 function emptyStock(): Record<string, number> {
@@ -57,6 +64,7 @@ export default function EditProductPage() {
   const [category, setCategory] = useState<string>("rings");
   const [colors, setColors] = useState<string[]>([]);
   const [customColor, setCustomColor] = useState("");
+  const [sizeOptions, setSizeOptions] = useState<string[]>([]);
   const [price, setPrice] = useState(0);
   const [compareAtPrice, setCompareAtPrice] = useState(0);
   const [stock, setStock] = useState(0);
@@ -93,6 +101,7 @@ export default function EditProductPage() {
         setSupplier(p.supplier || "");
         setCategory(p.category || "rings");
         setColors(Array.isArray(p.colors) ? p.colors : []);
+        setSizeOptions(Array.isArray(p.sizeOptions) ? p.sizeOptions : []);
         setPrice(p.price);
         setCompareAtPrice(p.compareAtPrice || 0);
         setIsOnSale(!!p.isOnSale);
@@ -227,6 +236,7 @@ export default function EditProductPage() {
         supplier,
         category,
         colors,
+        sizeOptions,
         price,
         compareAtPrice: isOnSale ? compareAtPrice : 0,
         isOnSale,
@@ -246,6 +256,7 @@ export default function EditProductPage() {
           setSupplier(result.data.supplier || "");
           setCategory(result.data.category || "rings");
           setColors(result.data.colors || []);
+          setSizeOptions(result.data.sizeOptions || []);
           setCompareAtPrice(result.data.compareAtPrice || 0);
           setIsOnSale(!!result.data.isOnSale);
           setImages((result.data.images || []).slice(0, 3));
@@ -295,6 +306,12 @@ export default function EditProductPage() {
     if (!value) return;
     setColors((prev) => (prev.includes(value) ? prev : [...prev, value]));
     setCustomColor("");
+  };
+
+  const toggleSizeOption = (size: string) => {
+    setSizeOptions((prev) =>
+      prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size]
+    );
   };
 
   const saveSizes = async () => {
@@ -499,6 +516,32 @@ export default function EditProductPage() {
               >
                 Add
               </Button>
+            </div>
+          </div>
+          <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+            <p className="mb-1 text-sm text-white/70">Size variants</p>
+            <p className="mb-3 text-xs text-white/40">
+              Extra Small–Extra Large options for apparel-style sizing. Ring
+              numbers (5–12) stay on the Sizes tab.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {SIZE_OPTION_PRESETS.map((size) => {
+                const on = sizeOptions.includes(size);
+                return (
+                  <button
+                    key={size}
+                    type="button"
+                    onClick={() => toggleSizeOption(size)}
+                    className={`rounded-lg border px-3 py-1.5 text-sm transition ${
+                      on
+                        ? "border-fuchsia bg-fuchsia/20 text-fuchsia"
+                        : "border-white/15 text-white/70 hover:border-white/30"
+                    }`}
+                  >
+                    {size}
+                  </button>
+                );
+              })}
             </div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">

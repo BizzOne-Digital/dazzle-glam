@@ -36,6 +36,11 @@ export interface IProduct {
   category: string;
   materials: string[];
   colors: string[];
+  /**
+   * Apparel / general size variants (Extra Small–Extra Large).
+   * Separate from ring sizes managed via ProductSizes.
+   */
+  sizeOptions: string[];
   sizes: string[];
   dimensions?: string;
   weight?: string;
@@ -118,6 +123,7 @@ const ProductSchema = new Schema<IProduct>(
     },
     materials: [String],
     colors: [String],
+    sizeOptions: [String],
     sizes: [String],
     dimensions: String,
     weight: String,

@@ -11,6 +11,7 @@ export type MongoProductLike = {
   category?: string;
   materials?: string[];
   colors?: string[];
+  sizeOptions?: string[];
   sizes?: string[];
   media?: Array<{ url: string; sortOrder?: number }>;
   careInstructions?: string;
@@ -48,6 +49,7 @@ export function mapMongoProduct(p: MongoProductLike): DemoProduct {
       p.category && CATEGORIES.has(p.category) ? p.category : "rings",
     materials: p.materials || [],
     colors: p.colors || [],
+    sizeOptions: p.sizeOptions || [],
     sizes: p.sizes || [],
     images: images.length ? images.slice(0, 3) : ["/images/products/placeholder.png"],
     isFeatured: !!p.isFeatured,

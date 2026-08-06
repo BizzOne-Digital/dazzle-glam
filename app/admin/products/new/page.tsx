@@ -24,6 +24,13 @@ const COLOR_PRESETS = [
   "Fuchsia",
   "Multicolor",
 ];
+const SIZE_OPTION_PRESETS = [
+  "Extra Small",
+  "Small",
+  "Medium",
+  "Large",
+  "Extra Large",
+];
 
 export default function NewProductPage() {
   const router = useRouter();
@@ -35,6 +42,7 @@ export default function NewProductPage() {
   const [category, setCategory] = useState<string>("rings");
   const [colors, setColors] = useState<string[]>([]);
   const [customColor, setCustomColor] = useState("");
+  const [sizeOptions, setSizeOptions] = useState<string[]>([]);
   const [price, setPrice] = useState(0);
   const [compareAtPrice, setCompareAtPrice] = useState(0);
   const [stock, setStock] = useState(10);
@@ -78,6 +86,12 @@ export default function NewProductPage() {
     setCustomColor("");
   };
 
+  const toggleSizeOption = (size: string) => {
+    setSizeOptions((prev) =>
+      prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size]
+    );
+  };
+
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (loading) return;
@@ -99,6 +113,7 @@ export default function NewProductPage() {
         supplier: supplier || undefined,
         category,
         colors,
+        sizeOptions,
         description,
         price,
         compareAtPrice: isOnSale ? compareAtPrice : 0,
@@ -219,6 +234,31 @@ export default function NewProductPage() {
             >
               Add
             </Button>
+          </div>
+        </div>
+        <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+          <p className="mb-1 text-sm text-white/70">Size variants</p>
+          <p className="mb-3 text-xs text-white/40">
+            Extra Small–Extra Large options for apparel-style sizing.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {SIZE_OPTION_PRESETS.map((size) => {
+              const on = sizeOptions.includes(size);
+              return (
+                <button
+                  key={size}
+                  type="button"
+                  onClick={() => toggleSizeOption(size)}
+                  className={`rounded-lg border px-3 py-1.5 text-sm transition ${
+                    on
+                      ? "border-fuchsia bg-fuchsia/20 text-fuchsia"
+                      : "border-white/15 text-white/70 hover:border-white/30"
+                  }`}
+                >
+                  {size}
+                </button>
+              );
+            })}
           </div>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">

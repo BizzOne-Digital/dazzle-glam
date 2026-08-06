@@ -54,6 +54,7 @@ export async function updateProductAdmin(
     supplier?: string;
     category?: string;
     colors?: string[];
+    sizeOptions?: string[];
     status?: "draft" | "published" | "archived";
     careInstructions?: string;
   }
@@ -88,6 +89,11 @@ export async function updateProductAdmin(
     if (data.colors !== undefined) {
       product.colors = data.colors
         .map((c) => c.trim())
+        .filter(Boolean);
+    }
+    if (data.sizeOptions !== undefined) {
+      product.sizeOptions = data.sizeOptions
+        .map((s) => s.trim())
         .filter(Boolean);
     }
     if (data.compareAtPrice !== undefined) {
@@ -151,6 +157,7 @@ export async function updateProductAdmin(
           supplier: product.supplier || null,
           category: product.category || "rings",
           colors: product.colors || [],
+          sizeOptions: product.sizeOptions || [],
         },
       }
     );
@@ -255,6 +262,7 @@ export async function duplicateProductAdmin(id: string) {
         : "rings",
     materials: source.materials || [],
     colors: source.colors || [],
+    sizeOptions: (src.sizeOptions as string[]) || [],
     sizes: source.sizes || [],
     dimensions: source.dimensions,
     weight: src.weight,
@@ -333,6 +341,7 @@ export async function createProductAdmin(data: {
   supplier?: string;
   category?: string;
   colors?: string[];
+  sizeOptions?: string[];
 }) {
   try {
     const admin = await assertAdminAction();
@@ -357,6 +366,9 @@ export async function createProductAdmin(data: {
         ? data.category
         : "rings";
     const colors = (data.colors || []).map((c) => c.trim()).filter(Boolean);
+    const sizeOptions = (data.sizeOptions || [])
+      .map((s) => s.trim())
+      .filter(Boolean);
 
     const product = await Product.create({
       name: data.name,
@@ -378,6 +390,7 @@ export async function createProductAdmin(data: {
       category,
       materials: [],
       colors,
+      sizeOptions,
       sizes: [],
       careInstructions: "Wipe with a soft cloth after wear.",
       isComingSoon: !!data.isComingSoon,
@@ -401,6 +414,7 @@ export async function createProductAdmin(data: {
           supplier: product.supplier || null,
           category,
           colors,
+          sizeOptions,
         },
       }
     );
