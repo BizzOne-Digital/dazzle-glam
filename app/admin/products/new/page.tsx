@@ -8,8 +8,11 @@ import { Textarea } from "@/components/ui/Textarea";
 import { Button } from "@/components/ui/Button";
 import { LocalImageField } from "@/components/admin/LocalImageField";
 import { createProductAdmin } from "@/actions/products";
+import {
+  PRODUCT_CATEGORIES,
+  categoryNeedsSizes,
+} from "@/lib/productSizes";
 
-const PRODUCT_CATEGORIES = ["rings", "bracelets", "earrings", "necklaces"] as const;
 const COLOR_PRESETS = [
   "Gold",
   "Silver",
@@ -24,13 +27,6 @@ const COLOR_PRESETS = [
   "Fuchsia",
   "Multicolor",
 ];
-const SIZE_OPTION_PRESETS = [
-  "Extra Small",
-  "Small",
-  "Medium",
-  "Large",
-  "Extra Large",
-];
 
 export default function NewProductPage() {
   const router = useRouter();
@@ -42,7 +38,6 @@ export default function NewProductPage() {
   const [category, setCategory] = useState<string>("rings");
   const [colors, setColors] = useState<string[]>([]);
   const [customColor, setCustomColor] = useState("");
-  const [sizeOptions, setSizeOptions] = useState<string[]>([]);
   const [price, setPrice] = useState(0);
   const [compareAtPrice, setCompareAtPrice] = useState(0);
   const [stock, setStock] = useState(10);
@@ -86,12 +81,6 @@ export default function NewProductPage() {
     setCustomColor("");
   };
 
-  const toggleSizeOption = (size: string) => {
-    setSizeOptions((prev) =>
-      prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size]
-    );
-  };
-
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (loading) return;
@@ -113,7 +102,6 @@ export default function NewProductPage() {
         supplier: supplier || undefined,
         category,
         colors,
-        sizeOptions,
         description,
         price,
         compareAtPrice: isOnSale ? compareAtPrice : 0,
@@ -176,11 +164,18 @@ export default function NewProductPage() {
               </option>
             ))}
           </select>
+          <p className="mt-1.5 text-xs text-white/40">
+            {categoryNeedsSizes(category)
+              ? category === "bracelets"
+                ? "After create, set Small / Medium / Large on the Sizes tab (inquiry + email notify)."
+                : "After create, set ring sizes 5–12 on the Sizes tab (inquiry + email notify)."
+              : "Simple product — no size selection or inquiry."}
+          </p>
         </div>
         <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
           <p className="mb-1 text-sm text-white/70">Color variants</p>
           <p className="mb-3 text-xs text-white/40">
-            Enable colors customers can choose (ideal for bracelets).
+            Optional colors customers can choose.
           </p>
           <div className="flex flex-wrap gap-2">
             {COLOR_PRESETS.map((color) => {
@@ -234,31 +229,6 @@ export default function NewProductPage() {
             >
               Add
             </Button>
-          </div>
-        </div>
-        <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
-          <p className="mb-1 text-sm text-white/70">Size variants</p>
-          <p className="mb-3 text-xs text-white/40">
-            Extra Small–Extra Large options for apparel-style sizing.
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {SIZE_OPTION_PRESETS.map((size) => {
-              const on = sizeOptions.includes(size);
-              return (
-                <button
-                  key={size}
-                  type="button"
-                  onClick={() => toggleSizeOption(size)}
-                  className={`rounded-lg border px-3 py-1.5 text-sm transition ${
-                    on
-                      ? "border-fuchsia bg-fuchsia/20 text-fuchsia"
-                      : "border-white/15 text-white/70 hover:border-white/30"
-                  }`}
-                >
-                  {size}
-                </button>
-              );
-            })}
           </div>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">

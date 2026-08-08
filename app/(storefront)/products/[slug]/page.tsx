@@ -15,13 +15,16 @@ import { useCartStore } from "@/lib/store/cart";
 import { formatCurrency } from "@/lib/utils";
 import { submitSizeInquiry } from "@/actions/sizeInquiry";
 import {
+  categoryNeedsSizes,
+  getSizePresetsForCategory,
+  sizeLabel,
+} from "@/lib/productSizes";
+import {
   PageEnter,
   FloatingOrbs,
   motion,
 } from "@/components/animations/PageMotion";
 import { ScrollReveal } from "@/components/animations/ScrollReveal";
-
-const ALL_SIZES = ["5", "6", "7", "8", "9", "10", "11", "12"];
 
 export default function ProductPage() {
   const params = useParams<{ slug: string }>();
@@ -37,10 +40,6 @@ export default function ProductPage() {
   const [sizeError, setSizeError] = useState(false);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [colorError, setColorError] = useState(false);
-  const [selectedSizeOption, setSelectedSizeOption] = useState<string | null>(
-    null
-  );
-  const [sizeOptionError, setSizeOptionError] = useState(false);
 
   // Live sizes fetched from API (admin-managed via MongoDB)
   const [liveSizes, setLiveSizes] = useState<string[] | null>(null);
@@ -48,10 +47,8 @@ export default function ProductPage() {
   useEffect(() => {
     setSelectedSize(null);
     setSelectedColor(null);
-    setSelectedSizeOption(null);
     setSizeError(false);
     setColorError(false);
-    setSizeOptionError(false);
     setLiveSizes(null);
   }, [params.slug]);
 
@@ -74,6 +71,10 @@ export default function ProductPage() {
 
   useEffect(() => {
     if (!product) return;
+    if (!categoryNeedsSizes(product.category)) {
+      setLiveSizes([]);
+      return;
+    }
     fetch(`/api/products/${product.slug}/sizes`)
       .then((r) => r.json())
       .then((data) => setLiveSizes(data.sizes ?? []))
@@ -83,11 +84,10 @@ export default function ProductPage() {
   // Use live sizes if loaded, otherwise fall back to demo data
   const availableSizes = liveSizes ?? product?.sizes ?? [];
   const availableColors = product?.colors ?? [];
-  const availableSizeOptions = product?.sizeOptions ?? [];
-  const isRing = (product?.category || "rings") === "rings";
-  const showSizeSection = isRing || availableSizes.length > 0;
+  const productCategory = product?.category || "rings";
+  const sizePresets = getSizePresetsForCategory(productCategory);
+  const showSizeSection = categoryNeedsSizes(productCategory);
   const showColorSection = availableColors.length > 0;
-  const showSizeOptionSection = availableSizeOptions.length > 0;
 
   // Inquiry form state
   const [showInquiry, setShowInquiry] = useState(false);
@@ -120,7 +120,6 @@ export default function ProductPage() {
 
   const hasSizes = availableSizes.length > 0;
   const hasColors = availableColors.length > 0;
-  const hasSizeOptions = availableSizeOptions.length > 0;
   const comingSoon = !!product.isComingSoon || product.badge === "coming soon";
 
   const add = () => {
@@ -128,13 +127,8 @@ export default function ProductPage() {
       toast.error("This piece is coming soon");
       return;
     }
-    if (hasSizes && !selectedSize) {
+    if (showSizeSection && hasSizes && !selectedSize) {
       setSizeError(true);
-      toast.error("Please select a size first");
-      return;
-    }
-    if (hasSizeOptions && !selectedSizeOption) {
-      setSizeOptionError(true);
       toast.error("Please select a size first");
       return;
     }
@@ -144,8 +138,7 @@ export default function ProductPage() {
       return;
     }
     const variantParts = [
-      selectedSize ? `Size ${selectedSize}` : null,
-      selectedSizeOption || null,
+      selectedSize ? sizeLabel(selectedSize, productCategory) : null,
       selectedColor || null,
     ].filter(Boolean);
     addItem({
@@ -154,8 +147,7 @@ export default function ProductPage() {
       price: product.price,
       image: product.images[0],
       quantity: qty,
-      variantId:
-        selectedSize || selectedSizeOption || selectedColor || undefined,
+      variantId: selectedSize || selectedColor || undefined,
       variantLabel: variantParts.length ? variantParts.join(" · ") : undefined,
       sku: product.sku,
     });
@@ -340,55 +332,12 @@ export default function ProductPage() {
                 </div>
               )}
 
-              {/* ── Apparel / general size Selector ── */}
-              {showSizeOptionSection && (
-                <div className="mt-6">
-                  <div className="mb-2 flex items-center justify-between">
-                    <p className="text-sm uppercase tracking-[0.18em] text-white/70">
-                      Size
-                      {selectedSizeOption && (
-                        <span className="ml-2 text-fuchsia">
-                          — {selectedSizeOption}
-                        </span>
-                      )}
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {availableSizeOptions.map((size) => {
-                      const isSelected = selectedSizeOption === size;
-                      return (
-                        <button
-                          key={size}
-                          type="button"
-                          onClick={() => {
-                            setSelectedSizeOption(size);
-                            setSizeOptionError(false);
-                          }}
-                          className={`rounded-lg border px-3 py-2 text-sm font-medium transition ${
-                            isSelected
-                              ? "border-fuchsia bg-fuchsia text-white"
-                              : "border-white/20 text-white hover:border-fuchsia hover:text-fuchsia"
-                          }`}
-                        >
-                          {size}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  {sizeOptionError && (
-                    <p className="mt-2 text-xs text-red-400">
-                      Please select a size to continue
-                    </p>
-                  )}
-                </div>
-              )}
-
-              {/* ── Size Selector (rings) ── */}
+              {/* ── Size Selector (rings / bracelets) ── */}
               {showSizeSection && (
               <div className="mt-6">
                 <div className="mb-2 flex items-center justify-between">
                   <p className="text-sm uppercase tracking-[0.18em] text-white/70">
-                    Ring Size
+                    {productCategory === "bracelets" ? "Bracelet Size" : "Ring Size"}
                     {selectedSize && (
                       <span className="ml-2 text-fuchsia">— {selectedSize}</span>
                     )}
@@ -398,9 +347,10 @@ export default function ProductPage() {
                 {hasSizes ? (
                   <>
                     <div className="flex flex-wrap gap-2">
-                      {ALL_SIZES.map((size) => {
+                      {sizePresets.map((size) => {
                         const available = availableSizes.includes(size);
                         const isSelected = selectedSize === size;
+                        const isNumeric = /^\d+$/.test(size);
                         return (
                           <button
                             key={size}
@@ -410,8 +360,9 @@ export default function ProductPage() {
                               setSelectedSize(size);
                               setSizeError(false);
                             }}
-                            className={`relative h-10 w-10 rounded-lg border text-sm font-medium transition
-                              ${
+                            className={`relative rounded-lg border text-sm font-medium transition ${
+                              isNumeric ? "h-10 w-10" : "h-10 px-3"
+                            } ${
                                 isSelected
                                   ? "border-fuchsia bg-fuchsia text-white"
                                   : available
@@ -465,7 +416,7 @@ export default function ProductPage() {
               )}
 
               {/* ── Size Inquiry Form ── */}
-              {showInquiry && (
+              {showSizeSection && showInquiry && (
                 <motion.div
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -490,13 +441,14 @@ export default function ProductPage() {
                         Desired Size <span className="text-fuchsia">*</span>
                       </label>
                       <div className="flex flex-wrap gap-2">
-                        {ALL_SIZES.map((size) => (
+                        {sizePresets.map((size) => (
                           <button
                             key={size}
                             type="button"
                             onClick={() => setInquirySize(size)}
-                            className={`h-9 w-9 rounded-lg border text-sm font-medium transition
-                              ${
+                            className={`rounded-lg border text-sm font-medium transition ${
+                              /^\d+$/.test(size) ? "h-9 w-9" : "h-9 px-3"
+                            } ${
                                 inquirySize === size
                                   ? "border-fuchsia bg-fuchsia text-white"
                                   : "border-white/20 text-white hover:border-fuchsia"

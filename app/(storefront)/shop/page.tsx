@@ -18,7 +18,14 @@ import {
 } from "@/components/animations/PageMotion";
 import { ScrollReveal } from "@/components/animations/ScrollReveal";
 
-const categories = ["all", "rings", "bracelets"];
+const categories = [
+  "all",
+  "rings",
+  "bracelets",
+  "earrings",
+  "necklaces",
+  "accessories",
+];
 
 function ShopPageContent() {
   const searchParams = useSearchParams();

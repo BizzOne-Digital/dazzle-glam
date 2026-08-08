@@ -82,7 +82,11 @@ export async function updateProductAdmin(
     }
     if (data.category !== undefined) {
       const cat = data.category.trim().toLowerCase();
-      if (["rings", "bracelets", "earrings", "necklaces"].includes(cat)) {
+      if (
+        ["rings", "bracelets", "earrings", "necklaces", "accessories"].includes(
+          cat
+        )
+      ) {
         product.category = cat;
       }
     }
@@ -257,7 +261,9 @@ export async function duplicateProductAdmin(id: string) {
     variants,
     category:
       typeof src.category === "string" &&
-      ["rings", "bracelets", "earrings", "necklaces"].includes(src.category)
+      ["rings", "bracelets", "earrings", "necklaces", "accessories"].includes(
+        src.category
+      )
         ? src.category
         : "rings",
     materials: source.materials || [],
@@ -362,7 +368,9 @@ export async function createProductAdmin(data: {
 
     const category =
       data.category &&
-      ["rings", "bracelets", "earrings", "necklaces"].includes(data.category)
+      ["rings", "bracelets", "earrings", "necklaces", "accessories"].includes(
+        data.category
+      )
         ? data.category
         : "rings";
     const colors = (data.colors || []).map((c) => c.trim()).filter(Boolean);

@@ -19,9 +19,12 @@ import {
 } from "@/actions/sizeStock";
 import { deleteProductAdmin, updateProductAdmin } from "@/actions/products";
 import type { DemoProduct } from "@/lib/data/demo";
+import {
+  PRODUCT_CATEGORIES,
+  categoryNeedsSizes,
+  getSizePresetsForCategory,
+} from "@/lib/productSizes";
 
-const ALL_SIZES = ["5", "6", "7", "8", "9", "10", "11", "12"];
-const PRODUCT_CATEGORIES = ["rings", "bracelets", "earrings", "necklaces"] as const;
 const COLOR_PRESETS = [
   "Gold",
   "Silver",
@@ -36,17 +39,10 @@ const COLOR_PRESETS = [
   "Fuchsia",
   "Multicolor",
 ];
-const SIZE_OPTION_PRESETS = [
-  "Extra Small",
-  "Small",
-  "Medium",
-  "Large",
-  "Extra Large",
-];
 type Tab = "details" | "sizes" | "stock";
 
-function emptyStock(): Record<string, number> {
-  return Object.fromEntries(ALL_SIZES.map((s) => [s, 0]));
+function emptyStock(sizeKeys: readonly string[]): Record<string, number> {
+  return Object.fromEntries(sizeKeys.map((s) => [s, 0]));
 }
 
 export default function EditProductPage() {
@@ -64,7 +60,6 @@ export default function EditProductPage() {
   const [category, setCategory] = useState<string>("rings");
   const [colors, setColors] = useState<string[]>([]);
   const [customColor, setCustomColor] = useState("");
-  const [sizeOptions, setSizeOptions] = useState<string[]>([]);
   const [price, setPrice] = useState(0);
   const [compareAtPrice, setCompareAtPrice] = useState(0);
   const [stock, setStock] = useState(0);
@@ -82,9 +77,12 @@ export default function EditProductPage() {
   const [inquiriesLoading, setInquiriesLoading] = useState(false);
   const [notifyingId, setNotifyingId] = useState<string | null>(null);
 
-  const [sizeStock, setSizeStock] = useState<Record<string, number>>(emptyStock);
+  const [sizeStock, setSizeStock] = useState<Record<string, number>>({});
   const [stockLoaded, setStockLoaded] = useState(false);
   const [stockLoading, setStockLoading] = useState(false);
+
+  const sizePresets = getSizePresetsForCategory(category);
+  const needsSizes = categoryNeedsSizes(category);
 
   useEffect(() => {
     const load = async () => {
@@ -101,7 +99,6 @@ export default function EditProductPage() {
         setSupplier(p.supplier || "");
         setCategory(p.category || "rings");
         setColors(Array.isArray(p.colors) ? p.colors : []);
-        setSizeOptions(Array.isArray(p.sizeOptions) ? p.sizeOptions : []);
         setPrice(p.price);
         setCompareAtPrice(p.compareAtPrice || 0);
         setIsOnSale(!!p.isOnSale);
@@ -152,8 +149,10 @@ export default function EditProductPage() {
     if (tab === "stock" && product && !stockLoaded) {
       void (async () => {
         try {
-          const res = await getProductSizeStock(product.id);
+          const keys = getSizePresetsForCategory(product.category || category);
+          const res = await getProductSizeStock(product.id, [...keys]);
           if (res.success) setSizeStock(res.sizeStock);
+          else setSizeStock(emptyStock(keys));
         } catch (err) {
           toast.error(
             err instanceof Error ? err.message : "Failed to load size stock"
@@ -236,7 +235,6 @@ export default function EditProductPage() {
         supplier,
         category,
         colors,
-        sizeOptions,
         price,
         compareAtPrice: isOnSale ? compareAtPrice : 0,
         isOnSale,
@@ -256,7 +254,6 @@ export default function EditProductPage() {
           setSupplier(result.data.supplier || "");
           setCategory(result.data.category || "rings");
           setColors(result.data.colors || []);
-          setSizeOptions(result.data.sizeOptions || []);
           setCompareAtPrice(result.data.compareAtPrice || 0);
           setIsOnSale(!!result.data.isOnSale);
           setImages((result.data.images || []).slice(0, 3));
@@ -308,19 +305,15 @@ export default function EditProductPage() {
     setCustomColor("");
   };
 
-  const toggleSizeOption = (size: string) => {
-    setSizeOptions((prev) =>
-      prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size]
-    );
-  };
-
   const saveSizes = async () => {
     if (!product) return;
     setSizesLoading(true);
+    const allowed = new Set(sizePresets);
+    const cleanSizes = enabledSizes.filter((s) => allowed.has(s));
     const result = await updateProductSizesAndNotify(
       product.id,
       product.slug,
-      enabledSizes,
+      cleanSizes,
       process.env.NEXT_PUBLIC_SITE_URL
     );
     setSizesLoading(false);
@@ -350,7 +343,8 @@ export default function EditProductPage() {
       const res = await updateProductSizeStock(
         product.id,
         product.slug,
-        sizeStock
+        sizeStock,
+        [...sizePresets]
       );
       if (res.success) toast.success(res.message);
       else toast.error("Failed to save size stock");
@@ -392,9 +386,13 @@ export default function EditProductPage() {
       <div className="flex gap-1 rounded-lg border border-white/10 p-1">
         {(
           [
-            { id: "details", label: "Details" },
-            { id: "sizes", label: "Sizes & Inquiries" },
-            { id: "stock", label: "Size Stock" },
+            { id: "details" as const, label: "Details" },
+            ...(needsSizes
+              ? ([
+                  { id: "sizes" as const, label: "Sizes & Inquiries" },
+                  { id: "stock" as const, label: "Size Stock" },
+                ] as const)
+              : []),
           ] as const
         ).map((t) => (
           <button
@@ -448,7 +446,15 @@ export default function EditProductPage() {
             <label className="mb-1.5 block text-sm text-white/70">Category</label>
             <select
               value={category}
-              onChange={(e) => setCategory(e.target.value)}
+              onChange={(e) => {
+                const next = e.target.value;
+                setCategory(next);
+                setSizesLoaded(false);
+                setStockLoaded(false);
+                if (!categoryNeedsSizes(next) && tab !== "details") {
+                  setTab("details");
+                }
+              }}
               className="w-full rounded-lg border border-white/15 bg-white/5 px-3 py-2.5 text-sm text-white focus:border-fuchsia focus:outline-none"
             >
               {PRODUCT_CATEGORIES.map((c) => (
@@ -457,12 +463,19 @@ export default function EditProductPage() {
                 </option>
               ))}
             </select>
+            <p className="mt-1.5 text-xs text-white/40">
+              {category === "rings"
+                ? "Rings use sizes 5–12 with size inquiry / email notify."
+                : category === "bracelets"
+                  ? "Bracelets use Small / Medium / Large with size inquiry / email notify."
+                  : "This category is a simple product — no size selection or inquiry."}
+            </p>
           </div>
           <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
             <p className="mb-1 text-sm text-white/70">Color variants</p>
             <p className="mb-3 text-xs text-white/40">
-              Enable colors customers can choose (ideal for bracelets). Leave
-              empty if this piece has no color options.
+              Optional colors customers can choose. Leave empty if this piece
+              has no color options.
             </p>
             <div className="flex flex-wrap gap-2">
               {COLOR_PRESETS.map((color) => {
@@ -516,32 +529,6 @@ export default function EditProductPage() {
               >
                 Add
               </Button>
-            </div>
-          </div>
-          <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
-            <p className="mb-1 text-sm text-white/70">Size variants</p>
-            <p className="mb-3 text-xs text-white/40">
-              Extra Small–Extra Large options for apparel-style sizing. Ring
-              numbers (5–12) stay on the Sizes tab.
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {SIZE_OPTION_PRESETS.map((size) => {
-                const on = sizeOptions.includes(size);
-                return (
-                  <button
-                    key={size}
-                    type="button"
-                    onClick={() => toggleSizeOption(size)}
-                    className={`rounded-lg border px-3 py-1.5 text-sm transition ${
-                      on
-                        ? "border-fuchsia bg-fuchsia/20 text-fuchsia"
-                        : "border-white/15 text-white/70 hover:border-white/30"
-                    }`}
-                  >
-                    {size}
-                  </button>
-                );
-              })}
             </div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -725,27 +712,32 @@ export default function EditProductPage() {
         </form>
       )}
 
-      {tab === "stock" && (
+      {tab === "stock" && needsSizes && (
         <div className="rounded-xl border border-white/10 p-6">
           <h2 className="mb-1 font-heading text-xl text-white">Size Stock</h2>
           <p className="mb-5 text-sm text-white/50">
             Admin-only inventory notes for your reference. Customers never see
-            these quantities on the website.
+            these quantities on the website.{" "}
+            {category === "bracelets"
+              ? "Bracelet sizes: Small, Medium, Large."
+              : "Ring sizes: 5–12."}
           </p>
           {!stockLoaded ? (
             <p className="text-sm text-white/40">Loading size stock…</p>
           ) : (
             <div className="space-y-3">
-              <div className="grid grid-cols-[4rem_1fr] gap-3 border-b border-white/10 pb-2 text-[10px] uppercase tracking-wider text-silver">
+              <div className="grid grid-cols-[7rem_1fr] gap-3 border-b border-white/10 pb-2 text-[10px] uppercase tracking-wider text-silver">
                 <span>Size</span>
                 <span>Stock qty</span>
               </div>
-              {ALL_SIZES.map((size) => (
+              {sizePresets.map((size) => (
                 <div
                   key={size}
-                  className="grid grid-cols-[4rem_1fr] items-center gap-3"
+                  className="grid grid-cols-[7rem_1fr] items-center gap-3"
                 >
-                  <span className="font-medium text-white">Size {size}</span>
+                  <span className="font-medium text-white">
+                    {/^\d+$/.test(size) ? `Size ${size}` : size}
+                  </span>
                   <Input
                     type="number"
                     min={0}
@@ -778,25 +770,30 @@ export default function EditProductPage() {
         </div>
       )}
 
-      {tab === "sizes" && (
+      {tab === "sizes" && needsSizes && (
         <div className="space-y-6">
           <div className="rounded-xl border border-white/10 p-6">
             <h2 className="mb-1 font-heading text-xl text-white">Available Sizes</h2>
             <p className="mb-5 text-sm text-white/50">
-              Toggle sizes for this product. Saving notifies customers who inquired.
+              Toggle sizes for this{" "}
+              {category === "bracelets" ? "bracelet" : "ring"}. Saving notifies
+              customers who inquired about those sizes by email.
             </p>
             {!sizesLoaded ? (
               <p className="text-sm text-white/40">Loading current sizes…</p>
             ) : (
               <div className="flex flex-wrap gap-3">
-                {ALL_SIZES.map((size) => {
+                {sizePresets.map((size) => {
                   const on = enabledSizes.includes(size);
+                  const isNumeric = /^\d+$/.test(size);
                   return (
                     <button
                       key={size}
                       type="button"
                       onClick={() => toggleSize(size)}
-                      className={`h-12 w-12 rounded-xl border text-sm font-medium transition ${
+                      className={`rounded-xl border text-sm font-medium transition ${
+                        isNumeric ? "h-12 w-12" : "h-12 px-4"
+                      } ${
                         on
                           ? "border-fuchsia bg-fuchsia/20 text-fuchsia"
                           : "border-white/20 text-white/50 hover:border-white/50 hover:text-white"

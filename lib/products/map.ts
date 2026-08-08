@@ -27,7 +27,13 @@ export type MongoProductLike = {
   status?: string;
 };
 
-const CATEGORIES = new Set(["rings", "bracelets", "earrings", "necklaces"]);
+const CATEGORIES = new Set([
+  "rings",
+  "bracelets",
+  "earrings",
+  "necklaces",
+  "accessories",
+]);
 
 export function mapMongoProduct(p: MongoProductLike): DemoProduct {
   const images = [...(p.media || [])]

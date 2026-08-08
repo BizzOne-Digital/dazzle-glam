@@ -32,7 +32,7 @@ export interface IProduct {
   status: ProductStatus;
   media: MediaItem[];
   variants: IProductVariant[];
-  /** Storefront category: rings | bracelets | earrings | necklaces */
+  /** Storefront category: rings | bracelets | earrings | necklaces | accessories */
   category: string;
   materials: string[];
   colors: string[];
@@ -117,7 +117,7 @@ const ProductSchema = new Schema<IProduct>(
     variants: [VariantSchema],
     category: {
       type: String,
-      enum: ["rings", "bracelets", "earrings", "necklaces"],
+      enum: ["rings", "bracelets", "earrings", "necklaces", "accessories"],
       default: "rings",
       index: true,
     },
