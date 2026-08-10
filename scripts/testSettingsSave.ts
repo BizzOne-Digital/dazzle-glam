@@ -9,7 +9,7 @@ async function testSave() {
 
     // Check existing settings
     console.log("\n1. Checking existing settings...");
-    let settings = await SiteSettings.findOne();
+    const settings = await SiteSettings.findOne();
     
     if (settings) {
       console.log("✓ Found existing settings:");

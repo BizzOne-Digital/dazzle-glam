@@ -294,9 +294,9 @@ export interface IPageContent {
         description?: string;
         icon?: string;
         image?: string;
-        [key: string]: any;
+        [key: string]: unknown;
       }>;
-      [key: string]: any;
+      [key: string]: unknown;
     };
   };
   seo: SeoFields;

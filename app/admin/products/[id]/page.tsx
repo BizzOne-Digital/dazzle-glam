@@ -39,6 +39,20 @@ const COLOR_PRESETS = [
   "Fuchsia",
   "Multicolor",
 ];
+const MATERIAL_PRESETS = [
+  "Sterling Silver",
+  "925 Sterling Silver",
+  "Gold Tone",
+  "Silver Tone",
+  "Rose Gold Tone",
+  "White Tone",
+  "Stainless Steel",
+  "Cubic Zirconia",
+  "Crystal Zircon",
+  "Synthetic Crystal",
+  "Black Stone",
+  "Sapphire CZ",
+];
 type Tab = "details" | "sizes" | "stock";
 
 function emptyStock(sizeKeys: readonly string[]): Record<string, number> {
@@ -60,6 +74,8 @@ export default function EditProductPage() {
   const [category, setCategory] = useState<string>("rings");
   const [colors, setColors] = useState<string[]>([]);
   const [customColor, setCustomColor] = useState("");
+  const [materials, setMaterials] = useState<string[]>([]);
+  const [customMaterial, setCustomMaterial] = useState("");
   const [price, setPrice] = useState(0);
   const [compareAtPrice, setCompareAtPrice] = useState(0);
   const [stock, setStock] = useState(0);
@@ -99,6 +115,7 @@ export default function EditProductPage() {
         setSupplier(p.supplier || "");
         setCategory(p.category || "rings");
         setColors(Array.isArray(p.colors) ? p.colors : []);
+        setMaterials(Array.isArray(p.materials) ? p.materials : []);
         setPrice(p.price);
         setCompareAtPrice(p.compareAtPrice || 0);
         setIsOnSale(!!p.isOnSale);
@@ -235,6 +252,7 @@ export default function EditProductPage() {
         supplier,
         category,
         colors,
+        materials,
         price,
         compareAtPrice: isOnSale ? compareAtPrice : 0,
         isOnSale,
@@ -254,6 +272,7 @@ export default function EditProductPage() {
           setSupplier(result.data.supplier || "");
           setCategory(result.data.category || "rings");
           setColors(result.data.colors || []);
+          setMaterials(result.data.materials || []);
           setCompareAtPrice(result.data.compareAtPrice || 0);
           setIsOnSale(!!result.data.isOnSale);
           setImages((result.data.images || []).slice(0, 3));
@@ -303,6 +322,21 @@ export default function EditProductPage() {
     if (!value) return;
     setColors((prev) => (prev.includes(value) ? prev : [...prev, value]));
     setCustomColor("");
+  };
+
+  const toggleMaterial = (material: string) => {
+    setMaterials((prev) =>
+      prev.includes(material)
+        ? prev.filter((m) => m !== material)
+        : [...prev, material]
+    );
+  };
+
+  const addCustomMaterial = () => {
+    const value = customMaterial.trim();
+    if (!value) return;
+    setMaterials((prev) => (prev.includes(value) ? prev : [...prev, value]));
+    setCustomMaterial("");
   };
 
   const saveSizes = async () => {
@@ -526,6 +560,66 @@ export default function EditProductPage() {
                 variant="secondary"
                 className="mt-6 shrink-0"
                 onClick={addCustomColor}
+              >
+                Add
+              </Button>
+            </div>
+          </div>
+          <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+            <p className="mb-1 text-sm text-white/70">Materials</p>
+            <p className="mb-3 text-xs text-white/40">
+              Select materials shown on the product page. Add a custom one if
+              needed.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {MATERIAL_PRESETS.map((material) => {
+                const on = materials.includes(material);
+                return (
+                  <button
+                    key={material}
+                    type="button"
+                    onClick={() => toggleMaterial(material)}
+                    className={`rounded-lg border px-3 py-1.5 text-sm transition ${
+                      on
+                        ? "border-fuchsia bg-fuchsia/20 text-fuchsia"
+                        : "border-white/15 text-white/70 hover:border-white/30"
+                    }`}
+                  >
+                    {material}
+                  </button>
+                );
+              })}
+              {materials
+                .filter((m) => !MATERIAL_PRESETS.includes(m))
+                .map((material) => (
+                  <button
+                    key={material}
+                    type="button"
+                    onClick={() => toggleMaterial(material)}
+                    className="rounded-lg border border-fuchsia bg-fuchsia/20 px-3 py-1.5 text-sm text-fuchsia"
+                  >
+                    {material} ×
+                  </button>
+                ))}
+            </div>
+            <div className="mt-3 flex gap-2">
+              <Input
+                label="Custom material"
+                value={customMaterial}
+                onChange={(e) => setCustomMaterial(e.target.value)}
+                placeholder="e.g. Pearl"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addCustomMaterial();
+                  }
+                }}
+              />
+              <Button
+                type="button"
+                variant="secondary"
+                className="mt-6 shrink-0"
+                onClick={addCustomMaterial}
               >
                 Add
               </Button>

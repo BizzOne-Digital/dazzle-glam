@@ -15,8 +15,16 @@ async function migrate() {
     try {
       await db.dropCollection("pagecontents");
       console.log("✓ Dropped pagecontents collection");
-    } catch (error: any) {
-      if (error.code === 26 || error.codeName === "NamespaceNotFound") {
+    } catch (error: unknown) {
+      const code =
+        error && typeof error === "object" && "code" in error
+          ? (error as { code?: number }).code
+          : undefined;
+      const codeName =
+        error && typeof error === "object" && "codeName" in error
+          ? (error as { codeName?: string }).codeName
+          : undefined;
+      if (code === 26 || codeName === "NamespaceNotFound") {
         console.log("✓ Collection doesn't exist, nothing to drop");
       } else {
         throw error;

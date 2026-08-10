@@ -54,6 +54,7 @@ export async function updateProductAdmin(
     supplier?: string;
     category?: string;
     colors?: string[];
+    materials?: string[];
     sizeOptions?: string[];
     status?: "draft" | "published" | "archived";
     careInstructions?: string;
@@ -93,6 +94,11 @@ export async function updateProductAdmin(
     if (data.colors !== undefined) {
       product.colors = data.colors
         .map((c) => c.trim())
+        .filter(Boolean);
+    }
+    if (data.materials !== undefined) {
+      product.materials = data.materials
+        .map((m) => m.trim())
         .filter(Boolean);
     }
     if (data.sizeOptions !== undefined) {
@@ -161,6 +167,7 @@ export async function updateProductAdmin(
           supplier: product.supplier || null,
           category: product.category || "rings",
           colors: product.colors || [],
+          materials: product.materials || [],
           sizeOptions: product.sizeOptions || [],
         },
       }
@@ -209,7 +216,7 @@ export async function duplicateProductAdmin(id: string) {
   if (!source) return { success: false, error: "Product not found" };
 
   const baseName = `${source.name} (Copy)`;
-  let baseSlug = slugify(`${source.slug}-copy`);
+  const baseSlug = slugify(`${source.slug}-copy`);
   let candidate = baseSlug;
   let n = 2;
   while (await Product.exists({ slug: candidate })) {
@@ -347,6 +354,7 @@ export async function createProductAdmin(data: {
   supplier?: string;
   category?: string;
   colors?: string[];
+  materials?: string[];
   sizeOptions?: string[];
 }) {
   try {
@@ -374,6 +382,9 @@ export async function createProductAdmin(data: {
         ? data.category
         : "rings";
     const colors = (data.colors || []).map((c) => c.trim()).filter(Boolean);
+    const materials = (data.materials || [])
+      .map((m) => m.trim())
+      .filter(Boolean);
     const sizeOptions = (data.sizeOptions || [])
       .map((s) => s.trim())
       .filter(Boolean);
@@ -396,7 +407,7 @@ export async function createProductAdmin(data: {
         sortOrder: i,
       })),
       category,
-      materials: [],
+      materials,
       colors,
       sizeOptions,
       sizes: [],
@@ -422,6 +433,7 @@ export async function createProductAdmin(data: {
           supplier: product.supplier || null,
           category,
           colors,
+          materials,
           sizeOptions,
         },
       }

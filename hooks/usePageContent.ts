@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 
 export interface PageContentData {
   pageKey: string;
-  sections: any;
+  sections: Record<string, unknown>;
   seo: {
     title: string;
     description: string;
@@ -31,9 +31,9 @@ export function usePageContent(pageKey: string) {
         const data = await response.json();
         setContent(data);
         setError(null);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error(`Error fetching content for ${pageKey}:`, err);
-        setError(err.message);
+        setError(err instanceof Error ? err.message : "Failed to fetch content");
       } finally {
         setLoading(false);
       }

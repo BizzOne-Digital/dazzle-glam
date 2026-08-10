@@ -36,8 +36,8 @@ export async function getAllPageContents() {
 }
 
 export async function updatePageContent(pageKey: string, data: {
-  sections?: any;
-  seo?: any;
+  sections?: Record<string, unknown>;
+  seo?: Record<string, unknown>;
   isPublished?: boolean;
 }) {
   try {
@@ -89,15 +89,19 @@ export async function updatePageContent(pageKey: string, data: {
       success: true, 
       data: JSON.parse(JSON.stringify(updated)) 
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error(`Error updating page content for ${pageKey}:`, error);
     return { 
       success: false, 
-      error: error.message || "Failed to update page content" 
+      error: error instanceof Error ? error.message : "Failed to update page content" 
     };
   }
 }
 
-export async function createOrUpdatePageContent(pageKey: string, sections: any, seo: any) {
+export async function createOrUpdatePageContent(
+  pageKey: string,
+  sections: Record<string, unknown>,
+  seo: Record<string, unknown>
+) {
   return updatePageContent(pageKey, { sections, seo, isPublished: true });
 }
