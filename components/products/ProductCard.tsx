@@ -103,7 +103,7 @@ export function ProductCard({
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             className={cn(
-              "object-cover transition duration-700 ease-out",
+              "object-contain object-center p-3 sm:p-4 transition duration-700 ease-out",
               product.hoverImage && "group-hover:opacity-0"
             )}
           />
@@ -113,7 +113,7 @@ export function ProductCard({
               alt=""
               fill
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              className="object-cover opacity-0 transition duration-700 ease-out group-hover:opacity-100 group-hover:scale-105"
+              className="object-contain object-center p-3 sm:p-4 opacity-0 transition duration-700 ease-out group-hover:opacity-100"
             />
           )}
 
@@ -213,7 +213,7 @@ export function ProductCard({
               src={product.image}
               alt={product.name}
               fill
-              className="object-cover"
+              className="object-contain object-center p-4"
               sizes="400px"
             />
           </div>

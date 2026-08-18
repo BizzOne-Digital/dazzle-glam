@@ -101,7 +101,7 @@ export default function AdminProductsPage() {
                 <td className="p-3">
                   <div className="flex items-center gap-3">
                     <div className="relative h-12 w-12 overflow-hidden rounded">
-                      <Image src={p.images[0]} alt="" fill className="object-cover" />
+                      <Image src={p.images[0]} alt="" fill className="object-contain object-center p-0.5" />
                     </div>
                     <div>
                       <p className="max-w-xs truncate font-medium">{p.name}</p>

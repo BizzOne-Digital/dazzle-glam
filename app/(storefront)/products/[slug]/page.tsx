@@ -199,7 +199,7 @@ export default function ProductPage() {
                   src={product.images[active]}
                   alt={product.name}
                   fill
-                  className={`object-cover transition duration-500 ${zoom ? "scale-125" : "scale-100"}`}
+                  className={`object-contain object-center p-4 sm:p-6 transition duration-500 ${zoom ? "scale-105" : "scale-100"}`}
                   sizes="(max-width:1024px) 100vw, 50vw"
                   priority
                 />
@@ -227,7 +227,7 @@ export default function ProductPage() {
                       src={img}
                       alt=""
                       fill
-                      className="object-cover"
+                      className="object-contain object-center p-1"
                       sizes="80px"
                       onError={(e) => {
                         // hide thumbnails whose image file doesn't exist yet
