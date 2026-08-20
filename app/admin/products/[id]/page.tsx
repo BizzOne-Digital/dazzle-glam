@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Button } from "@/components/ui/Button";
 import { LocalImageField } from "@/components/admin/LocalImageField";
+import { MAX_PRODUCT_IMAGES } from "@/config/site";
 import {
   getProductInquiries,
   updateProductSizesAndNotify,
@@ -21,6 +22,7 @@ import { deleteProductAdmin, updateProductAdmin } from "@/actions/products";
 import type { DemoProduct } from "@/lib/data/demo";
 import {
   PRODUCT_CATEGORIES,
+  RING_WIDTH_PRESETS,
   categoryNeedsSizes,
   getSizePresetsForCategory,
 } from "@/lib/productSizes";
@@ -94,11 +96,21 @@ export default function EditProductPage() {
   const [notifyingId, setNotifyingId] = useState<string | null>(null);
 
   const [sizeStock, setSizeStock] = useState<Record<string, number>>({});
+  const [widthSizesMap, setWidthSizesMap] = useState<Record<string, string[]>>({});
+  const [widthSizeStockMap, setWidthSizeStockMap] = useState<
+    Record<string, Record<string, number>>
+  >({});
+  const [activeWidthTab, setActiveWidthTab] = useState<string>(RING_WIDTH_PRESETS[0]);
+  const [hasWidthVariants, setHasWidthVariants] = useState(false);
+  const [selectedWidths, setSelectedWidths] = useState<string[]>([]);
+  const [widthImages, setWidthImages] = useState<Record<string, string>>({});
   const [stockLoaded, setStockLoaded] = useState(false);
   const [stockLoading, setStockLoading] = useState(false);
 
   const sizePresets = getSizePresetsForCategory(category);
   const needsSizes = categoryNeedsSizes(category);
+  const productWidthVariants = product?.widthVariants ?? [];
+  const usesWidthVariants = productWidthVariants.length > 0;
 
   useEffect(() => {
     const load = async () => {
@@ -116,12 +128,19 @@ export default function EditProductPage() {
         setCategory(p.category || "rings");
         setColors(Array.isArray(p.colors) ? p.colors : []);
         setMaterials(Array.isArray(p.materials) ? p.materials : []);
+        const wv = Array.isArray(p.widthVariants) ? p.widthVariants : [];
+        setHasWidthVariants(wv.length > 0);
+        setSelectedWidths(wv.map((w) => w.width));
+        setWidthImages(
+          Object.fromEntries(wv.map((w) => [w.width, w.image || ""]))
+        );
+        if (wv.length > 0) setActiveWidthTab(wv[0].width);
         setPrice(p.price);
         setCompareAtPrice(p.compareAtPrice || 0);
         setIsOnSale(!!p.isOnSale);
         setStock(p.stock);
         setDescription(p.description);
-        setImages((p.images || []).slice(0, 3));
+        setImages((p.images || []).slice(0, MAX_PRODUCT_IMAGES));
         // Only one flag allowed — prefer Coming Soon > Bestseller > New
         if (p.isComingSoon) {
           setIsComingSoon(true);
@@ -156,7 +175,14 @@ export default function EditProductPage() {
         fetch(`/api/products/${product.slug}/sizes`)
           .then((r) => r.json())
           .then((data) => {
-            setEnabledSizes(data.sizes ?? []);
+            if (data.hasWidthVariants && data.widthSizes) {
+              setWidthSizesMap(data.widthSizes);
+              const firstWidth =
+                product.widthVariants?.[0]?.width || RING_WIDTH_PRESETS[0];
+              setActiveWidthTab(firstWidth);
+            } else {
+              setEnabledSizes(data.sizes ?? []);
+            }
             setSizesLoaded(true);
           })
           .catch(() => setSizesLoaded(true));
@@ -167,9 +193,21 @@ export default function EditProductPage() {
       void (async () => {
         try {
           const keys = getSizePresetsForCategory(product.category || category);
-          const res = await getProductSizeStock(product.id, [...keys]);
-          if (res.success) setSizeStock(res.sizeStock);
-          else setSizeStock(emptyStock(keys));
+          const widths = product.widthVariants?.map((w) => w.width) ?? [];
+          const res = await getProductSizeStock(
+            product.id,
+            [...keys],
+            widths.length ? widths : undefined
+          );
+          if (res.success) {
+            setSizeStock(res.sizeStock);
+            if (res.widthSizeStock) setWidthSizeStockMap(res.widthSizeStock);
+            else setWidthSizeStockMap(
+              Object.fromEntries(widths.map((w) => [w, emptyStock(keys)]))
+            );
+          } else {
+            setSizeStock(emptyStock(keys));
+          }
         } catch (err) {
           toast.error(
             err instanceof Error ? err.message : "Failed to load size stock"
@@ -204,27 +242,32 @@ export default function EditProductPage() {
       if (!url) {
         next[index] = "";
         // keep slots; trailing empties trimmed on save
-        return next.slice(0, 3);
+        return next.slice(0, MAX_PRODUCT_IMAGES);
       }
       next[index] = url;
-      return next.slice(0, 3);
+      return next.slice(0, MAX_PRODUCT_IMAGES);
     });
   };
 
   const moveImage = (from: number, to: number) => {
     setImages((prev) => {
       const next = [...prev];
-      while (next.length < 3) next.push("");
-      if (to < 0 || to > 2 || from === to) return next.slice(0, 3);
+      while (next.length < MAX_PRODUCT_IMAGES) next.push("");
+      if (to < 0 || to > MAX_PRODUCT_IMAGES - 1 || from === to) {
+        return next.slice(0, MAX_PRODUCT_IMAGES);
+      }
       const [item] = next.splice(from, 1);
       next.splice(to, 0, item);
-      return next.slice(0, 3);
+      return next.slice(0, MAX_PRODUCT_IMAGES);
     });
   };
 
   const addImageSlot = () => {
-    if (images.filter(Boolean).length >= 3 || images.length >= 3) {
-      toast.error("Maximum 3 images per product");
+    if (
+      images.filter(Boolean).length >= MAX_PRODUCT_IMAGES ||
+      images.length >= MAX_PRODUCT_IMAGES
+    ) {
+      toast.error(`Maximum ${MAX_PRODUCT_IMAGES} images per product`);
       return;
     }
     setImages((prev) => [...prev, ""]);
@@ -234,7 +277,7 @@ export default function EditProductPage() {
     e.preventDefault();
     if (!product || loading) return;
     // Preserve order; drop empty slots only
-    const cleanImages = images.map((u) => u.trim()).filter(Boolean).slice(0, 3);
+    const cleanImages = images.map((u) => u.trim()).filter(Boolean).slice(0, MAX_PRODUCT_IMAGES);
     if (cleanImages.length < 1) {
       toast.error("At least 1 image is required");
       return;
@@ -245,6 +288,13 @@ export default function EditProductPage() {
     }
     setLoading(true);
     try {
+      const widthVariantsPayload = hasWidthVariants
+        ? selectedWidths.map((width) => ({
+            width,
+            image: widthImages[width]?.trim() || undefined,
+          }))
+        : [];
+
       const result = await updateProductAdmin(product.id, {
         name,
         slug,
@@ -253,6 +303,7 @@ export default function EditProductPage() {
         category,
         colors,
         materials,
+        widthVariants: widthVariantsPayload,
         price,
         compareAtPrice: isOnSale ? compareAtPrice : 0,
         isOnSale,
@@ -273,9 +324,15 @@ export default function EditProductPage() {
           setCategory(result.data.category || "rings");
           setColors(result.data.colors || []);
           setMaterials(result.data.materials || []);
+          const wv = result.data.widthVariants ?? [];
+          setHasWidthVariants(wv.length > 0);
+          setSelectedWidths(wv.map((w) => w.width));
+          setWidthImages(
+            Object.fromEntries(wv.map((w) => [w.width, w.image || ""]))
+          );
           setCompareAtPrice(result.data.compareAtPrice || 0);
           setIsOnSale(!!result.data.isOnSale);
-          setImages((result.data.images || []).slice(0, 3));
+          setImages((result.data.images || []).slice(0, MAX_PRODUCT_IMAGES));
           if (result.data.isComingSoon) {
             setIsComingSoon(true);
             setIsBestSeller(false);
@@ -332,6 +389,36 @@ export default function EditProductPage() {
     );
   };
 
+  const toggleWidth = (width: string) => {
+    setSelectedWidths((prev) => {
+      const next = prev.includes(width)
+        ? prev.filter((w) => w !== width)
+        : [...prev, width];
+      if (!next.includes(activeWidthTab) && next.length > 0) {
+        setActiveWidthTab(next[0]);
+      }
+      return next;
+    });
+    setWidthImages((prev) => {
+      if (selectedWidths.includes(width)) {
+        const next = { ...prev };
+        delete next[width];
+        return next;
+      }
+      return prev;
+    });
+  };
+
+  const toggleWidthSize = (width: string, size: string) => {
+    setWidthSizesMap((prev) => {
+      const current = prev[width] ?? [];
+      const nextList = current.includes(size)
+        ? current.filter((s) => s !== size)
+        : [...current, size];
+      return { ...prev, [width]: nextList };
+    });
+  };
+
   const addCustomMaterial = () => {
     const value = customMaterial.trim();
     if (!value) return;
@@ -343,6 +430,29 @@ export default function EditProductPage() {
     if (!product) return;
     setSizesLoading(true);
     const allowed = new Set(sizePresets);
+
+    if (usesWidthVariants) {
+      const cleanedMap: Record<string, string[]> = {};
+      for (const width of productWidthVariants.map((w) => w.width)) {
+        cleanedMap[width] = (widthSizesMap[width] ?? []).filter((s) =>
+          allowed.has(s)
+        );
+      }
+      const result = await updateProductSizesAndNotify(
+        product.id,
+        product.slug,
+        [],
+        process.env.NEXT_PUBLIC_SITE_URL,
+        cleanedMap
+      );
+      setSizesLoading(false);
+      if (result.success) {
+        toast.success(result.message);
+        await fetchInquiries();
+      } else toast.error(result.message);
+      return;
+    }
+
     const cleanSizes = enabledSizes.filter((s) => allowed.has(s));
     const result = await updateProductSizesAndNotify(
       product.id,
@@ -378,7 +488,8 @@ export default function EditProductPage() {
         product.id,
         product.slug,
         sizeStock,
-        [...sizePresets]
+        [...sizePresets],
+        usesWidthVariants ? widthSizeStockMap : undefined
       );
       if (res.success) toast.success(res.message);
       else toast.error("Failed to save size stock");
@@ -625,6 +736,74 @@ export default function EditProductPage() {
               </Button>
             </div>
           </div>
+          {category === "rings" && (
+            <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+              <label className="mb-3 flex items-center gap-2 text-sm text-white/80">
+                <input
+                  type="checkbox"
+                  className="accent-fuchsia"
+                  checked={hasWidthVariants}
+                  onChange={(e) => {
+                    const on = e.target.checked;
+                    setHasWidthVariants(on);
+                    if (!on) {
+                      setSelectedWidths([]);
+                      setWidthImages({});
+                    }
+                  }}
+                />
+                This ring has width size variants (4mm / 6mm / 8mm)
+              </label>
+              <p className="mb-3 text-xs text-white/40">
+                Optional — only enable for rings sold in multiple band widths.
+                Select one or more widths, then upload an image for each.
+              </p>
+              {hasWidthVariants && (
+                <>
+                  <div className="flex flex-wrap gap-2">
+                    {RING_WIDTH_PRESETS.map((width) => {
+                      const on = selectedWidths.includes(width);
+                      return (
+                        <button
+                          key={width}
+                          type="button"
+                          onClick={() => toggleWidth(width)}
+                          className={`rounded-lg border px-4 py-2 text-sm font-medium transition ${
+                            on
+                              ? "border-fuchsia bg-fuchsia/20 text-fuchsia"
+                              : "border-white/15 text-white/70 hover:border-white/30"
+                          }`}
+                        >
+                          {width}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {selectedWidths.length > 0 && (
+                    <div className="mt-5 space-y-4">
+                      {selectedWidths.map((width) => (
+                        <div
+                          key={width}
+                          className="rounded-lg border border-white/10 p-4"
+                        >
+                          <p className="mb-3 text-sm font-medium text-white">
+                            {width} band — product image
+                          </p>
+                          <LocalImageField
+                            folder="products"
+                            value={widthImages[width] || ""}
+                            onChange={(url) =>
+                              setWidthImages((prev) => ({ ...prev, [width]: url }))
+                            }
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
           <div className="grid gap-4 sm:grid-cols-2">
             <Input
               label="Price"
@@ -737,7 +916,7 @@ export default function EditProductPage() {
           <div className="space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
-                <p className="text-sm text-white/70">Images (max 3)</p>
+                <p className="text-sm text-white/70">Images (max {MAX_PRODUCT_IMAGES})</p>
                 <p className="text-xs text-white/40">
                   Image 1 = main shop / product photo. Use arrows to change order.
                 </p>
@@ -818,6 +997,48 @@ export default function EditProductPage() {
           </p>
           {!stockLoaded ? (
             <p className="text-sm text-white/40">Loading size stock…</p>
+          ) : usesWidthVariants ? (
+            <div className="space-y-8">
+              {productWidthVariants.map((wv) => (
+                <div key={wv.width}>
+                  <h3 className="mb-3 font-heading text-lg text-white">
+                    {wv.width} band stock
+                  </h3>
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-[7rem_1fr] gap-3 border-b border-white/10 pb-2 text-[10px] uppercase tracking-wider text-silver">
+                      <span>Size</span>
+                      <span>Stock qty</span>
+                    </div>
+                    {sizePresets.map((size) => (
+                      <div
+                        key={`${wv.width}-${size}`}
+                        className="grid grid-cols-[7rem_1fr] items-center gap-3"
+                      >
+                        <span className="font-medium text-white">
+                          {/^\d+$/.test(size) ? `Size ${size}` : size}
+                        </span>
+                        <Input
+                          type="number"
+                          min={0}
+                          step={1}
+                          value={widthSizeStockMap[wv.width]?.[size] ?? 0}
+                          onChange={(e) =>
+                            setWidthSizeStockMap((prev) => ({
+                              ...prev,
+                              [wv.width]: {
+                                ...(prev[wv.width] ?? emptyStock(sizePresets)),
+                                [size]: Math.max(0, Number(e.target.value) || 0),
+                              },
+                            }))
+                          }
+                          aria-label={`Stock for ${wv.width} size ${size}`}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : (
             <div className="space-y-3">
               <div className="grid grid-cols-[7rem_1fr] gap-3 border-b border-white/10 pb-2 text-[10px] uppercase tracking-wider text-silver">
@@ -872,9 +1093,55 @@ export default function EditProductPage() {
               Toggle sizes for this{" "}
               {category === "bracelets" ? "bracelet" : "ring"}. Saving notifies
               customers who inquired about those sizes by email.
+              {usesWidthVariants
+                ? " Manage ring sizes separately for each band width."
+                : ""}
             </p>
             {!sizesLoaded ? (
               <p className="text-sm text-white/40">Loading current sizes…</p>
+            ) : usesWidthVariants ? (
+              <>
+                <div className="mb-4 flex flex-wrap gap-2">
+                  {productWidthVariants.map((wv) => (
+                    <button
+                      key={wv.width}
+                      type="button"
+                      onClick={() => setActiveWidthTab(wv.width)}
+                      className={`rounded-lg border px-4 py-2 text-sm font-medium transition ${
+                        activeWidthTab === wv.width
+                          ? "border-fuchsia bg-fuchsia/20 text-fuchsia"
+                          : "border-white/20 text-white/60 hover:border-white/40"
+                      }`}
+                    >
+                      {wv.width}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  {sizePresets.map((size) => {
+                    const enabled = (widthSizesMap[activeWidthTab] ?? []).includes(
+                      size
+                    );
+                    const isNumeric = /^\d+$/.test(size);
+                    return (
+                      <button
+                        key={`${activeWidthTab}-${size}`}
+                        type="button"
+                        onClick={() => toggleWidthSize(activeWidthTab, size)}
+                        className={`rounded-xl border text-sm font-medium transition ${
+                          isNumeric ? "h-12 w-12" : "h-12 px-4"
+                        } ${
+                          enabled
+                            ? "border-fuchsia bg-fuchsia/20 text-fuchsia"
+                            : "border-white/20 text-white/50 hover:border-white/50 hover:text-white"
+                        }`}
+                      >
+                        {size}
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
             ) : (
               <div className="flex flex-wrap gap-3">
                 {sizePresets.map((size) => {

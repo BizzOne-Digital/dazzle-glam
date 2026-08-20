@@ -5,6 +5,10 @@ import { connectDB } from "@/lib/db/connect";
 import { requireAdmin } from "@/lib/auth/session";
 import { ProductSizes } from "@/models/ProductSizes";
 import { BRACELET_SIZES, RING_SIZES } from "@/lib/productSizes";
+import {
+  parseWidthSizeStockMap,
+  parseWidthSizesMap,
+} from "@/lib/productWidthSizes";
 
 const ALLOWED_SIZES = new Set<string>([...RING_SIZES, ...BRACELET_SIZES]);
 
@@ -39,7 +43,8 @@ function toStockRecord(
 /** Admin-only: load per-size stock for internal inventory notes */
 export async function getProductSizeStock(
   productId: string,
-  sizeKeys?: string[]
+  sizeKeys?: string[],
+  widths?: string[]
 ) {
   await requireAdmin();
   await connectDB();
@@ -52,10 +57,25 @@ export async function getProductSizeStock(
     doc && typeof doc === "object" && "sizeStock" in doc
       ? (doc as { sizeStock?: unknown }).sizeStock
       : undefined;
-  return {
-    success: true as const,
+
+  const result: {
+    success: true;
+    sizeStock: Record<string, number>;
+    widthSizeStock?: Record<string, Record<string, number>>;
+  } = {
+    success: true,
     sizeStock: toStockRecord(rawStock, keys),
   };
+
+  if (widths?.length) {
+    const rawWidthStock =
+      doc && typeof doc === "object" && "widthSizeStock" in doc
+        ? (doc as { widthSizeStock?: unknown }).widthSizeStock
+        : undefined;
+    result.widthSizeStock = parseWidthSizeStockMap(rawWidthStock, widths, keys);
+  }
+
+  return result;
 }
 
 /** Admin-only: save per-size stock (not shown on storefront) */
@@ -63,7 +83,8 @@ export async function updateProductSizeStock(
   productId: string,
   productSlug: string,
   sizeStock: Record<string, number>,
-  sizeKeys?: string[]
+  sizeKeys?: string[],
+  widthSizeStock?: Record<string, Record<string, number>>
 ) {
   await requireAdmin();
   await connectDB();
@@ -78,16 +99,31 @@ export async function updateProductSizeStock(
     clean[size] = Math.max(0, Math.floor(Number(sizeStock[size]) || 0));
   }
 
+  const update: Record<string, unknown> = {
+    productId,
+    productSlug,
+    sizeStock: clean,
+  };
+
+  if (widthSizeStock) {
+    const cleanWidth: Record<string, Record<string, number>> = {};
+    for (const [width, row] of Object.entries(widthSizeStock)) {
+      const cleanRow: Record<string, number> = {};
+      for (const size of keys) {
+        cleanRow[size] = Math.max(0, Math.floor(Number(row?.[size]) || 0));
+      }
+      cleanWidth[width] = cleanRow;
+    }
+    update.widthSizeStock = cleanWidth;
+  }
+
   await ProductSizes.findOneAndUpdate(
     { productId },
     {
-      $set: {
-        productId,
-        productSlug,
-        sizeStock: clean,
-      },
+      $set: update,
       $setOnInsert: {
         sizes: [],
+        widthSizes: {},
       },
     },
     { upsert: true, new: true }
@@ -95,4 +131,18 @@ export async function updateProductSizeStock(
 
   revalidatePath(`/admin/products/${productId}`);
   return { success: true as const, message: "Size stock saved (admin only)" };
+}
+
+/** Admin-only: load per-width sizes map */
+export async function getProductWidthSizes(productId: string) {
+  await requireAdmin();
+  await connectDB();
+  const doc = (await ProductSizes.findOne({ productId }).lean()) as
+    | { sizes?: string[]; widthSizes?: unknown }
+    | null;
+  return {
+    success: true as const,
+    widthSizes: parseWidthSizesMap(doc?.widthSizes),
+    sizes: doc?.sizes ?? [],
+  };
 }

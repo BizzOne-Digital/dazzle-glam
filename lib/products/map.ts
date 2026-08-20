@@ -1,4 +1,6 @@
 import type { DemoProduct } from "@/lib/data/demo";
+import type { WidthVariant } from "@/lib/productSizes";
+import { MAX_PRODUCT_IMAGES } from "@/config/site";
 
 export type MongoProductLike = {
   _id: { toString(): string } | string;
@@ -12,6 +14,7 @@ export type MongoProductLike = {
   materials?: string[];
   colors?: string[];
   sizeOptions?: string[];
+  widthVariants?: WidthVariant[];
   sizes?: string[];
   media?: Array<{ url: string; sortOrder?: number }>;
   careInstructions?: string;
@@ -56,8 +59,14 @@ export function mapMongoProduct(p: MongoProductLike): DemoProduct {
     materials: p.materials || [],
     colors: p.colors || [],
     sizeOptions: p.sizeOptions || [],
+    widthVariants: (p.widthVariants || []).map((w) => ({
+      width: w.width,
+      image: w.image || undefined,
+    })),
     sizes: p.sizes || [],
-    images: images.length ? images.slice(0, 3) : ["/images/products/placeholder.png"],
+    images: images.length
+      ? images.slice(0, MAX_PRODUCT_IMAGES)
+      : ["/images/products/placeholder.png"],
     isFeatured: !!p.isFeatured,
     isBestSeller: !!p.isBestSeller,
     isNewArrival: !!p.isNewArrival,

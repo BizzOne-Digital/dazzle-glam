@@ -14,6 +14,16 @@ export const RING_SIZES = ["5", "6", "7", "8", "9", "10", "11", "12"] as const;
 
 export const BRACELET_SIZES = ["Small", "Medium", "Large"] as const;
 
+/** Optional ring band widths — not all rings use these. */
+export const RING_WIDTH_PRESETS = ["4mm", "6mm", "8mm"] as const;
+
+export type RingWidth = (typeof RING_WIDTH_PRESETS)[number];
+
+export interface WidthVariant {
+  width: string;
+  image?: string;
+}
+
 export function isProductCategory(value: string): value is ProductCategory {
   return (PRODUCT_CATEGORIES as readonly string[]).includes(value);
 }

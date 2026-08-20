@@ -7,9 +7,11 @@ import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Button } from "@/components/ui/Button";
 import { LocalImageField } from "@/components/admin/LocalImageField";
+import { MAX_PRODUCT_IMAGES } from "@/config/site";
 import { createProductAdmin } from "@/actions/products";
 import {
   PRODUCT_CATEGORIES,
+  RING_WIDTH_PRESETS,
   categoryNeedsSizes,
 } from "@/lib/productSizes";
 
@@ -63,24 +65,29 @@ export default function NewProductPage() {
   const [isNewArrival, setIsNewArrival] = useState(false);
   const [isBestSeller, setIsBestSeller] = useState(false);
   const [isComingSoon, setIsComingSoon] = useState(false);
+  const [hasWidthVariants, setHasWidthVariants] = useState(false);
+  const [selectedWidths, setSelectedWidths] = useState<string[]>([]);
+  const [widthImages, setWidthImages] = useState<Record<string, string>>({});
 
   const setImageAt = (index: number, url: string) => {
     setImages((prev) => {
       const next = [...prev];
       while (next.length <= index) next.push("");
       next[index] = url;
-      return next.slice(0, 3);
+      return next.slice(0, MAX_PRODUCT_IMAGES);
     });
   };
 
   const moveImage = (from: number, to: number) => {
     setImages((prev) => {
       const next = [...prev];
-      while (next.length < 3) next.push("");
-      if (to < 0 || to > 2 || from === to) return next.slice(0, 3);
+      while (next.length < MAX_PRODUCT_IMAGES) next.push("");
+      if (to < 0 || to > MAX_PRODUCT_IMAGES - 1 || from === to) {
+        return next.slice(0, MAX_PRODUCT_IMAGES);
+      }
       const [item] = next.splice(from, 1);
       next.splice(to, 0, item);
-      return next.slice(0, 3);
+      return next.slice(0, MAX_PRODUCT_IMAGES);
     });
   };
 
@@ -112,10 +119,24 @@ export default function NewProductPage() {
     setCustomMaterial("");
   };
 
+  const toggleWidth = (width: string) => {
+    setSelectedWidths((prev) =>
+      prev.includes(width) ? prev.filter((w) => w !== width) : [...prev, width]
+    );
+    setWidthImages((prev) => {
+      if (selectedWidths.includes(width)) {
+        const next = { ...prev };
+        delete next[width];
+        return next;
+      }
+      return prev;
+    });
+  };
+
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (loading) return;
-    const clean = images.map((u) => u.trim()).filter(Boolean).slice(0, 3);
+    const clean = images.map((u) => u.trim()).filter(Boolean).slice(0, MAX_PRODUCT_IMAGES);
     if (clean.length < 1) {
       toast.error("Upload at least 1 image");
       return;
@@ -134,6 +155,12 @@ export default function NewProductPage() {
         category,
         colors,
         materials,
+        widthVariants: hasWidthVariants
+          ? selectedWidths.map((width) => ({
+              width,
+              image: widthImages[width]?.trim() || undefined,
+            }))
+          : [],
         description,
         price,
         compareAtPrice: isOnSale ? compareAtPrice : 0,
@@ -322,6 +349,75 @@ export default function NewProductPage() {
             </Button>
           </div>
         </div>
+        {category === "rings" && (
+          <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+            <label className="mb-3 flex items-center gap-2 text-sm text-white/80">
+              <input
+                type="checkbox"
+                className="accent-fuchsia"
+                checked={hasWidthVariants}
+                onChange={(e) => {
+                  const on = e.target.checked;
+                  setHasWidthVariants(on);
+                  if (!on) {
+                    setSelectedWidths([]);
+                    setWidthImages({});
+                  }
+                }}
+              />
+              This ring has width size variants (4mm / 6mm / 8mm)
+            </label>
+            <p className="mb-3 text-xs text-white/40">
+              Optional — select one or more widths, then upload an image for each.
+              After creating the product, set available ring sizes per width on the
+              Sizes tab.
+            </p>
+            {hasWidthVariants && (
+              <>
+                <div className="flex flex-wrap gap-2">
+                  {RING_WIDTH_PRESETS.map((width) => {
+                    const on = selectedWidths.includes(width);
+                    return (
+                      <button
+                        key={width}
+                        type="button"
+                        onClick={() => toggleWidth(width)}
+                        className={`rounded-lg border px-4 py-2 text-sm font-medium transition ${
+                          on
+                            ? "border-fuchsia bg-fuchsia/20 text-fuchsia"
+                            : "border-white/15 text-white/70 hover:border-white/30"
+                        }`}
+                      >
+                        {width}
+                      </button>
+                    );
+                  })}
+                </div>
+                {selectedWidths.length > 0 && (
+                  <div className="mt-5 space-y-4">
+                    {selectedWidths.map((width) => (
+                      <div
+                        key={width}
+                        className="rounded-lg border border-white/10 p-4"
+                      >
+                        <p className="mb-3 text-sm font-medium text-white">
+                          {width} band — product image
+                        </p>
+                        <LocalImageField
+                          folder="products"
+                          value={widthImages[width] || ""}
+                          onChange={(url) =>
+                            setWidthImages((prev) => ({ ...prev, [width]: url }))
+                          }
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        )}
         <div className="grid gap-4 sm:grid-cols-2">
           <Input
             label="Price"
@@ -435,7 +531,7 @@ export default function NewProductPage() {
 
         <div className="space-y-4">
           <div>
-            <p className="text-sm text-white/70">Images (max 3)</p>
+            <p className="text-sm text-white/70">Images (max {MAX_PRODUCT_IMAGES})</p>
             <p className="text-xs text-white/40">
               Image 1 is the main photo. Use arrows to change order.
             </p>
@@ -490,7 +586,7 @@ export default function NewProductPage() {
               />
             </div>
           ))}
-          {images.length < 3 && (
+          {images.length < MAX_PRODUCT_IMAGES && (
             <Button
               type="button"
               variant="secondary"

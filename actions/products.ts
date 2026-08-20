@@ -6,6 +6,7 @@ import { getSession, requireAdmin } from "@/lib/auth/session";
 import { Product } from "@/models/Product";
 import { deleteLocalUpload } from "@/lib/upload/local";
 import { mapMongoProduct, type MongoProductLike } from "@/lib/products/map";
+import { MAX_PRODUCT_IMAGES } from "@/config/site";
 
 function slugify(input: string) {
   return input
@@ -56,6 +57,7 @@ export async function updateProductAdmin(
     colors?: string[];
     materials?: string[];
     sizeOptions?: string[];
+    widthVariants?: Array<{ width: string; image?: string }>;
     status?: "draft" | "published" | "archived";
     careInstructions?: string;
   }
@@ -106,6 +108,14 @@ export async function updateProductAdmin(
         .map((s) => s.trim())
         .filter(Boolean);
     }
+    if (data.widthVariants !== undefined) {
+      product.widthVariants = data.widthVariants
+        .filter((w) => w.width?.trim())
+        .map((w) => ({
+          width: w.width.trim(),
+          image: w.image?.trim() || undefined,
+        }));
+    }
     if (data.compareAtPrice !== undefined) {
       product.compareAtPrice = Number(data.compareAtPrice) || undefined;
     }
@@ -135,7 +145,7 @@ export async function updateProductAdmin(
     if (data.status !== undefined) product.status = data.status;
 
     if (data.images) {
-      const images = data.images.filter(Boolean).slice(0, 3);
+      const images = data.images.filter(Boolean).slice(0, MAX_PRODUCT_IMAGES);
       if (images.length < 1) {
         return { success: false, error: "At least 1 image is required" };
       }
@@ -356,13 +366,14 @@ export async function createProductAdmin(data: {
   colors?: string[];
   materials?: string[];
   sizeOptions?: string[];
+  widthVariants?: Array<{ width: string; image?: string }>;
 }) {
   try {
     const admin = await assertAdminAction();
     if (!admin) return { success: false, error: "Unauthorized" };
 
     await connectDB();
-    const images = (data.images || []).filter(Boolean).slice(0, 3);
+    const images = (data.images || []).filter(Boolean).slice(0, MAX_PRODUCT_IMAGES);
     if (images.length < 1) {
       return { success: false, error: "At least 1 image is required" };
     }
@@ -388,6 +399,12 @@ export async function createProductAdmin(data: {
     const sizeOptions = (data.sizeOptions || [])
       .map((s) => s.trim())
       .filter(Boolean);
+    const widthVariants = (data.widthVariants || [])
+      .filter((w) => w.width?.trim())
+      .map((w) => ({
+        width: w.width.trim(),
+        image: w.image?.trim() || undefined,
+      }));
 
     const product = await Product.create({
       name: data.name,
@@ -410,6 +427,7 @@ export async function createProductAdmin(data: {
       materials,
       colors,
       sizeOptions,
+      widthVariants,
       sizes: [],
       careInstructions: "Wipe with a soft cloth after wear.",
       isComingSoon: !!data.isComingSoon,
@@ -435,6 +453,7 @@ export async function createProductAdmin(data: {
           colors,
           materials,
           sizeOptions,
+          widthVariants,
         },
       }
     );

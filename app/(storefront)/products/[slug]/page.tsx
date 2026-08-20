@@ -13,6 +13,7 @@ import { ProductGrid } from "@/components/products/ProductGrid";
 import { demoProducts, toCardProduct, type DemoProduct } from "@/lib/data/demo";
 import { useCartStore } from "@/lib/store/cart";
 import { formatCurrency } from "@/lib/utils";
+import { MAX_PRODUCT_IMAGES } from "@/config/site";
 import { submitSizeInquiry } from "@/actions/sizeInquiry";
 import {
   categoryNeedsSizes,
@@ -37,7 +38,9 @@ export default function ProductPage() {
   const [zoom, setZoom] = useState(false);
   const [openAcc, setOpenAcc] = useState("details");
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [selectedWidth, setSelectedWidth] = useState<string | null>(null);
   const [sizeError, setSizeError] = useState(false);
+  const [widthError, setWidthError] = useState(false);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [colorError, setColorError] = useState(false);
 
@@ -46,8 +49,10 @@ export default function ProductPage() {
 
   useEffect(() => {
     setSelectedSize(null);
+    setSelectedWidth(null);
     setSelectedColor(null);
     setSizeError(false);
+    setWidthError(false);
     setColorError(false);
     setLiveSizes(null);
   }, [params.slug]);
@@ -75,15 +80,40 @@ export default function ProductPage() {
       setLiveSizes([]);
       return;
     }
-    fetch(`/api/products/${product.slug}/sizes`)
+
+    const widthVariants = product.widthVariants ?? [];
+    const hasWidthVariants = widthVariants.length > 0;
+
+    if (hasWidthVariants && !selectedWidth) {
+      setLiveSizes([]);
+      return;
+    }
+
+    const url = hasWidthVariants
+      ? `/api/products/${product.slug}/sizes?width=${encodeURIComponent(selectedWidth!)}`
+      : `/api/products/${product.slug}/sizes`;
+
+    fetch(url)
       .then((r) => r.json())
       .then((data) => setLiveSizes(data.sizes ?? []))
       .catch(() => setLiveSizes(product.sizes));
-  }, [product]);
+  }, [product, selectedWidth]);
+
+  useEffect(() => {
+    setSelectedSize(null);
+    setSizeError(false);
+  }, [selectedWidth]);
 
   // Use live sizes if loaded, otherwise fall back to demo data
   const availableSizes = liveSizes ?? product?.sizes ?? [];
   const availableColors = product?.colors ?? [];
+  const widthVariants = product?.widthVariants ?? [];
+  const hasWidthVariants = widthVariants.length > 0;
+  const selectedWidthVariant = widthVariants.find((w) => w.width === selectedWidth);
+  const heroImage =
+    (hasWidthVariants && selectedWidthVariant?.image
+      ? selectedWidthVariant.image
+      : product?.images[active] || product?.images[0]) ?? "/images/products/placeholder.png";
   const productCategory = product?.category || "rings";
   const sizePresets = getSizePresetsForCategory(productCategory);
   const showSizeSection = categoryNeedsSizes(productCategory);
@@ -127,6 +157,11 @@ export default function ProductPage() {
       toast.error("This piece is coming soon");
       return;
     }
+    if (hasWidthVariants && !selectedWidth) {
+      setWidthError(true);
+      toast.error("Please select a band width first");
+      return;
+    }
     if (showSizeSection && hasSizes && !selectedSize) {
       setSizeError(true);
       toast.error("Please select a size first");
@@ -138,16 +173,22 @@ export default function ProductPage() {
       return;
     }
     const variantParts = [
+      selectedWidth || null,
       selectedSize ? sizeLabel(selectedSize, productCategory) : null,
       selectedColor || null,
+    ].filter(Boolean);
+    const variantIdParts = [
+      selectedWidth ? `w:${selectedWidth}` : null,
+      selectedSize ? `s:${selectedSize}` : null,
+      selectedColor ? `c:${selectedColor}` : null,
     ].filter(Boolean);
     addItem({
       productId: product.id,
       name: product.name,
       price: product.price,
-      image: product.images[0],
+      image: heroImage || product.images[0],
       quantity: qty,
-      variantId: selectedSize || selectedColor || undefined,
+      variantId: variantIdParts.length ? variantIdParts.join("|") : undefined,
       variantLabel: variantParts.length ? variantParts.join(" · ") : undefined,
       sku: product.sku,
     });
@@ -196,7 +237,7 @@ export default function ProductPage() {
                 transition={{ duration: 0.8 }}
               >
                 <Image
-                  src={product.images[active]}
+                  src={heroImage}
                   alt={product.name}
                   fill
                   className={`object-contain object-center p-4 sm:p-6 transition duration-500 ${zoom ? "scale-105" : "scale-100"}`}
@@ -214,13 +255,31 @@ export default function ProductPage() {
                 )}
               </motion.div>
               <div className="mt-3 flex gap-3">
-                {product.images.slice(0, 3).map((img, i) => (
+                {(hasWidthVariants
+                  ? widthVariants
+                      .map((w) => w.image)
+                      .filter((img): img is string => !!img)
+                  : product.images.slice(0, MAX_PRODUCT_IMAGES)
+                ).map((img, i) => (
                   <button
                     key={img + i}
                     type="button"
-                    onClick={() => setActive(i)}
+                    onClick={() => {
+                      if (hasWidthVariants) {
+                        const match = widthVariants.find((w) => w.image === img);
+                        if (match) setSelectedWidth(match.width);
+                      } else {
+                        setActive(i);
+                      }
+                    }}
                     className={`relative h-20 w-20 overflow-hidden rounded-lg border ${
-                      active === i ? "border-fuchsia" : "border-white/10"
+                      hasWidthVariants
+                        ? selectedWidthVariant?.image === img
+                          ? "border-fuchsia"
+                          : "border-white/10"
+                        : active === i
+                          ? "border-fuchsia"
+                          : "border-white/10"
                     }`}
                   >
                     <Image
@@ -332,8 +391,49 @@ export default function ProductPage() {
                 </div>
               )}
 
+              {/* ── Width Selector (rings with band variants) ── */}
+              {showSizeSection && hasWidthVariants && (
+                <div className="mt-6">
+                  <div className="mb-2 flex items-center justify-between">
+                    <p className="text-sm uppercase tracking-[0.18em] text-white/70">
+                      Band Width
+                      {selectedWidth && (
+                        <span className="ml-2 text-fuchsia">— {selectedWidth}</span>
+                      )}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {widthVariants.map((wv) => {
+                      const isSelected = selectedWidth === wv.width;
+                      return (
+                        <button
+                          key={wv.width}
+                          type="button"
+                          onClick={() => {
+                            setSelectedWidth(wv.width);
+                            setWidthError(false);
+                          }}
+                          className={`rounded-lg border px-4 py-2 text-sm font-medium transition ${
+                            isSelected
+                              ? "border-fuchsia bg-fuchsia text-white"
+                              : "border-white/20 text-white hover:border-fuchsia hover:text-fuchsia"
+                          }`}
+                        >
+                          {wv.width}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {widthError && (
+                    <p className="mt-2 text-xs text-red-400">
+                      Please select a band width to continue
+                    </p>
+                  )}
+                </div>
+              )}
+
               {/* ── Size Selector (rings / bracelets) ── */}
-              {showSizeSection && (
+              {showSizeSection && (!hasWidthVariants || selectedWidth) && (
               <div className="mt-6">
                 <div className="mb-2 flex items-center justify-between">
                   <p className="text-sm uppercase tracking-[0.18em] text-white/70">

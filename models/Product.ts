@@ -41,6 +41,8 @@ export interface IProduct {
    * Separate from ring sizes managed via ProductSizes.
    */
   sizeOptions: string[];
+  /** Optional band widths (e.g. 4mm / 6mm / 8mm) with per-width images */
+  widthVariants: Array<{ width: string; image?: string }>;
   sizes: string[];
   dimensions?: string;
   weight?: string;
@@ -93,6 +95,14 @@ const VariantSchema = new Schema(
   { _id: true }
 );
 
+const WidthVariantSchema = new Schema(
+  {
+    width: { type: String, required: true },
+    image: String,
+  },
+  { _id: false }
+);
+
 const ProductSchema = new Schema<IProduct>(
   {
     name: { type: String, required: true },
@@ -124,6 +134,7 @@ const ProductSchema = new Schema<IProduct>(
     materials: [String],
     colors: [String],
     sizeOptions: [String],
+    widthVariants: { type: [WidthVariantSchema], default: [] },
     sizes: [String],
     dimensions: String,
     weight: String,

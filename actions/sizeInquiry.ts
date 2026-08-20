@@ -1,6 +1,8 @@
 "use server";
 
 import { connectDB } from "@/lib/db/connect";
+import { cleanWidthSizesMap } from "@/lib/productWidthSizes";
+import { RING_SIZES } from "@/lib/productSizes";
 import { SizeInquiry } from "@/models";
 import { sendSizeAvailableEmail } from "@/lib/email";
 import { z } from "zod";
@@ -141,22 +143,39 @@ export async function updateProductSizesAndNotify(
   productId: string,
   productSlug: string,
   newSizes: string[],
-  siteUrl?: string
+  siteUrl?: string,
+  widthSizes?: Record<string, string[]>
 ): Promise<ActionResult<{ notified: number }>> {
   await connectDB();
 
-  // Persist sizes to MongoDB so the storefront picks them up
   const { ProductSizes } = await import("@/models/ProductSizes");
+
+  const update: Record<string, unknown> = {
+    productId,
+    productSlug,
+  };
+
+  if (widthSizes) {
+    const cleaned = cleanWidthSizesMap(widthSizes, RING_SIZES);
+    update.widthSizes = cleaned;
+    update.sizes = [];
+  } else {
+    update.sizes = newSizes;
+  }
+
   await ProductSizes.findOneAndUpdate(
     { productId },
-    { $set: { productId, productSlug, sizes: newSizes } },
+    { $set: update },
     { upsert: true, new: true }
   );
 
-  // Find pending inquiries whose desired size is now available
+  const notifySizes = widthSizes
+    ? Object.values(cleanWidthSizesMap(widthSizes, RING_SIZES)).flat()
+    : newSizes;
+
   const matching = await SizeInquiry.find({
     productId,
-    desiredSize: { $in: newSizes },
+    desiredSize: { $in: notifySizes },
     status: "pending",
   });
 

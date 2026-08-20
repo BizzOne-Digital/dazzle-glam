@@ -48,6 +48,9 @@ export const marqueeWords = [
   "DAZZLE DIFFERENTLY",
 ] as const;
 
+/** Maximum gallery images per product (admin + storefront) */
+export const MAX_PRODUCT_IMAGES = 6;
+
 /** Curated Unsplash jewelry placeholders — replace via admin media library */
 export const placeholderImages = {
   hero: [

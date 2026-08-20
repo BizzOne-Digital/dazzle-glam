@@ -1,4 +1,5 @@
 import { placeholderImages } from "@/config/site";
+import type { WidthVariant } from "@/lib/productSizes";
 
 export interface DemoProduct {
   id: string;
@@ -16,7 +17,8 @@ export interface DemoProduct {
    * Ring sizes (5–12) use the Sizes tab / ProductSizes instead.
    */
   sizeOptions: string[];
-  /** Available ring sizes. Empty array = no sizes set yet (triggers inquiry flow) */
+  /** Optional band widths (4mm / 6mm / 8mm) with per-width images */
+  widthVariants?: WidthVariant[];
   sizes: string[];
   images: string[];
   badge?: "new" | "bestseller" | "coming soon" | "sale";
