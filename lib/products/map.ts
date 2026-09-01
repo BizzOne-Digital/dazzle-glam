@@ -1,6 +1,7 @@
 import type { DemoProduct } from "@/lib/data/demo";
 import type { WidthVariant } from "@/lib/productSizes";
 import { isProductCategory } from "@/lib/productSizes";
+import type { ProductVariantPlain } from "@/lib/productVariants";
 import { MAX_PRODUCT_IMAGES } from "@/config/site";
 
 export type MongoProductLike = {
@@ -15,6 +16,15 @@ export type MongoProductLike = {
   materials?: string[];
   colors?: string[];
   sizeOptions?: string[];
+  variants?: Array<{
+    _id?: { toString(): string } | string;
+    name?: string;
+    color?: string;
+    size?: string;
+    stock?: number;
+    sku?: string;
+    image?: string;
+  }>;
   widthVariants?: WidthVariant[];
   sizes?: string[];
   media?: Array<{ url: string; sortOrder?: number }>;
@@ -30,6 +40,25 @@ export type MongoProductLike = {
   supplier?: string;
   status?: string;
 };
+
+function mapVariants(
+  variants: MongoProductLike["variants"]
+): ProductVariantPlain[] {
+  return (variants || []).map((variant) => ({
+    id:
+      variant._id !== undefined
+        ? typeof variant._id === "string"
+          ? variant._id
+          : variant._id.toString()
+        : undefined,
+    name: variant.name || `${variant.color || ""} / ${variant.size || ""}`.trim(),
+    color: variant.color,
+    size: variant.size,
+    stock: Math.max(0, Number(variant.stock ?? 0)),
+    sku: variant.sku,
+    image: variant.image,
+  }));
+}
 
 export function mapMongoProduct(p: MongoProductLike): DemoProduct {
   const images = [...(p.media || [])]
@@ -52,6 +81,7 @@ export function mapMongoProduct(p: MongoProductLike): DemoProduct {
     materials: p.materials || [],
     colors: p.colors || [],
     sizeOptions: p.sizeOptions || [],
+    variants: mapVariants(p.variants),
     widthVariants: (p.widthVariants || []).map((w) => ({
       width: w.width,
       image: w.image || undefined,

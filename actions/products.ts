@@ -8,6 +8,12 @@ import { deleteLocalUpload } from "@/lib/upload/local";
 import { mapMongoProduct, type MongoProductLike } from "@/lib/products/map";
 import { MAX_PRODUCT_IMAGES } from "@/config/site";
 import { isProductCategory } from "@/lib/productSizes";
+import {
+  buildVariantsFromMatrix,
+  categoryUsesColorSizeMatrix,
+  totalVariantStock,
+  type ColorSizeVariantInput,
+} from "@/lib/productVariants";
 
 function slugify(input: string) {
   return input
@@ -15,6 +21,61 @@ function slugify(input: string) {
     .trim()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
+}
+
+function normalizeVariants(
+  variants?: Array<{
+    name?: string;
+    color?: string;
+    size?: string;
+    stock?: number;
+    sku?: string;
+    image?: string;
+  }>
+) {
+  return (variants || [])
+    .map((variant) => ({
+      name:
+        variant.name?.trim() ||
+        `${variant.color?.trim() || ""} / ${variant.size?.trim() || ""}`.trim(),
+      color: variant.color?.trim() || undefined,
+      size: variant.size?.trim() || undefined,
+      stock: Math.max(0, Number(variant.stock ?? 0)),
+      sku: variant.sku?.trim() || undefined,
+      image: variant.image?.trim() || undefined,
+    }))
+    .filter((variant) => variant.color && variant.size && variant.name);
+}
+
+function resolveVariantPayload(
+  category: string,
+  colors: string[],
+  sizeOptions: string[],
+  variants: ReturnType<typeof normalizeVariants>,
+  variantMatrix?: ColorSizeVariantInput[]
+) {
+  if (categoryUsesColorSizeMatrix(category) && variantMatrix?.length) {
+    const stocks = Object.fromEntries(
+      variantMatrix.map((entry) => [
+        `${entry.color}::${entry.size}`,
+        Math.max(0, Number(entry.stock ?? 0)),
+      ])
+    );
+    const built = buildVariantsFromMatrix(colors, sizeOptions, stocks);
+    return {
+      variants: built,
+      stock: totalVariantStock(built),
+    };
+  }
+
+  if (variants.length) {
+    return {
+      variants,
+      stock: totalVariantStock(variants),
+    };
+  }
+
+  return { variants: [], stock: undefined as number | undefined };
 }
 
 async function assertAdminAction() {
@@ -59,6 +120,15 @@ export async function updateProductAdmin(
     materials?: string[];
     sizeOptions?: string[];
     widthVariants?: Array<{ width: string; image?: string }>;
+    variants?: Array<{
+      name?: string;
+      color?: string;
+      size?: string;
+      stock?: number;
+      sku?: string;
+      image?: string;
+    }>;
+    variantMatrix?: ColorSizeVariantInput[];
     status?: "draft" | "published" | "archived";
     careInstructions?: string;
   }
@@ -112,6 +182,36 @@ export async function updateProductAdmin(
           width: w.width.trim(),
           image: w.image?.trim() || undefined,
         }));
+    }
+    if (
+      data.variants !== undefined ||
+      data.variantMatrix !== undefined ||
+      data.colors !== undefined ||
+      data.sizeOptions !== undefined ||
+      data.category !== undefined
+    ) {
+      const colors = (data.colors ?? product.colors ?? [])
+        .map((c) => c.trim())
+        .filter(Boolean);
+      const sizeOptions = (data.sizeOptions ?? product.sizeOptions ?? [])
+        .map((s) => s.trim())
+        .filter(Boolean);
+      const category = product.category || "rings";
+      const variantPayload = resolveVariantPayload(
+        category,
+        colors,
+        sizeOptions,
+        normalizeVariants(data.variants ?? product.variants),
+        data.variantMatrix
+      );
+      if (variantPayload.variants.length) {
+        product.set("variants", variantPayload.variants);
+        if (variantPayload.stock !== undefined) {
+          product.stock = variantPayload.stock;
+        }
+      } else if (data.variants !== undefined) {
+        product.set("variants", []);
+      }
     }
     if (data.compareAtPrice !== undefined) {
       product.compareAtPrice = Number(data.compareAtPrice) || undefined;
@@ -176,6 +276,7 @@ export async function updateProductAdmin(
           colors: product.colors || [],
           materials: product.materials || [],
           sizeOptions: product.sizeOptions || [],
+          variants: product.variants || [],
         },
       }
     );
@@ -361,6 +462,15 @@ export async function createProductAdmin(data: {
   materials?: string[];
   sizeOptions?: string[];
   widthVariants?: Array<{ width: string; image?: string }>;
+  variants?: Array<{
+    name?: string;
+    color?: string;
+    size?: string;
+    stock?: number;
+    sku?: string;
+    image?: string;
+  }>;
+  variantMatrix?: ColorSizeVariantInput[];
 }) {
   try {
     const admin = await assertAdminAction();
@@ -396,6 +506,17 @@ export async function createProductAdmin(data: {
         width: w.width.trim(),
         image: w.image?.trim() || undefined,
       }));
+    const variantPayload = resolveVariantPayload(
+      category,
+      colors,
+      sizeOptions,
+      normalizeVariants(data.variants),
+      data.variantMatrix
+    );
+    const stock =
+      variantPayload.stock !== undefined
+        ? variantPayload.stock
+        : Number(data.stock ?? 0);
 
     const product = await Product.create({
       name: data.name,
@@ -405,7 +526,7 @@ export async function createProductAdmin(data: {
       description: data.description,
       shortDescription: data.description.slice(0, 120),
       price: Number(data.price),
-      stock: Number(data.stock ?? 0),
+      stock,
       status: "published",
       publishedAt: new Date(),
       media: images.map((url, i) => ({
@@ -418,6 +539,7 @@ export async function createProductAdmin(data: {
       materials,
       colors,
       sizeOptions,
+      variants: variantPayload.variants,
       widthVariants,
       sizes: [],
       careInstructions: "Wipe with a soft cloth after wear.",
@@ -445,6 +567,7 @@ export async function createProductAdmin(data: {
           materials,
           sizeOptions,
           widthVariants,
+          variants: variantPayload.variants,
         },
       }
     );

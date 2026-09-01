@@ -22,6 +22,11 @@ import {
   sizeLabel,
 } from "@/lib/productSizes";
 import {
+  categoryUsesColorSizeMatrix,
+  findVariantStock,
+  totalVariantStock,
+} from "@/lib/productVariants";
+import {
   PageEnter,
   FloatingOrbs,
   motion,
@@ -103,7 +108,7 @@ export default function ProductPage() {
   useEffect(() => {
     setSelectedSize(null);
     setSizeError(false);
-  }, [selectedWidth]);
+  }, [selectedColor]);
 
   // Use live sizes if loaded, otherwise fall back to demo data
   const availableSizes = liveSizes ?? product?.sizes ?? [];
@@ -119,6 +124,17 @@ export default function ProductPage() {
   const sizePresets = getSizePresetsForCategory(productCategory);
   const showSizeSection = categoryNeedsSizes(productCategory);
   const showColorSection = availableColors.length > 0;
+  const usesVariantMatrix = categoryUsesColorSizeMatrix(productCategory);
+  const variantSizeOptions = product?.sizeOptions ?? [];
+  const showVariantSizeSection =
+    usesVariantMatrix && variantSizeOptions.length > 0;
+  const selectedVariantStock =
+    showVariantSizeSection && selectedColor && selectedSize
+      ? findVariantStock(product?.variants, selectedColor, selectedSize)
+      : null;
+  const totalVariantStockCount = usesVariantMatrix
+    ? totalVariantStock(product?.variants)
+    : 0;
 
   // Inquiry form state
   const [showInquiry, setShowInquiry] = useState(false);
@@ -152,6 +168,11 @@ export default function ProductPage() {
   const hasSizes = availableSizes.length > 0;
   const hasColors = availableColors.length > 0;
   const comingSoon = !!product.isComingSoon || product.badge === "coming soon";
+  const isInStock = usesVariantMatrix
+    ? selectedVariantStock !== null
+      ? selectedVariantStock > 0
+      : totalVariantStockCount > 0
+    : product.stock > 0;
 
   const add = () => {
     if (comingSoon) {
@@ -163,12 +184,27 @@ export default function ProductPage() {
       toast.error("Please select a band width first");
       return;
     }
-    if (showSizeSection && hasSizes && !selectedSize) {
+    if (showVariantSizeSection) {
+      if (!selectedColor) {
+        setColorError(true);
+        toast.error("Please select a color first");
+        return;
+      }
+      if (!selectedSize) {
+        setSizeError(true);
+        toast.error("Please select a size first");
+        return;
+      }
+      if ((selectedVariantStock ?? 0) <= 0) {
+        toast.error("This color and size combination is out of stock");
+        return;
+      }
+    } else if (showSizeSection && hasSizes && !selectedSize) {
       setSizeError(true);
       toast.error("Please select a size first");
       return;
     }
-    if (hasColors && !selectedColor) {
+    if (!showVariantSizeSection && hasColors && !selectedColor) {
       setColorError(true);
       toast.error("Please select a color first");
       return;
@@ -339,15 +375,17 @@ export default function ProductPage() {
                 className={`mt-2 text-sm ${
                   comingSoon
                     ? "text-silver"
-                    : product.stock > 0
+                    : isInStock
                       ? "text-emerald-400"
                       : "text-red-400"
                 }`}
               >
                 {comingSoon
                   ? "Coming soon"
-                  : product.stock > 0
-                    ? "In stock"
+                  : isInStock
+                    ? selectedVariantStock !== null
+                      ? `${selectedVariantStock} in stock for this option`
+                      : "In stock"
                     : "Out of stock"}
               </p>
 
@@ -388,6 +426,64 @@ export default function ProductPage() {
                     <p className="mt-2 text-xs text-red-400">
                       Please select a color to continue
                     </p>
+                  )}
+                </div>
+              )}
+
+              {/* ── Size Selector (pet collars: color + size matrix) ── */}
+              {showVariantSizeSection && (
+                <div className="mt-6">
+                  <div className="mb-2 flex items-center justify-between">
+                    <p className="text-sm uppercase tracking-[0.18em] text-white/70">
+                      Size
+                      {selectedSize && (
+                        <span className="ml-2 text-fuchsia">— {selectedSize}</span>
+                      )}
+                    </p>
+                  </div>
+                  {!selectedColor ? (
+                    <p className="text-sm text-white/45">
+                      Select a color first to see available sizes.
+                    </p>
+                  ) : (
+                    <>
+                      <div className="flex flex-wrap gap-2">
+                        {variantSizeOptions.map((size) => {
+                          const available =
+                            findVariantStock(
+                              product.variants,
+                              selectedColor,
+                              size
+                            ) > 0;
+                          const isSelected = selectedSize === size;
+                          return (
+                            <button
+                              key={size}
+                              type="button"
+                              disabled={!available}
+                              onClick={() => {
+                                setSelectedSize(size);
+                                setSizeError(false);
+                              }}
+                              className={`rounded-lg border px-4 py-2 text-sm font-medium transition ${
+                                isSelected
+                                  ? "border-fuchsia bg-fuchsia text-white"
+                                  : available
+                                    ? "border-white/20 text-white hover:border-fuchsia hover:text-fuchsia"
+                                    : "cursor-not-allowed border-white/8 text-white/20"
+                              }`}
+                            >
+                              {size}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {sizeError && (
+                        <p className="mt-2 text-xs text-red-400">
+                          Please select a size to continue
+                        </p>
+                      )}
+                    </>
                   )}
                 </div>
               )}

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Button } from "@/components/ui/Button";
 import { LocalImageField } from "@/components/admin/LocalImageField";
+import { ColorSizeVariantGrid } from "@/components/admin/ColorSizeVariantGrid";
 import { MAX_PRODUCT_IMAGES } from "@/config/site";
 import {
   getProductInquiries,
@@ -27,6 +28,14 @@ import {
   getSizePresetsForCategory,
   getCategoryLabel,
 } from "@/lib/productSizes";
+import {
+  buildVariantMatrixPayload,
+  categoryUsesColorSizeMatrix,
+  createEmptyVariantMatrix,
+  getPetCollarDefaults,
+  matrixFromVariants,
+  totalVariantStock,
+} from "@/lib/productVariants";
 
 const COLOR_PRESETS = [
   "Gold",
@@ -76,6 +85,8 @@ export default function EditProductPage() {
   const [supplier, setSupplier] = useState("");
   const [category, setCategory] = useState<string>("rings");
   const [colors, setColors] = useState<string[]>([]);
+  const [sizeOptions, setSizeOptions] = useState<string[]>([]);
+  const [variantStocks, setVariantStocks] = useState<Record<string, number>>({});
   const [customColor, setCustomColor] = useState("");
   const [materials, setMaterials] = useState<string[]>([]);
   const [customMaterial, setCustomMaterial] = useState("");
@@ -110,6 +121,7 @@ export default function EditProductPage() {
 
   const sizePresets = getSizePresetsForCategory(category);
   const needsSizes = categoryNeedsSizes(category);
+  const usesVariantMatrix = categoryUsesColorSizeMatrix(category);
   const productWidthVariants = product?.widthVariants ?? [];
   const usesWidthVariants = productWidthVariants.length > 0;
 
@@ -128,6 +140,25 @@ export default function EditProductPage() {
         setSupplier(p.supplier || "");
         setCategory(p.category || "rings");
         setColors(Array.isArray(p.colors) ? p.colors : []);
+        const loadedSizeOptions = Array.isArray(p.sizeOptions) ? p.sizeOptions : [];
+        const loadedVariantStocks = matrixFromVariants(p.variants || []);
+        if (categoryUsesColorSizeMatrix(p.category || "rings")) {
+          const defaults = getPetCollarDefaults();
+          const nextColors = p.colors?.length ? p.colors : defaults.colors;
+          const nextSizes = loadedSizeOptions.length
+            ? loadedSizeOptions
+            : defaults.sizes;
+          setSizeOptions(nextSizes);
+          setColors(nextColors);
+          setVariantStocks(
+            Object.keys(loadedVariantStocks).length
+              ? loadedVariantStocks
+              : createEmptyVariantMatrix(nextColors, nextSizes)
+          );
+        } else {
+          setSizeOptions(loadedSizeOptions);
+          setVariantStocks(loadedVariantStocks);
+        }
         setMaterials(Array.isArray(p.materials) ? p.materials : []);
         const wv = Array.isArray(p.widthVariants) ? p.widthVariants : [];
         setHasWidthVariants(wv.length > 0);
@@ -304,6 +335,19 @@ export default function EditProductPage() {
         category,
         colors,
         materials,
+        ...(usesVariantMatrix
+          ? {
+              sizeOptions,
+              variantMatrix: buildVariantMatrixPayload(
+                colors,
+                sizeOptions,
+                variantStocks
+              ),
+              stock: totalVariantStock(
+                buildVariantMatrixPayload(colors, sizeOptions, variantStocks)
+              ),
+            }
+          : {}),
         widthVariants: widthVariantsPayload,
         price,
         compareAtPrice: isOnSale ? compareAtPrice : 0,
@@ -324,6 +368,8 @@ export default function EditProductPage() {
           setSupplier(result.data.supplier || "");
           setCategory(result.data.category || "rings");
           setColors(result.data.colors || []);
+          setSizeOptions(result.data.sizeOptions || []);
+          setVariantStocks(matrixFromVariants(result.data.variants || []));
           setMaterials(result.data.materials || []);
           const wv = result.data.widthVariants ?? [];
           setHasWidthVariants(wv.length > 0);
@@ -380,6 +426,13 @@ export default function EditProductPage() {
     if (!value) return;
     setColors((prev) => (prev.includes(value) ? prev : [...prev, value]));
     setCustomColor("");
+  };
+
+  const applyPetCollarDefaults = () => {
+    const defaults = getPetCollarDefaults();
+    setColors(defaults.colors);
+    setSizeOptions(defaults.sizes);
+    setVariantStocks(createEmptyVariantMatrix(defaults.colors, defaults.sizes));
   };
 
   const toggleMaterial = (material: string) => {
@@ -597,6 +650,9 @@ export default function EditProductPage() {
                 setCategory(next);
                 setSizesLoaded(false);
                 setStockLoaded(false);
+                if (categoryUsesColorSizeMatrix(next)) {
+                  applyPetCollarDefaults();
+                }
                 if (!categoryNeedsSizes(next) && tab !== "details") {
                   setTab("details");
                 }
@@ -614,9 +670,31 @@ export default function EditProductPage() {
                 ? "Rings use sizes 5–13 with size inquiry / email notify."
                 : category === "bracelets"
                   ? "Bracelets use Small / Medium / Large with size inquiry / email notify."
-                  : "This category is a simple product — no size selection or inquiry."}
+                  : usesVariantMatrix
+                    ? "Pet collars use Pink / Red / Black colors with Extra Small, Small, and Medium sizes."
+                    : "This category is a simple product — no size selection or inquiry."}
             </p>
           </div>
+          {usesVariantMatrix ? (
+            <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+              <p className="mb-1 text-sm text-white/70">Pet collar variants</p>
+              <p className="mb-4 text-xs text-white/40">
+                Set stock for each color and size combination.
+              </p>
+              <ColorSizeVariantGrid
+                colors={colors}
+                sizes={sizeOptions}
+                stocks={variantStocks}
+                onChange={setVariantStocks}
+              />
+              <p className="mt-3 text-xs text-white/40">
+                Total stock:{" "}
+                {totalVariantStock(
+                  buildVariantMatrixPayload(colors, sizeOptions, variantStocks)
+                )}
+              </p>
+            </div>
+          ) : (
           <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
             <p className="mb-1 text-sm text-white/70">Color variants</p>
             <p className="mb-3 text-xs text-white/40">
@@ -677,6 +755,7 @@ export default function EditProductPage() {
               </Button>
             </div>
           </div>
+          )}
           <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
             <p className="mb-1 text-sm text-white/70">Materials</p>
             <p className="mb-3 text-xs text-white/40">
@@ -805,7 +884,7 @@ export default function EditProductPage() {
               )}
             </div>
           )}
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className={`grid gap-4 ${usesVariantMatrix ? "" : "sm:grid-cols-2"}`}>
             <Input
               label="Price"
               type="number"
@@ -813,12 +892,14 @@ export default function EditProductPage() {
               value={price}
               onChange={(e) => setPrice(Number(e.target.value))}
             />
-            <Input
-              label="Stock"
-              type="number"
-              value={stock}
-              onChange={(e) => setStock(Number(e.target.value))}
-            />
+            {!usesVariantMatrix && (
+              <Input
+                label="Stock"
+                type="number"
+                value={stock}
+                onChange={(e) => setStock(Number(e.target.value))}
+              />
+            )}
           </div>
           <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
             <label className="mb-3 flex items-center gap-2 text-sm text-white/80">

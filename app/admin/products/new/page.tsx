@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Button } from "@/components/ui/Button";
 import { LocalImageField } from "@/components/admin/LocalImageField";
+import { ColorSizeVariantGrid } from "@/components/admin/ColorSizeVariantGrid";
 import { MAX_PRODUCT_IMAGES } from "@/config/site";
 import { createProductAdmin } from "@/actions/products";
 import {
@@ -15,6 +16,13 @@ import {
   categoryNeedsSizes,
   getCategoryLabel,
 } from "@/lib/productSizes";
+import {
+  buildVariantMatrixPayload,
+  categoryUsesColorSizeMatrix,
+  createEmptyVariantMatrix,
+  getPetCollarDefaults,
+  totalVariantStock,
+} from "@/lib/productVariants";
 
 const COLOR_PRESETS = [
   "Gold",
@@ -54,6 +62,8 @@ export default function NewProductPage() {
   const [supplier, setSupplier] = useState("");
   const [category, setCategory] = useState<string>("rings");
   const [colors, setColors] = useState<string[]>([]);
+  const [sizeOptions, setSizeOptions] = useState<string[]>([]);
+  const [variantStocks, setVariantStocks] = useState<Record<string, number>>({});
   const [customColor, setCustomColor] = useState("");
   const [materials, setMaterials] = useState<string[]>([]);
   const [customMaterial, setCustomMaterial] = useState("");
@@ -69,6 +79,15 @@ export default function NewProductPage() {
   const [hasWidthVariants, setHasWidthVariants] = useState(false);
   const [selectedWidths, setSelectedWidths] = useState<string[]>([]);
   const [widthImages, setWidthImages] = useState<Record<string, string>>({});
+
+  const usesVariantMatrix = categoryUsesColorSizeMatrix(category);
+
+  const applyPetCollarDefaults = () => {
+    const defaults = getPetCollarDefaults();
+    setColors(defaults.colors);
+    setSizeOptions(defaults.sizes);
+    setVariantStocks(createEmptyVariantMatrix(defaults.colors, defaults.sizes));
+  };
 
   const setImageAt = (index: number, url: string) => {
     setImages((prev) => {
@@ -156,6 +175,19 @@ export default function NewProductPage() {
         category,
         colors,
         materials,
+        ...(usesVariantMatrix
+          ? {
+              sizeOptions,
+              variantMatrix: buildVariantMatrixPayload(
+                colors,
+                sizeOptions,
+                variantStocks
+              ),
+              stock: totalVariantStock(
+                buildVariantMatrixPayload(colors, sizeOptions, variantStocks)
+              ),
+            }
+          : {}),
         widthVariants: hasWidthVariants
           ? selectedWidths.map((width) => ({
               width,
@@ -215,7 +247,13 @@ export default function NewProductPage() {
           <label className="mb-1.5 block text-sm text-white/70">Category</label>
           <select
             value={category}
-            onChange={(e) => setCategory(e.target.value)}
+            onChange={(e) => {
+              const next = e.target.value;
+              setCategory(next);
+              if (categoryUsesColorSizeMatrix(next)) {
+                applyPetCollarDefaults();
+              }
+            }}
             className="w-full rounded-lg border border-white/15 bg-white/5 px-3 py-2.5 text-sm text-white focus:border-fuchsia focus:outline-none"
           >
             {PRODUCT_CATEGORIES.map((c) => (
@@ -229,9 +267,31 @@ export default function NewProductPage() {
               ? category === "bracelets"
                 ? "After create, set Small / Medium / Large on the Sizes tab (inquiry + email notify)."
                 : "After create, set ring sizes 5–13 on the Sizes tab (inquiry + email notify)."
-              : "Simple product — no size selection or inquiry."}
+              : usesVariantMatrix
+                ? "Pet collars use Pink / Red / Black colors with Extra Small, Small, and Medium sizes."
+                : "Simple product — no size selection or inquiry."}
           </p>
         </div>
+        {usesVariantMatrix ? (
+          <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+            <p className="mb-1 text-sm text-white/70">Pet collar variants</p>
+            <p className="mb-4 text-xs text-white/40">
+              Set stock for each color and size combination. Customers must pick
+              both before adding to bag.
+            </p>
+            <ColorSizeVariantGrid
+              colors={colors}
+              sizes={sizeOptions}
+              stocks={variantStocks}
+              onChange={setVariantStocks}
+            />
+            <p className="mt-3 text-xs text-white/40">
+              Total stock: {totalVariantStock(
+                buildVariantMatrixPayload(colors, sizeOptions, variantStocks)
+              )}
+            </p>
+          </div>
+        ) : (
         <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
           <p className="mb-1 text-sm text-white/70">Color variants</p>
           <p className="mb-3 text-xs text-white/40">
@@ -291,6 +351,7 @@ export default function NewProductPage() {
             </Button>
           </div>
         </div>
+        )}
         <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
           <p className="mb-1 text-sm text-white/70">Materials</p>
           <p className="mb-3 text-xs text-white/40">
@@ -419,7 +480,7 @@ export default function NewProductPage() {
             )}
           </div>
         )}
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className={`grid gap-4 ${usesVariantMatrix ? "" : "sm:grid-cols-2"}`}>
           <Input
             label="Price"
             type="number"
@@ -428,12 +489,14 @@ export default function NewProductPage() {
             onChange={(e) => setPrice(Number(e.target.value))}
             required
           />
-          <Input
-            label="Stock"
-            type="number"
-            value={stock}
-            onChange={(e) => setStock(Number(e.target.value))}
-          />
+          {!usesVariantMatrix && (
+            <Input
+              label="Stock"
+              type="number"
+              value={stock}
+              onChange={(e) => setStock(Number(e.target.value))}
+            />
+          )}
         </div>
         <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
           <label className="mb-3 flex items-center gap-2 text-sm text-white/80">

@@ -1,5 +1,6 @@
 import { placeholderImages } from "@/config/site";
 import type { WidthVariant } from "@/lib/productSizes";
+import type { ProductVariantPlain } from "@/lib/productVariants";
 
 export interface DemoProduct {
   id: string;
@@ -17,6 +18,8 @@ export interface DemoProduct {
    * Ring sizes (5–12) use the Sizes tab / ProductSizes instead.
    */
   sizeOptions: string[];
+  /** Color + size combinations with per-variant stock (pet collars, etc.) */
+  variants?: ProductVariantPlain[];
   /** Optional band widths (4mm / 6mm / 8mm) with per-width images */
   widthVariants?: WidthVariant[];
   sizes: string[];
