@@ -10,6 +10,7 @@ const FOLDERS = new Set<UploadFolder>([
   "products",
   "pages",
   "misc",
+  "categories",
 ]);
 
 export async function POST(request: Request) {

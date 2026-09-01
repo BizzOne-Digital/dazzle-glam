@@ -25,6 +25,7 @@ import {
   RING_WIDTH_PRESETS,
   categoryNeedsSizes,
   getSizePresetsForCategory,
+  getCategoryLabel,
 } from "@/lib/productSizes";
 
 const COLOR_PRESETS = [
@@ -604,13 +605,13 @@ export default function EditProductPage() {
             >
               {PRODUCT_CATEGORIES.map((c) => (
                 <option key={c} value={c} className="bg-black">
-                  {c.charAt(0).toUpperCase() + c.slice(1)}
+                  {getCategoryLabel(c)}
                 </option>
               ))}
             </select>
             <p className="mt-1.5 text-xs text-white/40">
               {category === "rings"
-                ? "Rings use sizes 5–12 with size inquiry / email notify."
+                ? "Rings use sizes 5–13 with size inquiry / email notify."
                 : category === "bracelets"
                   ? "Bracelets use Small / Medium / Large with size inquiry / email notify."
                   : "This category is a simple product — no size selection or inquiry."}
@@ -993,7 +994,7 @@ export default function EditProductPage() {
             these quantities on the website.{" "}
             {category === "bracelets"
               ? "Bracelet sizes: Small, Medium, Large."
-              : "Ring sizes: 5–12."}
+              : "Ring sizes: 5–13."}
           </p>
           {!stockLoaded ? (
             <p className="text-sm text-white/40">Loading size stock…</p>

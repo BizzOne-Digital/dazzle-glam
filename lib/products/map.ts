@@ -1,5 +1,6 @@
 import type { DemoProduct } from "@/lib/data/demo";
 import type { WidthVariant } from "@/lib/productSizes";
+import { isProductCategory } from "@/lib/productSizes";
 import { MAX_PRODUCT_IMAGES } from "@/config/site";
 
 export type MongoProductLike = {
@@ -30,14 +31,6 @@ export type MongoProductLike = {
   status?: string;
 };
 
-const CATEGORIES = new Set([
-  "rings",
-  "bracelets",
-  "earrings",
-  "necklaces",
-  "accessories",
-]);
-
 export function mapMongoProduct(p: MongoProductLike): DemoProduct {
   const images = [...(p.media || [])]
     .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
@@ -55,7 +48,7 @@ export function mapMongoProduct(p: MongoProductLike): DemoProduct {
     price: p.price,
     stock: p.stock,
     category:
-      p.category && CATEGORIES.has(p.category) ? p.category : "rings",
+      p.category && isProductCategory(p.category) ? p.category : "rings",
     materials: p.materials || [],
     colors: p.colors || [],
     sizeOptions: p.sizeOptions || [],

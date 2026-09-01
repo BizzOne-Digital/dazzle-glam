@@ -18,6 +18,7 @@ import { submitSizeInquiry } from "@/actions/sizeInquiry";
 import {
   categoryNeedsSizes,
   getSizePresetsForCategory,
+  getCategoryLabel,
   sizeLabel,
 } from "@/lib/productSizes";
 import {
@@ -302,7 +303,7 @@ export default function ProductPage() {
           <ScrollReveal direction="right" delay={0.1}>
             <div>
               <p className="text-[11px] uppercase tracking-[0.3em] text-fuchsia">
-                {product.category}
+                {getCategoryLabel(product.category)}
               </p>
               <h1 className="mt-2 font-heading text-3xl text-white md:text-5xl">
                 {product.name}

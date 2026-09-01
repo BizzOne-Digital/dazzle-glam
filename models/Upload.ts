@@ -1,6 +1,11 @@
 import mongoose, { Schema, models, model } from "mongoose";
 
-export type UploadFolder = "gallery" | "products" | "pages" | "misc";
+export type UploadFolder =
+  | "gallery"
+  | "products"
+  | "pages"
+  | "misc"
+  | "categories";
 
 export interface IStoredUpload {
   _id: mongoose.Types.ObjectId;
@@ -17,7 +22,7 @@ const StoredUploadSchema = new Schema<IStoredUpload>(
   {
     folder: {
       type: String,
-      enum: ["gallery", "products", "pages", "misc"],
+      enum: ["gallery", "products", "pages", "misc", "categories"],
       required: true,
       index: true,
     },

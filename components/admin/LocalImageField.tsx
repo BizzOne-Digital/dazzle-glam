@@ -7,7 +7,7 @@ import { Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 
-type Folder = "gallery" | "products" | "pages" | "misc";
+type Folder = "gallery" | "products" | "pages" | "misc" | "categories";
 
 export function LocalImageField({
   label,

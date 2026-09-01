@@ -17,15 +17,9 @@ import {
   FloatingOrbs,
 } from "@/components/animations/PageMotion";
 import { ScrollReveal } from "@/components/animations/ScrollReveal";
+import { PRODUCT_CATEGORIES, getCategoryLabel } from "@/lib/productSizes";
 
-const categories = [
-  "all",
-  "rings",
-  "bracelets",
-  "earrings",
-  "necklaces",
-  "accessories",
-];
+const categories = ["all", ...PRODUCT_CATEGORIES];
 
 function ShopPageContent() {
   const searchParams = useSearchParams();
@@ -136,7 +130,7 @@ function ShopPageContent() {
                   : "border-white/15 text-silver hover:border-silver"
               }`}
             >
-              {c}
+              {getCategoryLabel(c)}
             </button>
           ))}
         </div>

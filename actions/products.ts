@@ -7,6 +7,7 @@ import { Product } from "@/models/Product";
 import { deleteLocalUpload } from "@/lib/upload/local";
 import { mapMongoProduct, type MongoProductLike } from "@/lib/products/map";
 import { MAX_PRODUCT_IMAGES } from "@/config/site";
+import { isProductCategory } from "@/lib/productSizes";
 
 function slugify(input: string) {
   return input
@@ -85,11 +86,7 @@ export async function updateProductAdmin(
     }
     if (data.category !== undefined) {
       const cat = data.category.trim().toLowerCase();
-      if (
-        ["rings", "bracelets", "earrings", "necklaces", "accessories"].includes(
-          cat
-        )
-      ) {
+      if (isProductCategory(cat)) {
         product.category = cat;
       }
     }
@@ -277,10 +274,7 @@ export async function duplicateProductAdmin(id: string) {
     media,
     variants,
     category:
-      typeof src.category === "string" &&
-      ["rings", "bracelets", "earrings", "necklaces", "accessories"].includes(
-        src.category
-      )
+      typeof src.category === "string" && isProductCategory(src.category)
         ? src.category
         : "rings",
     materials: source.materials || [],
@@ -386,10 +380,7 @@ export async function createProductAdmin(data: {
       !!data.isOnSale && Number(data.compareAtPrice || 0) > Number(data.price);
 
     const category =
-      data.category &&
-      ["rings", "bracelets", "earrings", "necklaces", "accessories"].includes(
-        data.category
-      )
+      data.category && isProductCategory(data.category)
         ? data.category
         : "rings";
     const colors = (data.colors || []).map((c) => c.trim()).filter(Boolean);

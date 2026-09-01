@@ -13,6 +13,7 @@ import {
   PRODUCT_CATEGORIES,
   RING_WIDTH_PRESETS,
   categoryNeedsSizes,
+  getCategoryLabel,
 } from "@/lib/productSizes";
 
 const COLOR_PRESETS = [
@@ -219,7 +220,7 @@ export default function NewProductPage() {
           >
             {PRODUCT_CATEGORIES.map((c) => (
               <option key={c} value={c} className="bg-black">
-                {c.charAt(0).toUpperCase() + c.slice(1)}
+                {getCategoryLabel(c)}
               </option>
             ))}
           </select>
@@ -227,7 +228,7 @@ export default function NewProductPage() {
             {categoryNeedsSizes(category)
               ? category === "bracelets"
                 ? "After create, set Small / Medium / Large on the Sizes tab (inquiry + email notify)."
-                : "After create, set ring sizes 5–12 on the Sizes tab (inquiry + email notify)."
+                : "After create, set ring sizes 5–13 on the Sizes tab (inquiry + email notify)."
               : "Simple product — no size selection or inquiry."}
           </p>
         </div>

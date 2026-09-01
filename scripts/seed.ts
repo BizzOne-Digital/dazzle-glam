@@ -38,6 +38,18 @@ async function main() {
       sortOrder: 1,
       isPublished: true,
     },
+    {
+      name: "For Him",
+      slug: "for-him",
+      sortOrder: 6,
+      isPublished: true,
+    },
+    {
+      name: "For Pets",
+      slug: "for-pets",
+      sortOrder: 7,
+      isPublished: true,
+    },
   ]);
 
   const products = await Product.insertMany(

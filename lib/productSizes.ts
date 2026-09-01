@@ -6,11 +6,23 @@ export const PRODUCT_CATEGORIES = [
   "earrings",
   "necklaces",
   "accessories",
+  "for-him",
+  "for-pets",
 ] as const;
 
 export type ProductCategory = (typeof PRODUCT_CATEGORIES)[number];
 
-export const RING_SIZES = ["5", "6", "7", "8", "9", "10", "11", "12"] as const;
+export const CATEGORY_LABELS: Record<ProductCategory, string> = {
+  rings: "Rings",
+  bracelets: "Bracelets",
+  earrings: "Earrings",
+  necklaces: "Necklaces",
+  accessories: "Accessories",
+  "for-him": "For Him",
+  "for-pets": "For Pets",
+};
+
+export const RING_SIZES = ["5", "6", "7", "8", "9", "10", "11", "12", "13"] as const;
 
 export const BRACELET_SIZES = ["Small", "Medium", "Large"] as const;
 
@@ -26,6 +38,15 @@ export interface WidthVariant {
 
 export function isProductCategory(value: string): value is ProductCategory {
   return (PRODUCT_CATEGORIES as readonly string[]).includes(value);
+}
+
+export function getCategoryLabel(category: string): string {
+  if (category === "all") return "All";
+  if (isProductCategory(category)) return CATEGORY_LABELS[category];
+  return category
+    .split("-")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
 }
 
 /** Rings and bracelets use ProductSizes + size inquiry / notify. */

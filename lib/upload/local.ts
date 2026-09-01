@@ -13,7 +13,7 @@ const ALLOWED = new Set([
 
 export async function saveLocalUpload(
   file: File,
-  folder: "gallery" | "products" | "pages" | "misc" = "misc"
+  folder: "gallery" | "products" | "pages" | "misc" | "categories" = "misc"
 ): Promise<{ url: string; filename: string; size: number }> {
   if (!ALLOWED.has(file.type)) {
     throw new Error("Only JPEG, PNG, WebP, or GIF images are allowed");
