@@ -42,7 +42,7 @@ export default function ProductPage() {
   const [active, setActive] = useState(0);
   const [qty, setQty] = useState(1);
   const [zoom, setZoom] = useState(false);
-  const [openAcc, setOpenAcc] = useState("details");
+  const [openAcc, setOpenAcc] = useState("");
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [selectedWidth, setSelectedWidth] = useState<string | null>(null);
   const [sizeError, setSizeError] = useState(false);
@@ -779,7 +779,6 @@ export default function ProductPage() {
 
               <div className="mt-8 divide-y divide-white/10 border-t border-white/10">
                 {[
-                  { id: "details", title: "Description", body: product.description },
                   {
                     id: "care",
                     title: "Care Instructions",
