@@ -18,8 +18,8 @@ import { placeholderImages } from "@/config/site";
 
 const faqs = [
   {
-    q: "Do you ship across Canada?",
-    a: "Yes — we offer Canada-wide delivery with tracked shipping options.",
+    q: "Do you ship to Canada and the USA?",
+    a: "Yes — we offer tracked shipping across Canada and the United States.",
   },
   {
     q: "Are the stones real diamonds?",

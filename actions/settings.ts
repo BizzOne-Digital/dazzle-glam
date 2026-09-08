@@ -25,7 +25,7 @@ const settingsSchema = z.object({
   // E-commerce
   taxRate: z.number().min(0).max(1).default(0.13),
   freeShippingThreshold: z.number().min(0).default(50),
-  standardShippingCost: z.number().min(0).default(8),
+  standardShippingCost: z.number().min(0).default(6.99),
   expressShippingCost: z.number().min(0).default(15),
   discountThreshold: z.number().min(0).default(65),
   discountPercentage: z.number().min(0).max(100).default(10),
@@ -83,7 +83,7 @@ export async function getSiteSettings(): Promise<ActionResult<SiteSettingsData>>
         facebookUrl: "https://www.facebook.com/dazzleglamcollection",
         taxRate: 0.13,
         freeShippingThreshold: 50,
-        standardShippingCost: 8,
+        standardShippingCost: 6.99,
         expressShippingCost: 15,
         discountThreshold: 65,
         discountPercentage: 10,

@@ -787,7 +787,7 @@ export default function ProductPage() {
                   {
                     id: "ship",
                     title: "Shipping & Returns",
-                    body: "Canada-wide delivery. Most orders ship within 2–4 business days. Returns accepted within 14 days for unworn items in original packaging.",
+                    body: "Canada and USA delivery available. Most orders ship within 2–4 business days. Returns accepted within 14 days for unworn items in original packaging.",
                   },
                 ].map((a) => (
                   <div key={a.id}>

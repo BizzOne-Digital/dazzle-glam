@@ -129,15 +129,22 @@ async function main() {
   await ShippingMethod.insertMany([
     {
       name: "Standard",
-      description: "4–7 days",
-      price: 12,
+      description: "Canada — 4–7 days",
+      price: 6.99,
       estimatedDays: "4-7",
       isActive: true,
     },
     {
+      name: "Standard Shipping to USA",
+      description: "5–10 business days",
+      price: 10.99,
+      estimatedDays: "5-10",
+      isActive: true,
+    },
+    {
       name: "Express",
-      description: "2–4 business days",
-      price: 24,
+      description: "Canada — 2–4 business days",
+      price: 15,
       estimatedDays: "2-4",
       isActive: true,
     },

@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import {
   calcShippingCost,
+  calcTaxAmount,
+  normalizeShippingCountry,
+  resolveShippingMethod,
   shippingMethodLabel,
   type ShippingMethodId,
 } from "@/lib/shipping";
@@ -71,16 +74,23 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Cart is empty" }, { status: 400 });
     }
 
-    const shippingMethod: ShippingMethodId =
-      rawMethod === "express" ? "express" : "standard";
+    const shippingCountry = normalizeShippingCountry(shippingAddress?.country);
+    const shippingMethod: ShippingMethodId = resolveShippingMethod(
+      rawMethod,
+      shippingCountry
+    );
 
     // Recalculate totals server-side so shipping is never skipped
     const subtotal = items.reduce(
       (sum, item) => sum + Number(item.price) * Number(item.quantity),
       0
     );
-    const shippingCost = calcShippingCost(subtotal, shippingMethod);
-    const taxAmount = Math.round((subtotal + shippingCost) * 0.13 * 100) / 100;
+    const shippingCost = calcShippingCost(
+      subtotal,
+      shippingMethod,
+      shippingCountry
+    );
+    const taxAmount = calcTaxAmount(subtotal, shippingCost, shippingCountry);
     const total = Math.round((subtotal + shippingCost + taxAmount) * 100) / 100;
 
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map(
@@ -152,7 +162,7 @@ export async function POST(req: Request) {
       customer_email: customerEmail,
       line_items: lineItems,
       shipping_address_collection: {
-        allowed_countries: ["CA"],
+        allowed_countries: ["CA", "US"],
       },
       phone_number_collection: {
         enabled: true,

@@ -38,7 +38,7 @@ export async function getSettings(): Promise<SiteSettingsData> {
     facebookUrl: "https://www.facebook.com/profile.php?id=61591817804914",
     taxRate: 0.13,
     freeShippingThreshold: 50,
-    standardShippingCost: 8,
+    standardShippingCost: 6.99,
     expressShippingCost: 15,
     discountThreshold: 65,
     discountPercentage: 10,

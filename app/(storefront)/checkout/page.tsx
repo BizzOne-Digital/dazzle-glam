@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -14,12 +14,21 @@ import { formatCurrency } from "@/lib/utils";
 import { placeholderImages } from "@/config/site";
 import { CreditCard, Landmark, ShieldCheck } from "lucide-react";
 import {
+  CANADA_PROVINCES,
+  CANADA_TAX_RATE,
   EXPRESS_SHIPPING_COST,
   FREE_SHIPPING_THRESHOLD,
   STANDARD_SHIPPING_COST,
+  USA_STANDARD_SHIPPING_COST,
+  US_STATES,
   calcShippingCost,
+  calcTaxAmount,
+  countryLabel,
+  normalizeShippingCountry,
+  resolveShippingMethod,
   shippingEta,
   shippingMethodLabel,
+  type ShippingCountry,
   type ShippingMethodId,
 } from "@/lib/shipping";
 
@@ -31,15 +40,36 @@ export default function CheckoutPage() {
   const clearCart = useCartStore((s) => s.clearCart);
   const [loading, setLoading] = useState(false);
   const [sameBilling, setSameBilling] = useState(true);
+  const [country, setCountry] = useState<ShippingCountry>("CA");
   const [shippingMethod, setShippingMethod] =
     useState<ShippingMethodId>("standard");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("stripe");
 
+  useEffect(() => {
+    if (country === "US") {
+      setShippingMethod("standard_usa");
+      setPaymentMethod((current) =>
+        current === "interac" ? "stripe" : current
+      );
+      return;
+    }
+
+    setShippingMethod((current) =>
+      current === "standard_usa" ? "standard" : current
+    );
+  }, [country]);
+
   const subtotal = items.reduce((s, i) => s + i.price * i.quantity, 0);
-  const shippingCost = calcShippingCost(subtotal, shippingMethod);
-  const tax = (subtotal + shippingCost) * 0.13;
+  const effectiveShippingMethod = resolveShippingMethod(shippingMethod, country);
+  const shippingCost = calcShippingCost(
+    subtotal,
+    effectiveShippingMethod,
+    country
+  );
+  const tax = calcTaxAmount(subtotal, shippingCost, country);
   const total = subtotal + shippingCost + tax;
-  const freeShipping = subtotal >= FREE_SHIPPING_THRESHOLD;
+  const freeShipping =
+    country === "CA" && subtotal >= FREE_SHIPPING_THRESHOLD;
 
   if (items.length === 0) {
     return (
@@ -72,9 +102,9 @@ export default function CheckoutPage() {
       city: formData.get("city") as string,
       province: formData.get("province") as string,
       postalCode: formData.get("postalCode") as string,
-      country: "Canada",
+      country: countryLabel(country),
     },
-    shippingMethod,
+    shippingMethod: effectiveShippingMethod,
     paymentMethod,
     subtotal,
     shippingCost,
@@ -205,29 +235,35 @@ export default function CheckoutPage() {
                 <Select
                   name="province"
                   required
-                  label="Province / Territory"
-                  placeholder="Select province"
+                  label={country === "US" ? "State" : "Province / Territory"}
+                  placeholder={
+                    country === "US" ? "Select state" : "Select province"
+                  }
+                  options={
+                    country === "US"
+                      ? US_STATES.map((option) => ({ ...option }))
+                      : CANADA_PROVINCES.map((option) => ({ ...option }))
+                  }
+                />
+                <Input
+                  name="postalCode"
+                  required
+                  placeholder={country === "US" ? "ZIP code" : "Postal code"}
+                />
+                <Select
+                  name="country"
+                  required
+                  label="Country"
+                  placeholder=""
+                  value={country}
+                  onChange={(e) =>
+                    setCountry(normalizeShippingCountry(e.target.value))
+                  }
                   options={[
-                    { label: "Alberta", value: "AB" },
-                    { label: "British Columbia", value: "BC" },
-                    { label: "Manitoba", value: "MB" },
-                    { label: "New Brunswick", value: "NB" },
-                    { label: "Newfoundland and Labrador", value: "NL" },
-                    { label: "Northwest Territories", value: "NT" },
-                    { label: "Nova Scotia", value: "NS" },
-                    { label: "Nunavut", value: "NU" },
-                    { label: "Ontario", value: "ON" },
-                    { label: "Prince Edward Island", value: "PE" },
-                    { label: "Quebec", value: "QC" },
-                    { label: "Saskatchewan", value: "SK" },
-                    { label: "Yukon", value: "YT" },
+                    { label: "Canada", value: "CA" },
+                    { label: "United States", value: "US" },
                   ]}
                 />
-                <Input name="postalCode" required placeholder="Postal code" />
-                <div className="flex h-12 cursor-not-allowed select-none items-center rounded-sm border border-white/12 bg-white/5 px-4 font-body text-sm text-white/50">
-                  Canada
-                </div>
-                <input type="hidden" name="country" value="Canada" />
               </div>
               <label className="mt-4 flex items-center gap-2 text-sm text-white/60">
                 <input
@@ -242,7 +278,12 @@ export default function CheckoutPage() {
 
             <section className="rounded-2xl border border-white/10 p-6">
               <h2 className="font-heading text-2xl">Delivery method</h2>
-              {freeShipping ? (
+              {country === "US" ? (
+                <p className="mt-3 text-sm text-white/50">
+                  Standard Shipping to USA is{" "}
+                  {formatCurrency(USA_STANDARD_SHIPPING_COST)}.
+                </p>
+              ) : freeShipping ? (
                 <p className="mt-3 text-sm text-emerald-400">
                   Free standard shipping unlocked on orders over{" "}
                   {formatCurrency(FREE_SHIPPING_THRESHOLD)}. Express is{" "}
@@ -256,60 +297,89 @@ export default function CheckoutPage() {
                 </p>
               )}
               <div className="mt-4 space-y-3">
-                <label
-                  className={`flex cursor-pointer items-center justify-between rounded-xl border p-4 ${
-                    shippingMethod === "standard"
-                      ? "border-fuchsia/50 bg-fuchsia/10"
-                      : "border-white/10"
-                  }`}
-                >
-                  <span className="flex items-center gap-3">
-                    <input
-                      type="radio"
-                      name="shippingMethod"
-                      checked={shippingMethod === "standard"}
-                      onChange={() => setShippingMethod("standard")}
-                      className="accent-fuchsia"
-                    />
-                    <span>
-                      <span className="block font-medium">Standard</span>
-                      <span className="text-xs text-white/45">
-                        {shippingEta("standard")}
+                {country === "US" ? (
+                  <label
+                    className="flex cursor-pointer items-center justify-between rounded-xl border border-fuchsia/50 bg-fuchsia/10 p-4"
+                  >
+                    <span className="flex items-center gap-3">
+                      <input
+                        type="radio"
+                        name="shippingMethod"
+                        checked
+                        readOnly
+                        className="accent-fuchsia"
+                      />
+                      <span>
+                        <span className="block font-medium">
+                          Standard Shipping to USA
+                        </span>
+                        <span className="text-xs text-white/45">
+                          {shippingEta("standard_usa")}
+                        </span>
                       </span>
                     </span>
-                  </span>
-                  <span className="text-sm">
-                    {freeShipping
-                      ? "Free"
-                      : formatCurrency(STANDARD_SHIPPING_COST)}
-                  </span>
-                </label>
-                <label
-                  className={`flex cursor-pointer items-center justify-between rounded-xl border p-4 ${
-                    shippingMethod === "express"
-                      ? "border-fuchsia/50 bg-fuchsia/10"
-                      : "border-white/10"
-                  }`}
-                >
-                  <span className="flex items-center gap-3">
-                    <input
-                      type="radio"
-                      name="shippingMethod"
-                      checked={shippingMethod === "express"}
-                      onChange={() => setShippingMethod("express")}
-                      className="accent-fuchsia"
-                    />
-                    <span>
-                      <span className="block font-medium">Express</span>
-                      <span className="text-xs text-white/45">
-                        {shippingEta("express")}
-                      </span>
+                    <span className="text-sm">
+                      {formatCurrency(USA_STANDARD_SHIPPING_COST)}
                     </span>
-                  </span>
-                  <span className="text-sm">
-                    {formatCurrency(EXPRESS_SHIPPING_COST)}
-                  </span>
-                </label>
+                  </label>
+                ) : (
+                  <>
+                    <label
+                      className={`flex cursor-pointer items-center justify-between rounded-xl border p-4 ${
+                        shippingMethod === "standard"
+                          ? "border-fuchsia/50 bg-fuchsia/10"
+                          : "border-white/10"
+                      }`}
+                    >
+                      <span className="flex items-center gap-3">
+                        <input
+                          type="radio"
+                          name="shippingMethod"
+                          checked={shippingMethod === "standard"}
+                          onChange={() => setShippingMethod("standard")}
+                          className="accent-fuchsia"
+                        />
+                        <span>
+                          <span className="block font-medium">Standard</span>
+                          <span className="text-xs text-white/45">
+                            {shippingEta("standard")}
+                          </span>
+                        </span>
+                      </span>
+                      <span className="text-sm">
+                        {freeShipping
+                          ? "Free"
+                          : formatCurrency(STANDARD_SHIPPING_COST)}
+                      </span>
+                    </label>
+                    <label
+                      className={`flex cursor-pointer items-center justify-between rounded-xl border p-4 ${
+                        shippingMethod === "express"
+                          ? "border-fuchsia/50 bg-fuchsia/10"
+                          : "border-white/10"
+                      }`}
+                    >
+                      <span className="flex items-center gap-3">
+                        <input
+                          type="radio"
+                          name="shippingMethod"
+                          checked={shippingMethod === "express"}
+                          onChange={() => setShippingMethod("express")}
+                          className="accent-fuchsia"
+                        />
+                        <span>
+                          <span className="block font-medium">Express</span>
+                          <span className="text-xs text-white/45">
+                            {shippingEta("express")}
+                          </span>
+                        </span>
+                      </span>
+                      <span className="text-sm">
+                        {formatCurrency(EXPRESS_SHIPPING_COST)}
+                      </span>
+                    </label>
+                  </>
+                )}
               </div>
             </section>
 
@@ -338,28 +408,30 @@ export default function CheckoutPage() {
                     </span>
                   </span>
                 </label>
-                <label
-                  className={`flex cursor-pointer items-center gap-3 rounded-xl border p-4 ${
-                    paymentMethod === "interac"
-                      ? "border-fuchsia/50 bg-fuchsia/10"
-                      : "border-white/10"
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    checked={paymentMethod === "interac"}
-                    onChange={() => setPaymentMethod("interac")}
-                    className="accent-fuchsia"
-                  />
-                  <Landmark className="h-5 w-5 text-fuchsia" />
-                  <span>
-                    <span className="block font-medium">Interac e-Transfer</span>
-                    <span className="text-xs text-white/45">
-                      Pay by Interac — order held until payment is received
+                {country === "CA" && (
+                  <label
+                    className={`flex cursor-pointer items-center gap-3 rounded-xl border p-4 ${
+                      paymentMethod === "interac"
+                        ? "border-fuchsia/50 bg-fuchsia/10"
+                        : "border-white/10"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      checked={paymentMethod === "interac"}
+                      onChange={() => setPaymentMethod("interac")}
+                      className="accent-fuchsia"
+                    />
+                    <Landmark className="h-5 w-5 text-fuchsia" />
+                    <span>
+                      <span className="block font-medium">Interac e-Transfer</span>
+                      <span className="text-xs text-white/45">
+                        Pay by Interac — order held until payment is received
+                      </span>
                     </span>
-                  </span>
-                </label>
+                  </label>
+                )}
               </div>
             </section>
           </div>
@@ -402,14 +474,18 @@ export default function CheckoutPage() {
               </div>
               <div className="flex justify-between">
                 <dt className="text-white/50">
-                  Shipping ({shippingMethodLabel(shippingMethod)})
+                  Shipping ({shippingMethodLabel(effectiveShippingMethod)})
                 </dt>
                 <dd className={shippingCost === 0 ? "text-emerald-400" : ""}>
                   {shippingCost === 0 ? "Free" : formatCurrency(shippingCost)}
                 </dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-white/50">Tax (HST 13%)</dt>
+                <dt className="text-white/50">
+                  {country === "US"
+                    ? "Tax"
+                    : `Tax (HST ${Math.round(CANADA_TAX_RATE * 100)}%)`}
+                </dt>
                 <dd>{formatCurrency(tax)}</dd>
               </div>
               <div className="flex justify-between text-base">

@@ -8,6 +8,9 @@ import {
 import { createOrderNumber } from "@/lib/services/orders";
 import {
   calcShippingCost,
+  calcTaxAmount,
+  normalizeShippingCountry,
+  resolveShippingMethod,
   type ShippingMethodId,
 } from "@/lib/shipping";
 import { getSiteSettings } from "@/actions/settings";
@@ -72,15 +75,29 @@ export async function POST(req: Request) {
       );
     }
 
-    const shippingMethod: ShippingMethodId =
-      rawMethod === "express" ? "express" : "standard";
+    const shippingCountry = normalizeShippingCountry(shippingAddress.country);
+    if (shippingCountry === "US") {
+      return NextResponse.json(
+        { error: "Interac e-Transfer is only available for Canadian orders." },
+        { status: 400 }
+      );
+    }
+
+    const shippingMethod: ShippingMethodId = resolveShippingMethod(
+      rawMethod,
+      shippingCountry
+    );
 
     const subtotal = items.reduce(
       (sum, item) => sum + Number(item.price) * Number(item.quantity),
       0
     );
-    const shippingAmount = calcShippingCost(subtotal, shippingMethod);
-    const taxAmount = Math.round((subtotal + shippingAmount) * 0.13 * 100) / 100;
+    const shippingAmount = calcShippingCost(
+      subtotal,
+      shippingMethod,
+      shippingCountry
+    );
+    const taxAmount = calcTaxAmount(subtotal, shippingAmount, shippingCountry);
     const total = Math.round((subtotal + shippingAmount + taxAmount) * 100) / 100;
 
     await connectDB();

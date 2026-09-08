@@ -33,7 +33,7 @@ export default function AdminSettingsPage() {
     youtubeUrl: "",
     taxRate: 0.13,
     freeShippingThreshold: 50,
-    standardShippingCost: 8,
+    standardShippingCost: 6.99,
     expressShippingCost: 15,
     discountThreshold: 65,
     discountPercentage: 10,
