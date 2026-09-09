@@ -25,6 +25,7 @@ import {
   PRODUCT_CATEGORIES,
   RING_WIDTH_PRESETS,
   categoryNeedsSizes,
+  categoryUsesRingSizes,
   getSizePresetsForCategory,
   getCategoryLabel,
 } from "@/lib/productSizes";
@@ -666,8 +667,8 @@ export default function EditProductPage() {
               ))}
             </select>
             <p className="mt-1.5 text-xs text-white/40">
-              {category === "rings"
-                ? "Rings use sizes 5–13 with size inquiry / email notify."
+              {categoryUsesRingSizes(category)
+                ? "Ring sizes 5–13 with size inquiry / email notify."
                 : category === "bracelets"
                   ? "Bracelets use Small / Medium / Large with size inquiry / email notify."
                   : usesVariantMatrix
@@ -816,7 +817,7 @@ export default function EditProductPage() {
               </Button>
             </div>
           </div>
-          {category === "rings" && (
+          {categoryUsesRingSizes(category) && (
             <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
               <label className="mb-3 flex items-center gap-2 text-sm text-white/80">
                 <input

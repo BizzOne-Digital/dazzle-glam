@@ -49,16 +49,23 @@ export function getCategoryLabel(category: string): string {
     .join(" ");
 }
 
-/** Rings and bracelets use ProductSizes + size inquiry / notify. */
+/** Ring-style categories (including For Him men's rings). */
+export function categoryUsesRingSizes(category?: string | null): boolean {
+  return category === "rings" || category === "for-him";
+}
+
+/** Rings, bracelets, and For Him use ProductSizes + size inquiry / notify. */
 export function categoryNeedsSizes(category?: string | null): boolean {
-  return category === "rings" || category === "bracelets";
+  return (
+    categoryUsesRingSizes(category) || category === "bracelets"
+  );
 }
 
 export function getSizePresetsForCategory(
   category?: string | null
 ): readonly string[] {
   if (category === "bracelets") return BRACELET_SIZES;
-  if (category === "rings") return RING_SIZES;
+  if (categoryUsesRingSizes(category)) return RING_SIZES;
   return [];
 }
 

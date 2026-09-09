@@ -14,6 +14,7 @@ import {
   PRODUCT_CATEGORIES,
   RING_WIDTH_PRESETS,
   categoryNeedsSizes,
+  categoryUsesRingSizes,
   getCategoryLabel,
 } from "@/lib/productSizes";
 import {
@@ -411,7 +412,7 @@ export default function NewProductPage() {
             </Button>
           </div>
         </div>
-        {category === "rings" && (
+        {categoryUsesRingSizes(category) && (
           <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
             <label className="mb-3 flex items-center gap-2 text-sm text-white/80">
               <input
