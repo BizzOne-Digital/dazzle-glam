@@ -11,7 +11,7 @@ export const defaultPageContent: Record<string, PageSections> = {
       description:
         "Eye-popping jewelry designed to command attention, amplify your confidence and transform every look into a bold statement.",
       image: "/images/hero/campaign.png",
-      primaryCta: "Shop New Arrivals",
+      primaryCta: "SHOP NOW",
       primaryHref: "/shop?sort=new",
       secondaryCta: "Explore Products",
       secondaryHref: "/shop",
@@ -145,6 +145,15 @@ export async function getPageSections(pageKey: string): Promise<PageSections> {
       merged[key] = value as PageSections[string];
     }
   }
+  if (
+    pageKey === "home" &&
+    merged.hero &&
+    typeof merged.hero === "object" &&
+    merged.hero.primaryCta === "Shop New Arrivals"
+  ) {
+    merged.hero = { ...merged.hero, primaryCta: "SHOP NOW" };
+  }
+
   return merged;
 }
 

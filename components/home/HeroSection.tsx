@@ -26,7 +26,7 @@ const DEFAULTS: Required<HeroContent> = {
   description:
     "Eye-popping jewelry designed to command attention, amplify your confidence and transform every look into a bold statement.",
   image: "/images/hero/campaign.png",
-  primaryCta: "Shop New Arrivals",
+  primaryCta: "SHOP NOW",
   primaryHref: "/shop?sort=new",
   secondaryCta: "Explore Products",
   secondaryHref: "/shop",

@@ -24,7 +24,7 @@ export default async function HomePage() {
           "image",
           "/images/hero/campaign.png"
         ),
-        primaryCta: sectionText(sections, "hero", "primaryCta", "Shop New Arrivals"),
+        primaryCta: sectionText(sections, "hero", "primaryCta", "SHOP NOW"),
         primaryHref: sectionText(sections, "hero", "primaryHref", "/shop?sort=new"),
         secondaryCta: sectionText(sections, "hero", "secondaryCta", ""),
         secondaryHref: sectionText(sections, "hero", "secondaryHref", "/shop"),
