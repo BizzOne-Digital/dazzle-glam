@@ -6,6 +6,7 @@ export type BadgeVariant =
   | "fuchsia"
   | "silver"
   | "sale"
+  | "comingSoon"
   | "new"
   | "outline";
 
@@ -17,7 +18,9 @@ const variantStyles: Record<BadgeVariant, string> = {
   default: "bg-white/10 text-white/90 border-white/15",
   fuchsia: "bg-white text-black border-white shadow-[0_0_12px_rgb(255_255_255/0.6)] rounded-xl",
   silver: "bg-silver/15 text-silver-light border-silver/35",
-  sale: "bg-fuchsia text-white border-fuchsia",
+  sale: "bg-red-500 text-white border-red-500 shadow-[0_0_12px_rgb(239_68_68/0.45)] rounded-xl",
+  comingSoon:
+    "bg-fuchsia text-white border-fuchsia shadow-[0_0_12px_rgb(255_20_147/0.5)] rounded-xl",
   new: "bg-white text-black border-white shadow-[0_0_12px_rgb(255_255_255/0.6)] rounded-xl",
   outline: "bg-transparent text-silver border-silver/50",
 };

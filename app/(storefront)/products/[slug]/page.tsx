@@ -284,7 +284,13 @@ export default function ProductPage() {
                 {product.badge && (
                   <div className="absolute left-4 top-4">
                     <Badge
-                      variant={product.badge === "sale" ? "sale" : "fuchsia"}
+                      variant={
+                        product.badge === "sale"
+                          ? "sale"
+                          : product.badge === "coming soon"
+                            ? "comingSoon"
+                            : "fuchsia"
+                      }
                     >
                       {product.badge}
                     </Badge>

@@ -49,13 +49,13 @@ export function ProductCard({
   const badgeVariant =
     product.badge === "sale"
       ? "sale"
-      : product.badge === "new" ||
-          product.badge === "bestseller" ||
-          product.badge === "coming soon"
-      ? "fuchsia"
-      : product.badge
-        ? "fuchsia"
-        : undefined;
+      : product.badge === "coming soon"
+        ? "comingSoon"
+        : product.badge === "new" || product.badge === "bestseller"
+          ? "fuchsia"
+          : product.badge
+            ? "fuchsia"
+            : undefined;
 
   const handleWishlist = (e: MouseEvent) => {
     e.preventDefault();
