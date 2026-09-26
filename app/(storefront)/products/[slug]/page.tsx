@@ -374,7 +374,7 @@ export default function ProductPage() {
               <p
                 className={`mt-2 text-sm ${
                   comingSoon
-                    ? "text-silver"
+                    ? "font-semibold text-fuchsia"
                     : isInStock
                       ? "text-emerald-400"
                       : "text-red-400"

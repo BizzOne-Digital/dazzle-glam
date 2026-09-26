@@ -188,7 +188,7 @@ export function ProductCard({
             )}
           </div>
           {comingSoon ? (
-            <p className="font-body text-xs uppercase tracking-wider text-silver">
+            <p className="font-body text-xs font-semibold uppercase tracking-wider text-fuchsia">
               Coming soon
             </p>
           ) : (
