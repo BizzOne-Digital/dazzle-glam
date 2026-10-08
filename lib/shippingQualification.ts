@@ -30,14 +30,15 @@ export async function orderQualifiesForProductFreeShipping(
   try {
     await connectDB();
     const products = await Product.find({ _id: { $in: ids } })
-      .select("name slug freeShipping pinToShopTop")
+      .select("name slug sku materials freeShipping pinToShopTop")
       .lean();
     return products.some((p) =>
       productQualifiesForFreeShipping({
         name: p.name,
         slug: p.slug,
+        sku: p.sku,
+        materials: p.materials as string[] | undefined,
         freeShipping: !!p.freeShipping,
-        pinToShopTop: !!p.pinToShopTop,
       })
     );
   } catch (error) {

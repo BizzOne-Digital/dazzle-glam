@@ -94,7 +94,11 @@ export async function POST(req: Request) {
       }))
     );
     const productFreeShipping = await orderQualifiesForProductFreeShipping(
-      items.map((item) => ({ id: item.id, name: item.name }))
+      items.map((item) => ({
+        id: item.id,
+        name: item.name,
+        sku: item.sku,
+      }))
     );
     const shippingCost = calcShippingCost(
       subtotal,

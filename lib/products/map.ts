@@ -4,6 +4,7 @@ import { isProductCategory } from "@/lib/productSizes";
 import type { ProductVariantPlain } from "@/lib/productVariants";
 import { MAX_PRODUCT_IMAGES } from "@/config/site";
 import {
+  effectiveQuantityPriceBreaks,
   productPinsToShopTop,
   productQualifiesForFreeShipping,
 } from "@/lib/products/promotions";
@@ -103,9 +104,27 @@ export function mapMongoProduct(p: MongoProductLike): DemoProduct {
     isNewArrival: !!p.isNewArrival,
     isComingSoon: !!p.isComingSoon,
     isOnSale: sale,
-    pinToShopTop: productPinsToShopTop(p),
-    freeShipping: productQualifiesForFreeShipping(p),
-    quantityPriceBreaks: normalizeQuantityPriceBreaks(p.quantityPriceBreaks),
+    pinToShopTop: productPinsToShopTop({
+      name: p.name,
+      slug: p.slug,
+      sku: p.sku,
+      materials: p.materials,
+      pinToShopTop: p.pinToShopTop,
+    }),
+    freeShipping: productQualifiesForFreeShipping({
+      name: p.name,
+      slug: p.slug,
+      sku: p.sku,
+      materials: p.materials,
+      freeShipping: p.freeShipping,
+    }),
+    quantityPriceBreaks: effectiveQuantityPriceBreaks({
+      name: p.name,
+      slug: p.slug,
+      sku: p.sku,
+      materials: p.materials,
+      quantityPriceBreaks: normalizeQuantityPriceBreaks(p.quantityPriceBreaks),
+    }),
     compareAtPrice: sale ? p.compareAtPrice : undefined,
     sku: p.sku || undefined,
     supplier: p.supplier || undefined,

@@ -51,8 +51,13 @@ export const marqueeWords = [
 /** Maximum gallery images per product (admin + storefront) */
 export const MAX_PRODUCT_IMAGES = 6;
 
-/** Fundraising silicone bracelets — pin on Shop + free standard shipping (no threshold). */
-export const FUNDRAISING_PRODUCT_NAME_PATTERN = /silicone/i;
+/** Fundraising bracelets (breast cancer / silicone) — Shop pin + free shipping + default 4/$10. */
+export const FUNDRAISING_PRODUCT_SKUS = ["AM1001"] as const;
+export const FUNDRAISING_PRODUCT_NAME_PATTERN =
+  /silicone|breast\s*cancer|awareness\s*bracelet/i;
+export const FUNDRAISING_DEFAULT_QUANTITY_BREAKS = [
+  { quantity: 4, price: 10 },
+] as const;
 
 /** Curated Unsplash jewelry placeholders — replace via admin media library */
 export const placeholderImages = {

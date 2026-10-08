@@ -1,46 +1,77 @@
-import { FUNDRAISING_PRODUCT_NAME_PATTERN } from "@/config/site";
+import {
+  FUNDRAISING_DEFAULT_QUANTITY_BREAKS,
+  FUNDRAISING_PRODUCT_NAME_PATTERN,
+  FUNDRAISING_PRODUCT_SKUS,
+} from "@/config/site";
+import {
+  normalizeQuantityPriceBreaks,
+  type QuantityPriceBreak,
+} from "@/lib/pricing/quantityBreaks";
 
 export type ProductPromotionFields = {
   name: string;
   slug: string;
+  sku?: string;
+  materials?: string[];
   pinToShopTop?: boolean;
   freeShipping?: boolean;
+  quantityPriceBreaks?: QuantityPriceBreak[];
 };
 
-export function matchesFundraisingProductName(
-  name?: string | null,
-  slug?: string | null
+const FUNDRAISING_SKU_SET = new Set(
+  FUNDRAISING_PRODUCT_SKUS.map((s) => s.toUpperCase())
+);
+
+export function matchesFundraisingProduct(
+  fields: Pick<ProductPromotionFields, "name" | "slug" | "sku" | "materials">
 ): boolean {
-  const n = (name || "").trim();
-  const s = (slug || "").trim();
-  return (
-    (!!n && FUNDRAISING_PRODUCT_NAME_PATTERN.test(n)) ||
-    (!!s && FUNDRAISING_PRODUCT_NAME_PATTERN.test(s))
-  );
+  const sku = (fields.sku || "").trim().toUpperCase();
+  if (sku && FUNDRAISING_SKU_SET.has(sku)) return true;
+
+  const n = (fields.name || "").trim();
+  const s = (fields.slug || "").trim();
+  if (n && FUNDRAISING_PRODUCT_NAME_PATTERN.test(n)) return true;
+  if (s && FUNDRAISING_PRODUCT_NAME_PATTERN.test(s)) return true;
+
+  return (fields.materials || []).some((m) => /silicone/i.test(m));
 }
 
 export function productPinsToShopTop(p: ProductPromotionFields): boolean {
-  return !!p.pinToShopTop || matchesFundraisingProductName(p.name, p.slug);
+  return !!p.pinToShopTop || matchesFundraisingProduct(p);
 }
 
 export function productQualifiesForFreeShipping(
   p: ProductPromotionFields
 ): boolean {
-  return (
-    !!p.freeShipping || matchesFundraisingProductName(p.name, p.slug)
-  );
+  return !!p.freeShipping || matchesFundraisingProduct(p);
+}
+
+export function effectiveQuantityPriceBreaks(
+  p: ProductPromotionFields
+): QuantityPriceBreak[] {
+  const saved = normalizeQuantityPriceBreaks(p.quantityPriceBreaks);
+  if (saved.length) return saved;
+  if (matchesFundraisingProduct(p)) {
+    return [...FUNDRAISING_DEFAULT_QUANTITY_BREAKS];
+  }
+  return [];
 }
 
 export function cartLineQualifiesForFreeShipping(line: {
   name?: string;
+  sku?: string;
   freeShipping?: boolean;
 }): boolean {
   if (line.freeShipping) return true;
-  return matchesFundraisingProductName(line.name, undefined);
+  return matchesFundraisingProduct({
+    name: line.name || "",
+    slug: "",
+    sku: line.sku,
+  });
 }
 
 export function cartQualifiesForProductFreeShipping(
-  lines: Array<{ name?: string; freeShipping?: boolean }>
+  lines: Array<{ name?: string; sku?: string; freeShipping?: boolean }>
 ): boolean {
   return lines.some(cartLineQualifiesForFreeShipping);
 }
@@ -56,4 +87,15 @@ export function sortProductsForShop<T extends ProductPromotionFields>(
     else rest.push(p);
   }
   return [...pinned, ...rest];
+}
+
+export function fundraisingProductMongoQuery() {
+  return {
+    $or: [
+      { sku: { $in: [...FUNDRAISING_PRODUCT_SKUS] } },
+      { name: FUNDRAISING_PRODUCT_NAME_PATTERN },
+      { slug: FUNDRAISING_PRODUCT_NAME_PATTERN },
+      { materials: /silicone/i },
+    ],
+  };
 }
