@@ -7,6 +7,7 @@ import {
   effectiveQuantityPriceBreaks,
   productPinsToShopTop,
   productQualifiesForFreeShipping,
+  productUsesBundleOnlyPricing,
 } from "@/lib/products/promotions";
 import { normalizeQuantityPriceBreaks } from "@/lib/pricing/quantityBreaks";
 
@@ -44,6 +45,7 @@ export type MongoProductLike = {
   pinToShopTop?: boolean;
   freeShipping?: boolean;
   quantityPriceBreaks?: Array<{ quantity: number; price: number }>;
+  bundleOnlyPricing?: boolean;
   compareAtPrice?: number;
   sku?: string;
   supplier?: string;
@@ -125,6 +127,15 @@ export function mapMongoProduct(p: MongoProductLike): DemoProduct {
       materials: p.materials,
       quantityPriceBreaks: normalizeQuantityPriceBreaks(p.quantityPriceBreaks),
     }),
+    bundleOnlyPricing:
+      !!p.bundleOnlyPricing ||
+      productUsesBundleOnlyPricing({
+        name: p.name,
+        slug: p.slug,
+        sku: p.sku,
+        materials: p.materials,
+        quantityPriceBreaks: normalizeQuantityPriceBreaks(p.quantityPriceBreaks),
+      }),
     compareAtPrice: sale ? p.compareAtPrice : undefined,
     sku: p.sku || undefined,
     supplier: p.supplier || undefined,

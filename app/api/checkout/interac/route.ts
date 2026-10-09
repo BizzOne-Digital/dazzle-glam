@@ -23,6 +23,9 @@ interface CheckoutItem {
   name: string;
   price: number;
   quantity: number;
+  quantityPriceBreaks?: Array<{ quantity: number; price: number }>;
+  bundleOnlyPricing?: boolean;
+  fixedLineTotal?: number;
   image?: string;
   variantLabel?: string;
   sku?: string;
@@ -99,6 +102,9 @@ export async function POST(req: Request) {
         image: item.image,
         variantLabel: item.variantLabel,
         sku: item.sku,
+        quantityPriceBreaks: item.quantityPriceBreaks,
+        bundleOnlyPricing: item.bundleOnlyPricing,
+        fixedLineTotal: item.fixedLineTotal,
       }))
     );
     const productFreeShipping = await orderQualifiesForProductFreeShipping(

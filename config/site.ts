@@ -56,6 +56,7 @@ export const FUNDRAISING_PRODUCT_SKUS = ["AM1001"] as const;
 export const FUNDRAISING_PRODUCT_NAME_PATTERN =
   /silicone|breast\s*cancer|awareness\s*bracelet/i;
 export const FUNDRAISING_DEFAULT_QUANTITY_BREAKS = [
+  { quantity: 2, price: 5.5 },
   { quantity: 4, price: 10 },
 ] as const;
 

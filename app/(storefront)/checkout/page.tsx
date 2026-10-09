@@ -97,6 +97,8 @@ export default function CheckoutPage() {
       variantLabel: item.variantLabel,
       sku: item.sku,
       quantityPriceBreaks: item.quantityPriceBreaks,
+      bundleOnlyPricing: item.bundleOnlyPricing,
+      fixedLineTotal: item.fixedLineTotal,
     })),
     customerEmail: formData.get("email") as string,
     customerPhone: formData.get("phone") as string,

@@ -62,6 +62,8 @@ export interface IProduct {
   freeShipping: boolean;
   /** Bundle deals e.g. 4 items for $10 (leftover units use unit price). */
   quantityPriceBreaks: Array<{ quantity: number; price: number }>;
+  /** Customer must pick an exact volume tier (no single-unit qty). */
+  bundleOnlyPricing: boolean;
   relatedProducts: mongoose.Types.ObjectId[];
   seo: SeoFields;
   publishedAt?: Date;
@@ -176,6 +178,7 @@ const ProductSchema = new Schema<IProduct>(
       type: [QuantityPriceBreakSchema],
       default: [],
     },
+    bundleOnlyPricing: { type: Boolean, default: false },
     relatedProducts: [{ type: Schema.Types.ObjectId, ref: "Product" }],
     seo: {
       title: String,

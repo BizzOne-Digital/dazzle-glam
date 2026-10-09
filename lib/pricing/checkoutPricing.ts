@@ -1,8 +1,15 @@
 import mongoose from "mongoose";
 import { connectDB } from "@/lib/db/connect";
 import { Product } from "@/models/Product";
-import { calculateQuantityBreakTotal, normalizeQuantityPriceBreaks } from "@/lib/pricing/quantityBreaks";
-import { effectiveQuantityPriceBreaks } from "@/lib/products/promotions";
+import {
+  calculateQuantityBreakTotal,
+  normalizeQuantityPriceBreaks,
+  resolveExactBundlePrice,
+} from "@/lib/pricing/quantityBreaks";
+import {
+  effectiveQuantityPriceBreaks,
+  productUsesBundleOnlyPricing,
+} from "@/lib/products/promotions";
 
 export type CheckoutLineInput = {
   id: string;
@@ -10,6 +17,8 @@ export type CheckoutLineInput = {
   price: number;
   quantity: number;
   quantityPriceBreaks?: Array<{ quantity: number; price: number }>;
+  bundleOnlyPricing?: boolean;
+  fixedLineTotal?: number;
   image?: string;
   variantLabel?: string;
   sku?: string;
@@ -95,7 +104,28 @@ export async function priceCheckoutLines(
           ),
         });
     const quantity = Math.max(1, Math.floor(Number(item.quantity) || 1));
-    const lineTotal = calculateQuantityBreakTotal(unitPrice, quantity, breaks);
+    const bundleOnly =
+      item.bundleOnlyPricing ||
+      (fromDb
+        ? productUsesBundleOnlyPricing({
+            name: fromDb.name,
+            slug: fromDb.slug,
+            sku: fromDb.sku,
+            materials: fromDb.materials,
+            quantityPriceBreaks: breaks,
+          })
+        : false);
+
+    let lineTotal: number;
+    if (typeof item.fixedLineTotal === "number") {
+      lineTotal = item.fixedLineTotal;
+    } else if (bundleOnly) {
+      const exact = resolveExactBundlePrice(quantity, breaks);
+      lineTotal = exact ?? 0;
+    } else {
+      lineTotal = calculateQuantityBreakTotal(unitPrice, quantity, breaks);
+    }
+
     return {
       ...item,
       price: unitPrice,

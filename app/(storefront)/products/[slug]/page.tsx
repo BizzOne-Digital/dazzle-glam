@@ -16,7 +16,9 @@ import { formatCurrency } from "@/lib/utils";
 import {
   calculateQuantityBreakTotal,
   formatQuantityBreakLabel,
+  type QuantityPriceBreak,
 } from "@/lib/pricing/quantityBreaks";
+import { productUsesBundleOnlyPricing } from "@/lib/products/promotions";
 import { MAX_PRODUCT_IMAGES } from "@/config/site";
 import { submitSizeInquiry } from "@/actions/sizeInquiry";
 import {
@@ -45,6 +47,9 @@ export default function ProductPage() {
   const [catalog, setCatalog] = useState(demoProducts);
   const [active, setActive] = useState(0);
   const [qty, setQty] = useState(1);
+  const [selectedBundle, setSelectedBundle] =
+    useState<QuantityPriceBreak | null>(null);
+  const [bundleError, setBundleError] = useState(false);
   const [zoom, setZoom] = useState(false);
   const [openAcc, setOpenAcc] = useState("");
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
@@ -179,11 +184,20 @@ export default function ProductPage() {
     : product.stock > 0;
 
   const volumeDeals = product.quantityPriceBreaks ?? [];
-  const selectedLineTotal = calculateQuantityBreakTotal(
-    product.price,
-    qty,
-    volumeDeals
-  );
+  const hasPackPricing = volumeDeals.length > 0;
+  const bundleOnly =
+    hasPackPricing &&
+    productUsesBundleOnlyPricing({
+      name: product.name,
+      slug: product.slug,
+      sku: product.sku,
+      materials: product.materials,
+      quantityPriceBreaks: volumeDeals,
+      bundleOnlyPricing: product.bundleOnlyPricing,
+    });
+  const selectedLineTotal = bundleOnly
+    ? selectedBundle?.price ?? null
+    : calculateQuantityBreakTotal(product.price, qty, volumeDeals);
 
   const add = () => {
     if (comingSoon) {
@@ -220,27 +234,45 @@ export default function ProductPage() {
       toast.error("Please select a color first");
       return;
     }
+    if (bundleOnly) {
+      if (!selectedBundle) {
+        setBundleError(true);
+        toast.error("Please choose a pack size");
+        return;
+      }
+    }
+    const packQty = bundleOnly ? selectedBundle!.quantity : qty;
+    const packLabel = bundleOnly
+      ? formatQuantityBreakLabel(selectedBundle!)
+      : null;
     const variantParts = [
       selectedWidth || null,
       selectedSize ? sizeLabel(selectedSize, productCategory) : null,
       selectedColor || null,
+      packLabel,
     ].filter(Boolean);
     const variantIdParts = [
       selectedWidth ? `w:${selectedWidth}` : null,
       selectedSize ? `s:${selectedSize}` : null,
       selectedColor ? `c:${selectedColor}` : null,
+      bundleOnly && selectedBundle
+        ? `pack:${selectedBundle.quantity}`
+        : null,
     ].filter(Boolean);
     addItem({
       productId: product.id,
       name: product.name,
       price: product.price,
       image: heroImage || product.images[0],
-      quantity: qty,
+      quantity: packQty,
       variantId: variantIdParts.length ? variantIdParts.join("|") : undefined,
       variantLabel: variantParts.length ? variantParts.join(" · ") : undefined,
       sku: product.sku,
       freeShipping: !!product.freeShipping,
       quantityPriceBreaks: volumeDeals.length ? volumeDeals : undefined,
+      bundleOnlyPricing: bundleOnly || undefined,
+      fixedLineTotal:
+        bundleOnly && selectedBundle ? selectedBundle.price : undefined,
     });
     toast.success("Added to bag");
   };
@@ -364,29 +396,72 @@ export default function ProductPage() {
                 {product.name}
               </h1>
               <div className="mt-4 flex flex-wrap items-center gap-3">
-                <span
-                  className={`text-2xl ${
-                    product.isOnSale &&
-                    (product.compareAtPrice || 0) > product.price
-                      ? "font-semibold text-red-500"
-                      : "text-silver"
-                  }`}
-                >
-                  {formatCurrency(product.price)}
-                </span>
-                {product.isOnSale &&
-                  (product.compareAtPrice || 0) > product.price && (
-                    <span className="text-white/45 line-through">
-                      {formatCurrency(product.compareAtPrice || 0)}
+                {!hasPackPricing && (
+                  <>
+                    <span
+                      className={`text-2xl ${
+                        product.isOnSale &&
+                        (product.compareAtPrice || 0) > product.price
+                          ? "font-semibold text-red-500"
+                          : "text-silver"
+                      }`}
+                    >
+                      {formatCurrency(product.price)}
                     </span>
-                  )}
+                    {product.isOnSale &&
+                      (product.compareAtPrice || 0) > product.price && (
+                        <span className="text-white/45 line-through">
+                          {formatCurrency(product.compareAtPrice || 0)}
+                        </span>
+                      )}
+                  </>
+                )}
                 {product.sku && (
                   <span className="rounded border border-white/15 px-2.5 py-1 font-body text-xs tracking-wide text-white/55">
                     SKU {product.sku}
                   </span>
                 )}
               </div>
-              {volumeDeals.length > 0 && (
+              {hasPackPricing && bundleOnly && (
+                <div className="mt-5">
+                  <p className="mb-2 text-sm uppercase tracking-[0.18em] text-white/70">
+                    Choose your pack
+                  </p>
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    {volumeDeals.map((deal) => {
+                      const isSelected =
+                        selectedBundle?.quantity === deal.quantity &&
+                        selectedBundle?.price === deal.price;
+                      return (
+                        <button
+                          key={`${deal.quantity}-${deal.price}`}
+                          type="button"
+                          onClick={() => {
+                            setSelectedBundle(deal);
+                            setBundleError(false);
+                            setQty(deal.quantity);
+                          }}
+                          className={`flex-1 rounded-lg border px-4 py-3 text-left transition ${
+                            isSelected
+                              ? "border-fuchsia bg-fuchsia/20 text-white"
+                              : "border-white/20 text-white/80 hover:border-fuchsia"
+                          }`}
+                        >
+                          <span className="block font-medium">
+                            {formatQuantityBreakLabel(deal)}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {bundleError && (
+                    <p className="mt-2 text-xs text-red-400">
+                      Please select 2 for $5.50 or 4 for $10.00
+                    </p>
+                  )}
+                </div>
+              )}
+              {volumeDeals.length > 0 && !bundleOnly && (
                 <div className="mt-3 flex flex-wrap gap-2">
                   {volumeDeals.map((deal) => (
                     <button
@@ -745,20 +820,23 @@ export default function ProductPage() {
                 </motion.div>
               )}
 
-              {volumeDeals.length > 0 && !comingSoon && (
+              {volumeDeals.length > 0 && !comingSoon && selectedLineTotal !== null && (
                 <p className="mt-4 text-sm text-white/60">
-                  {qty} item{qty === 1 ? "" : "s"}:{" "}
+                  {bundleOnly && selectedBundle
+                    ? `Selected: ${formatQuantityBreakLabel(selectedBundle)} — `
+                    : `${qty} item${qty === 1 ? "" : "s"}: `}
                   <span className="font-medium text-white">
                     {formatCurrency(selectedLineTotal)}
                   </span>
-                  {selectedLineTotal !== product.price * qty && (
-                    <span className="ml-2 text-fuchsia">(volume price)</span>
-                  )}
+                  {!bundleOnly &&
+                    selectedLineTotal !== product.price * qty && (
+                      <span className="ml-2 text-fuchsia">(volume price)</span>
+                    )}
                 </p>
               )}
 
               <div className="mt-6 flex items-center gap-3">
-                {!comingSoon && (
+                {!comingSoon && !bundleOnly && (
                   <div className="flex items-center rounded-sm border border-white/15">
                     <button
                       type="button"

@@ -46,6 +46,15 @@ export function productQualifiesForFreeShipping(
   return !!p.freeShipping || matchesFundraisingProduct(p);
 }
 
+/** Fundraising / pack-only products: customer must pick an exact bundle tier. */
+export function productUsesBundleOnlyPricing(
+  p: ProductPromotionFields & { bundleOnlyPricing?: boolean }
+): boolean {
+  if (p.bundleOnlyPricing) return true;
+  if (!matchesFundraisingProduct(p)) return false;
+  return effectiveQuantityPriceBreaks(p).length > 0;
+}
+
 export function effectiveQuantityPriceBreaks(
   p: ProductPromotionFields
 ): QuantityPriceBreak[] {

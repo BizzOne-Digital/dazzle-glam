@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { formatCurrency } from "@/lib/utils";
+import { lowestBundlePrice } from "@/lib/pricing/quantityBreaks";
 import { demoProducts, type DemoProduct } from "@/lib/data/demo";
 import { sortProductsForShop } from "@/lib/products/promotions";
 
@@ -113,7 +114,10 @@ export function FeaturedProductSection() {
                     : undefined
                 }
               >
-                {formatCurrency(product.price)}
+                {product.bundleOnlyPricing &&
+                lowestBundlePrice(product.quantityPriceBreaks) !== null
+                  ? `From ${formatCurrency(lowestBundlePrice(product.quantityPriceBreaks)!)}`
+                  : formatCurrency(product.price)}
               </span>
               {product.isOnSale &&
                 (product.compareAtPrice || 0) > product.price && (

@@ -65,3 +65,23 @@ export function formatQuantityBreaksList(
 ): string[] {
   return normalizeQuantityPriceBreaks(breaks).map(formatQuantityBreakLabel);
 }
+
+/** Exact pack only — no mixing tiers or single-unit remainder pricing. */
+export function resolveExactBundlePrice(
+  quantity: number,
+  breaks?: QuantityPriceBreak[] | null
+): number | null {
+  const qty = Math.floor(quantity);
+  const tier = normalizeQuantityPriceBreaks(breaks).find(
+    (b) => b.quantity === qty
+  );
+  return tier ? tier.price : null;
+}
+
+export function lowestBundlePrice(
+  breaks?: QuantityPriceBreak[] | null
+): number | null {
+  const normalized = normalizeQuantityPriceBreaks(breaks);
+  if (!normalized.length) return null;
+  return Math.min(...normalized.map((b) => b.price));
+}

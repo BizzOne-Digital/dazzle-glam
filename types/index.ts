@@ -102,6 +102,10 @@ export interface CartLine {
   freeShipping?: boolean;
   /** Bundle pricing tiers (e.g. 4 for $10). */
   quantityPriceBreaks?: Array<{ quantity: number; price: number }>;
+  /** Only exact bundle tiers allowed (no single-unit / custom qty). */
+  bundleOnlyPricing?: boolean;
+  /** Locked total when bundleOnlyPricing (e.g. exactly $10 for 4-pack). */
+  fixedLineTotal?: number;
 }
 
 export interface QuantityPriceBreak {

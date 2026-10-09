@@ -918,9 +918,11 @@ export default function EditProductPage() {
           <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
             <p className="mb-2 text-sm text-white/70">Volume pricing (optional)</p>
             <p className="mb-4 text-xs text-white/45">
-              Set bundle deals — e.g. quantity <strong>4</strong> at price{" "}
-              <strong>10</strong> means &quot;4 for $10&quot;. Extra items use the
-              single unit price above.
+              Set bundle deals — e.g. quantity <strong>2</strong> at{" "}
+              <strong>5.50</strong> and quantity <strong>4</strong> at{" "}
+              <strong>10</strong> for &quot;2 for $5.50&quot; and &quot;4 for
+              $10&quot;. For pack-only fundraising items, keep unit price at the
+              single-bracelet price (e.g. $2.75), not the pack price.
             </p>
             <div className="space-y-3">
               {quantityPriceBreaks.map((row, index) => (

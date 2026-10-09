@@ -33,6 +33,7 @@ export interface DemoProduct {
   pinToShopTop?: boolean;
   freeShipping?: boolean;
   quantityPriceBreaks?: Array<{ quantity: number; price: number }>;
+  bundleOnlyPricing?: boolean;
   compareAtPrice?: number;
   sku?: string;
   supplier?: string;
