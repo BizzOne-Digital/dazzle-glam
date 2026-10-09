@@ -4,7 +4,19 @@ import { revalidatePath } from "next/cache";
 import { connectDB } from "@/lib/db/connect";
 import { requireAdmin } from "@/lib/auth/session";
 import { Order, type IOrder } from "@/models/Commerce";
-import type { OrderStatus } from "@/types";
+import type { OrderStatus, PaymentStatus } from "@/types";
+import {
+  sendInteracOrderConfirmationEmail,
+  sendOrderConfirmationEmail,
+} from "@/lib/email";
+import { getSiteSettings } from "@/actions/settings";
+
+const STATUSES_THAT_MARK_PAID: OrderStatus[] = [
+  "confirmed",
+  "processing",
+  "shipped",
+  "delivered",
+];
 
 function serialize<T>(data: T): T {
   return JSON.parse(JSON.stringify(data));
@@ -32,6 +44,7 @@ export async function updateAdminOrderStatus(
   id: string,
   data: {
     status?: OrderStatus;
+    paymentStatus?: PaymentStatus;
     trackingNumber?: string;
     courier?: string;
     internalNotes?: string;
@@ -43,6 +56,12 @@ export async function updateAdminOrderStatus(
   if (!order) return { success: false as const, error: "Order not found" };
 
   if (data.status) order.status = data.status;
+  if (data.paymentStatus) {
+    order.paymentStatus = data.paymentStatus;
+  }
+  if (data.status && STATUSES_THAT_MARK_PAID.includes(data.status)) {
+    order.paymentStatus = "paid";
+  }
   if (data.trackingNumber !== undefined) order.trackingNumber = data.trackingNumber;
   if (data.courier !== undefined) order.courier = data.courier;
   if (data.internalNotes !== undefined) order.internalNotes = data.internalNotes;
@@ -66,6 +85,81 @@ export async function updateAdminOrderStatus(
   revalidatePath(`/admin/orders/${id}`);
   revalidatePath("/admin");
   return { success: true as const, data: serialize(order) };
+}
+
+function orderEmailPayload(order: IOrder, customerName: string) {
+  return {
+    orderNumber: order.orderNumber,
+    customerName,
+    customerEmail: order.email,
+    customerPhone: order.phone,
+    items: order.items.map((item) => ({
+      name: item.name,
+      quantity: item.quantity,
+      price: item.price,
+      total: item.total,
+      variantLabel: item.variantLabel,
+      sku: item.sku,
+    })),
+    shippingAddress: {
+      name: customerName,
+      line1: order.shippingAddress?.line1 || "",
+      line2: order.shippingAddress?.line2,
+      city: order.shippingAddress?.city || "",
+      province: order.shippingAddress?.province || "",
+      postalCode: order.shippingAddress?.postalCode || "",
+      country: order.shippingAddress?.country || "Canada",
+    },
+    subtotal: order.subtotal,
+    shippingAmount: order.shippingAmount,
+    taxAmount: order.taxAmount,
+    total: order.total,
+    currency: order.currency || "CAD",
+    shippingMethod: order.shippingMethod,
+  };
+}
+
+export async function resendOrderConfirmationEmail(orderId: string) {
+  await requireAdmin();
+  await connectDB();
+  const order = await Order.findById(orderId);
+  if (!order) return { success: false as const, error: "Order not found" };
+
+  const customerName =
+    `${order.shippingAddress?.firstName || ""} ${order.shippingAddress?.lastName || ""}`.trim() ||
+    "Customer";
+  const payload = orderEmailPayload(order, customerName);
+
+  try {
+    if (order.paymentMethod === "interac") {
+      const settings = await getSiteSettings();
+      const interacEmail =
+        settings.data?.email ||
+        process.env.ADMIN_EMAIL ||
+        process.env.SMTP_USER ||
+        "dazzleglamcollection@gmail.com";
+      await sendInteracOrderConfirmationEmail({
+        to: order.email,
+        interacEmail,
+        ...payload,
+      });
+    } else {
+      await sendOrderConfirmationEmail({
+        to: order.email,
+        ...payload,
+      });
+    }
+    return { success: true as const };
+  } catch (error) {
+    console.error("resendOrderConfirmationEmail:", error);
+    return {
+      success: false as const,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to send confirmation email",
+    };
+  }
 }
 
 /** Remove placeholder / demo orders that are not from Stripe checkout */

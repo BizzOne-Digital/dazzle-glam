@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import { connectDB } from "@/lib/db/connect";
 import {
   sendNewOrderAdminEmail,
-  sendOrderConfirmationEmail,
+  sendInteracOrderConfirmationEmail,
 } from "@/lib/email";
 import { createOrderNumber } from "@/lib/services/orders";
 import {
@@ -203,8 +203,9 @@ export async function POST(req: Request) {
     };
 
     try {
-      await sendOrderConfirmationEmail({
+      await sendInteracOrderConfirmationEmail({
         to: order.email,
+        interacEmail,
         ...payload,
       });
     } catch (error) {

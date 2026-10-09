@@ -193,6 +193,80 @@ export async function sendOrderConfirmationEmail({
   });
 }
 
+export async function sendInteracOrderConfirmationEmail({
+  to,
+  interacEmail,
+  orderNumber,
+  customerName,
+  items,
+  shippingAddress,
+  subtotal,
+  shippingAmount,
+  taxAmount,
+  total,
+  currency = "CAD",
+}: OrderEmailPayload & { to: string; interacEmail: string }) {
+  const transporter = createTransport();
+
+  await transporter.sendMail({
+    from: fromAddress(),
+    to,
+    subject: `Your order ${orderNumber} — complete Interac payment — Dazzle Glam`,
+    html: `
+      <div style="font-family:sans-serif;max-width:600px;margin:0 auto;background:#000;color:#fff;padding:32px;border-radius:12px">
+        <div style="text-align:center;margin-bottom:24px">
+          <h1 style="color:#ff1493;font-size:28px;margin:0">Dazzle Glam</h1>
+          <p style="color:#888;font-size:12px;margin:4px 0 0">Order received — payment required</p>
+        </div>
+
+        <h2 style="font-size:22px;margin:0 0 12px">Thank you, ${customerName || "there"}!</h2>
+        <p style="color:#ccc;line-height:1.6;margin:0 0 20px">
+          Your order <strong style="color:#ff1493">${orderNumber}</strong> is reserved.
+          Please send an Interac e-Transfer using the details below. We will confirm your order once payment arrives.
+        </p>
+
+        <div style="background:#1a1a1a;border:1px solid #ff1493;border-radius:8px;padding:16px;margin:0 0 20px">
+          <p style="margin:0 0 12px;color:#888;font-size:12px;text-transform:uppercase;letter-spacing:0.08em">Interac e-Transfer</p>
+          <p style="margin:0 0 8px"><span style="color:#888">Send to:</span> <strong style="color:#fff">${interacEmail}</strong></p>
+          <p style="margin:0 0 8px"><span style="color:#888">Amount:</span> <strong style="color:#ff1493;font-size:18px">${formatMoney(total, currency)}</strong></p>
+          <p style="margin:0"><span style="color:#888">Order Reference #:</span> <strong style="color:#fff">${orderNumber}</strong></p>
+        </div>
+
+        <table style="width:100%;border-collapse:collapse;margin-bottom:20px">
+          <thead>
+            <tr>
+              <th style="text-align:left;color:#888;font-size:12px;padding-bottom:8px">Item</th>
+              <th style="text-align:center;color:#888;font-size:12px;padding-bottom:8px">Qty</th>
+              <th style="text-align:right;color:#888;font-size:12px;padding-bottom:8px">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${orderItemsHtml(items, currency)}
+          </tbody>
+        </table>
+
+        <div style="background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:16px;margin-bottom:20px">
+          <p style="margin:0 0 8px;display:flex;justify-content:space-between"><span style="color:#888">Subtotal</span><span>${formatMoney(subtotal, currency)}</span></p>
+          <p style="margin:0 0 8px;display:flex;justify-content:space-between"><span style="color:#888">Shipping</span><span>${shippingAmount > 0 ? formatMoney(shippingAmount, currency) : "Free"}</span></p>
+          <p style="margin:0 0 8px;display:flex;justify-content:space-between"><span style="color:#888">Tax</span><span>${formatMoney(taxAmount, currency)}</span></p>
+          <p style="margin:12px 0 0;padding-top:12px;border-top:1px solid #333;display:flex;justify-content:space-between;font-size:16px;font-weight:bold"><span>Total due</span><span style="color:#ff1493">${formatMoney(total, currency)}</span></p>
+        </div>
+
+        <p style="color:#ccc;line-height:1.6;font-size:14px">
+          Include your order number (<strong>${orderNumber}</strong>) in the Interac message so we can match your payment quickly.
+        </p>
+
+        <p style="color:#888;font-size:12px;margin:0 0 6px;margin-top:20px">Shipping Address</p>
+        <p style="color:#ccc;line-height:1.6;margin:0 0 24px">${addressHtml(shippingAddress)}</p>
+
+        <p style="color:#ccc;line-height:1.6">
+          Questions? Contact us at dazzleglamcollection@gmail.com.
+        </p>
+      </div>
+    `,
+  });
+}
+
 export async function sendNewOrderAdminEmail({
   to,
   orderNumber,

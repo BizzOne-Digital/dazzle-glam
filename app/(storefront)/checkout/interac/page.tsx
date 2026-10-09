@@ -13,7 +13,6 @@ import { Copy, Check } from "lucide-react";
 function InteracContent() {
   const searchParams = useSearchParams();
   const orderNumber = searchParams.get("order") || "";
-  const email = searchParams.get("email") || "";
   const total = Number(searchParams.get("total") || 0);
   const [interacEmail, setInteracEmail] = useState(
     "dazzleglamcollection@gmail.com"
@@ -50,8 +49,7 @@ function InteracContent() {
       <p className="mx-auto mt-4 max-w-lg text-white/60">
         Your order{orderNumber ? ` ${orderNumber}` : ""} is reserved. Send an
         Interac e-Transfer using the details below. We will confirm your order
-        once payment arrives
-        {email ? ` and email ${email}` : ""}.
+        once payment arrives.
       </p>
 
       <div className="mx-auto mt-10 max-w-md space-y-4 rounded-2xl border border-white/10 bg-black/40 p-6 text-left text-sm">
@@ -86,7 +84,7 @@ function InteracContent() {
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-xs uppercase tracking-wider text-white/45">
-              Message / Reference
+              Order Reference #
             </p>
             <p className="mt-1 font-medium text-white">
               {orderNumber || "Your order number"}
@@ -108,8 +106,8 @@ function InteracContent() {
           )}
         </div>
         <p className="border-t border-white/10 pt-4 text-xs leading-relaxed text-white/45">
-          Use Autodeposit if prompted. Include your order number in the Interac
-          message so we can match your payment quickly.
+          Include your order number in the Interac message so we can match your
+          payment quickly.
         </p>
       </div>
 

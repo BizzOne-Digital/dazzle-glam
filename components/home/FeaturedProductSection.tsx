@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { formatCurrency } from "@/lib/utils";
 import { demoProducts, type DemoProduct } from "@/lib/data/demo";
+import { sortProductsForShop } from "@/lib/products/promotions";
 
 export function FeaturedProductSection() {
   const [catalog, setCatalog] = useState<DemoProduct[]>(demoProducts);
@@ -24,9 +25,13 @@ export function FeaturedProductSection() {
 
   const ref = useRef<HTMLDivElement>(null);
 
+  const sorted = sortProductsForShop(catalog);
   const product =
+    sorted.find((p) => p.pinToShopTop) ||
+    catalog.find((p) => p.isFeatured) ||
     catalog.find((p) => p.slug === "sapphire-birthstone-promise-ring") ||
     catalog.find((p) => p.isBestSeller) ||
+    sorted[0] ||
     catalog[0];
 
   if (!product) return null;

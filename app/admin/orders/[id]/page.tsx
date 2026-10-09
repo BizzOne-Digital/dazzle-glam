@@ -9,8 +9,11 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import { formatCurrency } from "@/lib/utils";
-import { updateAdminOrderStatus } from "@/actions/orders";
-import type { OrderStatus } from "@/types";
+import {
+  resendOrderConfirmationEmail,
+  updateAdminOrderStatus,
+} from "@/actions/orders";
+import type { OrderStatus, PaymentStatus } from "@/types";
 
 type OrderDetail = {
   _id: string;
@@ -41,7 +44,8 @@ type OrderDetail = {
   taxAmount: number;
   total: number;
   status: OrderStatus;
-  paymentStatus: string;
+  paymentStatus: PaymentStatus;
+  paymentMethod?: string;
   shippingMethod?: string;
   trackingNumber?: string;
   courier?: string;
@@ -55,6 +59,8 @@ export default function AdminOrderDetailPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<OrderStatus>("pending");
+  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>("pending");
+  const [resending, setResending] = useState(false);
   const [trackingNumber, setTrackingNumber] = useState("");
   const [courier, setCourier] = useState("");
   const [internalNotes, setInternalNotes] = useState("");
@@ -69,6 +75,7 @@ export default function AdminOrderDetailPage() {
         const o = data.order as OrderDetail;
         setOrder(o);
         setStatus(o.status);
+        setPaymentStatus(o.paymentStatus || "pending");
         setTrackingNumber(o.trackingNumber || "");
         setCourier(o.courier || "");
         setInternalNotes(o.internalNotes || "");
@@ -86,23 +93,27 @@ export default function AdminOrderDetailPage() {
     try {
       const res = await updateAdminOrderStatus(order._id, {
         status,
+        paymentStatus,
         trackingNumber,
         courier,
         internalNotes,
       });
       if (!res.success) throw new Error(res.error || "Update failed");
       toast.success("Order updated");
+      const updated = res.data as OrderDetail | undefined;
       setOrder((prev) =>
         prev
           ? {
               ...prev,
-              status,
+              status: updated?.status ?? status,
+              paymentStatus: updated?.paymentStatus ?? paymentStatus,
               trackingNumber,
               courier,
               internalNotes,
             }
           : prev
       );
+      if (updated?.paymentStatus) setPaymentStatus(updated.paymentStatus);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Update failed");
     } finally {
@@ -152,9 +163,24 @@ export default function AdminOrderDetailPage() {
           <span className="text-white/45">Phone:</span> {order.phone || "—"}
         </p>
         <p>
-          <span className="text-white/45">Payment:</span>{" "}
-          <span className="capitalize">{order.paymentStatus}</span>
+          <span className="text-white/45">Order status:</span>{" "}
+          <span className="capitalize">{order.status}</span>
         </p>
+        <p>
+          <span className="text-white/45">Payment status:</span>{" "}
+          <span className="capitalize">{order.paymentStatus}</span>
+          {order.paymentMethod === "interac" && order.paymentStatus === "pending" && (
+            <span className="ml-2 text-xs text-amber-300">
+              (Awaiting Interac e-Transfer)
+            </span>
+          )}
+        </p>
+        {order.paymentMethod && (
+          <p>
+            <span className="text-white/45">Payment method:</span>{" "}
+            <span className="capitalize">{order.paymentMethod}</span>
+          </p>
+        )}
         <p>
           <span className="text-white/45">Placed:</span>{" "}
           {order.createdAt ? new Date(order.createdAt).toLocaleString() : "—"}
@@ -248,6 +274,22 @@ export default function AdminOrderDetailPage() {
             { label: "Refunded", value: "refunded" },
           ]}
         />
+        <Select
+          label="Payment status"
+          value={paymentStatus}
+          onChange={(e) => setPaymentStatus(e.target.value as PaymentStatus)}
+          options={[
+            { label: "Pending", value: "pending" },
+            { label: "Paid", value: "paid" },
+            { label: "Failed", value: "failed" },
+            { label: "Refunded", value: "refunded" },
+            { label: "Partially refunded", value: "partially_refunded" },
+          ]}
+        />
+        <p className="text-xs text-white/45">
+          Tip: setting order status to Confirmed or Shipped automatically marks
+          payment as Paid (for Interac orders after you receive the transfer).
+        </p>
         <Input
           label="Tracking number"
           value={trackingNumber}
@@ -267,9 +309,35 @@ export default function AdminOrderDetailPage() {
           onChange={(e) => setInternalNotes(e.target.value)}
           placeholder="Warehouse notes…"
         />
-        <Button onClick={() => void save()} loading={saving}>
-          Update order
-        </Button>
+        <div className="flex flex-wrap gap-3">
+          <Button onClick={() => void save()} loading={saving}>
+            Update order
+          </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            loading={resending}
+            onClick={async () => {
+              if (!order) return;
+              setResending(true);
+              try {
+                const res = await resendOrderConfirmationEmail(order._id);
+                if (!res.success) {
+                  throw new Error(res.error || "Could not send email");
+                }
+                toast.success("Confirmation email sent");
+              } catch (err) {
+                toast.error(
+                  err instanceof Error ? err.message : "Could not send email"
+                );
+              } finally {
+                setResending(false);
+              }
+            }}
+          >
+            Resend confirmation email
+          </Button>
+        </div>
       </div>
     </div>
   );
