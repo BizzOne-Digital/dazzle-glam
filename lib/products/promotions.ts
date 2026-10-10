@@ -98,6 +98,29 @@ export function sortProductsForShop<T extends ProductPromotionFields>(
   return [...pinned, ...rest];
 }
 
+type FeaturedCatalogProduct = ProductPromotionFields & {
+  isFeatured?: boolean;
+  isBestSeller?: boolean;
+  slug?: string;
+};
+
+/** Homepage spotlight + shop default order — fundraising / pinned first. */
+export function pickFeaturedCatalogProduct<T extends FeaturedCatalogProduct>(
+  catalog: T[]
+): T | undefined {
+  if (!catalog.length) return undefined;
+  const sorted = sortProductsForShop(catalog);
+  const pinned = sorted.find((p) => productPinsToShopTop(p));
+  if (pinned) return pinned;
+  return (
+    catalog.find((p) => p.isFeatured) ||
+    catalog.find((p) => p.slug === "sapphire-birthstone-promise-ring") ||
+    catalog.find((p) => p.isBestSeller) ||
+    sorted[0] ||
+    catalog[0]
+  );
+}
+
 export function fundraisingProductMongoQuery() {
   return {
     $or: [

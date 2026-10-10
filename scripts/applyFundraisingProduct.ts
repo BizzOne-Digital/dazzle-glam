@@ -18,6 +18,7 @@ async function main() {
 
   for (const product of matches) {
     product.pinToShopTop = true;
+    product.isFeatured = true;
     product.freeShipping = true;
     if (!product.quantityPriceBreaks?.length) {
       product.quantityPriceBreaks = [...FUNDRAISING_DEFAULT_QUANTITY_BREAKS];

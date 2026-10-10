@@ -8,6 +8,7 @@ import { deleteLocalUpload } from "@/lib/upload/local";
 import { mapMongoProduct, type MongoProductLike } from "@/lib/products/map";
 import { MAX_PRODUCT_IMAGES } from "@/config/site";
 import { normalizeQuantityPriceBreaks } from "@/lib/pricing/quantityBreaks";
+import { matchesFundraisingProduct } from "@/lib/products/promotions";
 import { isProductCategory } from "@/lib/productSizes";
 import {
   buildVariantsFromMatrix,
@@ -278,6 +279,19 @@ export async function updateProductAdmin(
       }));
     }
 
+    if (
+      matchesFundraisingProduct({
+        name: product.name,
+        slug: product.slug,
+        sku: product.sku,
+        materials: product.materials,
+      })
+    ) {
+      product.pinToShopTop = true;
+      product.isFeatured = true;
+      product.freeShipping = true;
+    }
+
     await product.save();
 
     // Ensure flag fields persist even if an older in-memory schema missed them
@@ -288,6 +302,7 @@ export async function updateProductAdmin(
           isComingSoon: !!product.isComingSoon,
           isBestSeller: !!product.isBestSeller,
           isNewArrival: !!product.isNewArrival,
+          isFeatured: !!product.isFeatured,
           isOnSale: !!product.isOnSale,
           compareAtPrice: product.compareAtPrice || null,
           sku: product.sku || null,

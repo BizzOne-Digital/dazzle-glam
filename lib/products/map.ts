@@ -5,6 +5,7 @@ import type { ProductVariantPlain } from "@/lib/productVariants";
 import { MAX_PRODUCT_IMAGES } from "@/config/site";
 import {
   effectiveQuantityPriceBreaks,
+  matchesFundraisingProduct,
   productPinsToShopTop,
   productQualifiesForFreeShipping,
   productUsesBundleOnlyPricing,
@@ -101,7 +102,14 @@ export function mapMongoProduct(p: MongoProductLike): DemoProduct {
     images: images.length
       ? images.slice(0, MAX_PRODUCT_IMAGES)
       : ["/images/products/placeholder.png"],
-    isFeatured: !!p.isFeatured,
+    isFeatured:
+      !!p.isFeatured ||
+      matchesFundraisingProduct({
+        name: p.name,
+        slug: p.slug,
+        sku: p.sku,
+        materials: p.materials,
+      }),
     isBestSeller: !!p.isBestSeller,
     isNewArrival: !!p.isNewArrival,
     isComingSoon: !!p.isComingSoon,

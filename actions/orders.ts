@@ -8,6 +8,7 @@ import type { OrderStatus, PaymentStatus } from "@/types";
 import {
   sendInteracOrderConfirmationEmail,
   sendOrderConfirmationEmail,
+  sendOrderShippedEmail,
 } from "@/lib/email";
 import { getSiteSettings } from "@/actions/settings";
 
@@ -55,6 +56,8 @@ export async function updateAdminOrderStatus(
   const order = await Order.findById(id);
   if (!order) return { success: false as const, error: "Order not found" };
 
+  const previousStatus = order.status;
+
   if (data.status) order.status = data.status;
   if (data.paymentStatus) {
     order.paymentStatus = data.paymentStatus;
@@ -81,6 +84,24 @@ export async function updateAdminOrderStatus(
   }
 
   await order.save();
+
+  if (data.status === "shipped" && previousStatus !== "shipped") {
+    const customerName =
+      `${order.shippingAddress?.firstName || ""} ${order.shippingAddress?.lastName || ""}`.trim() ||
+      "Customer";
+    try {
+      await sendOrderShippedEmail({
+        to: order.email,
+        orderNumber: order.orderNumber,
+        customerName,
+        trackingNumber: order.trackingNumber,
+        courier: order.courier,
+      });
+    } catch (error) {
+      console.error("sendOrderShippedEmail:", error);
+    }
+  }
+
   revalidatePath("/admin/orders");
   revalidatePath(`/admin/orders/${id}`);
   revalidatePath("/admin");

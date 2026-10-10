@@ -18,7 +18,10 @@ import {
   formatQuantityBreakLabel,
   type QuantityPriceBreak,
 } from "@/lib/pricing/quantityBreaks";
-import { productUsesBundleOnlyPricing } from "@/lib/products/promotions";
+import {
+  matchesFundraisingProduct,
+  productUsesBundleOnlyPricing,
+} from "@/lib/products/promotions";
 import { MAX_PRODUCT_IMAGES } from "@/config/site";
 import { submitSizeInquiry } from "@/actions/sizeInquiry";
 import {
@@ -89,9 +92,18 @@ export default function ProductPage() {
       .catch(() => undefined);
   }, [params.slug]);
 
+  const isFundraisingBracelet = product
+    ? matchesFundraisingProduct({
+        name: product.name,
+        slug: product.slug,
+        sku: product.sku,
+        materials: product.materials,
+      })
+    : false;
+
   useEffect(() => {
     if (!product) return;
-    if (!categoryNeedsSizes(product.category)) {
+    if (isFundraisingBracelet || !categoryNeedsSizes(product.category)) {
       setLiveSizes([]);
       return;
     }
@@ -112,7 +124,7 @@ export default function ProductPage() {
       .then((r) => r.json())
       .then((data) => setLiveSizes(data.sizes ?? []))
       .catch(() => setLiveSizes(product.sizes));
-  }, [product, selectedWidth]);
+  }, [product, selectedWidth, isFundraisingBracelet]);
 
   useEffect(() => {
     setSelectedSize(null);
@@ -131,7 +143,8 @@ export default function ProductPage() {
       : product?.images[active] || product?.images[0]) ?? "/images/products/placeholder.png";
   const productCategory = product?.category || "rings";
   const sizePresets = getSizePresetsForCategory(productCategory);
-  const showSizeSection = categoryNeedsSizes(productCategory);
+  const showSizeSection =
+    categoryNeedsSizes(productCategory) && !isFundraisingBracelet;
   const showColorSection = availableColors.length > 0;
   const usesVariantMatrix = categoryUsesColorSizeMatrix(productCategory);
   const variantSizeOptions = product?.sizeOptions ?? [];

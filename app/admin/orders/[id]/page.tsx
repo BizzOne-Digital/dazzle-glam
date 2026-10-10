@@ -289,6 +289,8 @@ export default function AdminOrderDetailPage() {
         <p className="text-xs text-white/45">
           Tip: setting order status to Confirmed or Shipped automatically marks
           payment as Paid (for Interac orders after you receive the transfer).
+          Marking an order as Shipped emails the customer a shipping notification
+          (with tracking if provided).
         </p>
         <Input
           label="Tracking number"

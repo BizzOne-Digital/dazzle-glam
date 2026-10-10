@@ -193,6 +193,63 @@ export async function sendOrderConfirmationEmail({
   });
 }
 
+export async function sendOrderShippedEmail({
+  to,
+  orderNumber,
+  customerName,
+  trackingNumber,
+  courier,
+}: {
+  to: string;
+  orderNumber: string;
+  customerName: string;
+  trackingNumber?: string;
+  courier?: string;
+}) {
+  const transporter = createTransport();
+  const trackingBlock =
+    trackingNumber?.trim()
+      ? `
+        <div style="background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:16px;margin:0 0 20px">
+          <p style="margin:0;color:#888;font-size:12px">Tracking</p>
+          <p style="margin:4px 0 0;font-size:16px;font-weight:bold;color:#fff">${trackingNumber.trim()}</p>
+          ${
+            courier?.trim()
+              ? `<p style="margin:8px 0 0;color:#ccc;font-size:14px">Carrier: ${courier.trim()}</p>`
+              : ""
+          }
+        </div>`
+      : `<p style="color:#ccc;line-height:1.6;margin:0 0 20px">Your package is on its way. Tracking details will follow if they become available.</p>`;
+
+  await transporter.sendMail({
+    from: fromAddress(),
+    to,
+    subject: `Your order ${orderNumber} has shipped — Dazzle Glam`,
+    html: `
+      <div style="font-family:sans-serif;max-width:600px;margin:0 auto;background:#000;color:#fff;padding:32px;border-radius:12px">
+        <div style="text-align:center;margin-bottom:24px">
+          <h1 style="color:#ff1493;font-size:28px;margin:0">Dazzle Glam</h1>
+          <p style="color:#888;font-size:12px;margin:4px 0 0">Order Shipped</p>
+        </div>
+
+        <h2 style="font-size:22px;margin:0 0 12px">Your order is on the way!</h2>
+        <p style="color:#ccc;line-height:1.6;margin:0 0 20px">
+          Hi ${customerName || "there"}, great news — order <strong style="color:#ff1493">${orderNumber}</strong> has shipped.
+        </p>
+
+        ${trackingBlock}
+
+        <p style="color:#ccc;line-height:1.6">
+          Questions? Reply to this email or contact us at dazzleglamcollection@gmail.com.
+        </p>
+        <p style="color:#666;font-size:12px;text-align:center;margin-top:32px">
+          With love,<br>Dazzle Glam Jewelry Collection<br>dazzleglamjewelry.ca
+        </p>
+      </div>
+    `,
+  });
+}
+
 export async function sendInteracOrderConfirmationEmail({
   to,
   interacEmail,
