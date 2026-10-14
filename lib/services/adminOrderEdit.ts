@@ -1,19 +1,16 @@
 import mongoose from "mongoose";
 import { connectDB } from "@/lib/db/connect";
+import {
+  computeLineTotal,
+  computeOrderTotals,
+} from "@/lib/pricing/orderTotals";
+import type { AdminOrderLineInput } from "@/lib/types/adminOrder";
 import { Product, SiteSettings, type IProduct, type ISiteSettings } from "@/models";
 import type { IOrderItem } from "@/models/Commerce";
 import type { Address } from "@/types";
 
-export type AdminOrderLineInput = {
-  productId?: string;
-  variantId?: string;
-  name: string;
-  quantity: number;
-  price: number;
-  variantLabel?: string;
-  sku?: string;
-  image?: string;
-};
+export type { AdminOrderLineInput } from "@/lib/types/adminOrder";
+export { computeLineTotal, computeOrderTotals } from "@/lib/pricing/orderTotals";
 
 function roundMoney(value: number): number {
   return Math.round(value * 100) / 100;
@@ -23,25 +20,6 @@ export async function getOrderTaxRate(): Promise<number> {
   await connectDB();
   const settings = (await SiteSettings.findOne().lean()) as ISiteSettings | null;
   return settings?.taxRate ?? 0.13;
-}
-
-export function computeLineTotal(price: number, quantity: number): number {
-  return roundMoney(price * quantity);
-}
-
-export function computeOrderTotals(
-  subtotal: number,
-  discountAmount: number,
-  shippingAmount: number,
-  taxRate: number
-): { subtotal: number; taxAmount: number; total: number } {
-  const normalizedSubtotal = roundMoney(subtotal);
-  const discount = roundMoney(Math.max(0, discountAmount));
-  const shipping = roundMoney(Math.max(0, shippingAmount));
-  const taxableBase = Math.max(0, normalizedSubtotal - discount);
-  const taxAmount = roundMoney(taxableBase * taxRate);
-  const total = roundMoney(taxableBase + shipping + taxAmount);
-  return { subtotal: normalizedSubtotal, taxAmount, total };
 }
 
 export async function normalizeAdminOrderLines(

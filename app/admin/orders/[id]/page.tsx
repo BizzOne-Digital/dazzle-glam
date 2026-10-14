@@ -14,7 +14,7 @@ import {
   stripLineKeys,
   type EditableOrderLine,
 } from "@/components/admin/AdminOrderItemsEditor";
-import { computeOrderTotals } from "@/lib/services/adminOrderEdit";
+import { computeOrderTotals } from "@/lib/pricing/orderTotals";
 import {
   resendOrderConfirmationEmail,
   updateAdminOrderStatus,
@@ -102,11 +102,11 @@ export default function AdminOrderDetailPage() {
     setInternalNotes(o.internalNotes || "");
     setEmail(o.email);
     setPhone(o.phone || "");
-    setLines(linesFromOrderItems(o.items || []));
-    setDiscountAmount(o.discountAmount ?? 0);
-    setShippingAmount(o.shippingAmount ?? 0);
-    setTaxAmount(o.taxAmount ?? 0);
-    setTotal(o.total ?? 0);
+    setLines(linesFromOrderItems(Array.isArray(o.items) ? o.items : []));
+    setDiscountAmount(Number(o.discountAmount) || 0);
+    setShippingAmount(Number(o.shippingAmount) || 0);
+    setTaxAmount(Number(o.taxAmount) || 0);
+    setTotal(Number(o.total) || 0);
     setManualTotals(false);
     setShipFirst(o.shippingAddress?.firstName || "");
     setShipLast(o.shippingAddress?.lastName || "");

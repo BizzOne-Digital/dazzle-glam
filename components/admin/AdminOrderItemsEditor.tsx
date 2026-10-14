@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
 import { formatCurrency } from "@/lib/utils";
-import type { AdminOrderLineInput } from "@/lib/services/adminOrderEdit";
+import type { AdminOrderLineInput } from "@/lib/types/adminOrder";
 
 export type EditableOrderLine = AdminOrderLineInput & { key: string };
 
@@ -37,9 +37,9 @@ function toEditableLine(
     key: `existing-${index}`,
     productId: item.productId,
     variantId: item.variantId,
-    name: item.name,
-    quantity: item.quantity,
-    price: item.price,
+    name: item.name?.trim() || "Item",
+    quantity: Math.max(1, Number(item.quantity) || 1),
+    price: Math.max(0, Number(item.price) || 0),
     variantLabel: item.variantLabel,
     sku: item.sku,
     image: item.image,
