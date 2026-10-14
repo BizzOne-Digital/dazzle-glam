@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"},{"v":{"$numberInt":"2"},"key":{"productId":{"$numberInt":"1"}},"name":"productId_1","background":true}],"uuid":"f97dc215920d450dbe25aea8913fa72a","collectionName":"sizeinquiries","type":"collection"}

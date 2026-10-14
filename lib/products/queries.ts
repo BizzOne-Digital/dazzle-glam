@@ -1,0 +1,62 @@
+import { connectDB } from "@/lib/db/connect";
+import { Product } from "@/models/Product";
+import { demoProducts, toCardProduct } from "@/lib/data/demo";
+import { mapMongoProduct, type MongoProductLike } from "./map";
+import { sortProductsForShop } from "@/lib/products/promotions";
+
+function leanList(docs: unknown[]) {
+  return JSON.parse(JSON.stringify(docs)) as MongoProductLike[];
+}
+
+export async function getPublishedProducts() {
+  try {
+    await connectDB();
+    const docs = await Product.find({ status: "published" })
+      .sort({ pinToShopTop: -1, createdAt: -1 })
+      .lean();
+    if (!docs.length) return demoProducts;
+    return sortProductsForShop(leanList(docs).map(mapMongoProduct));
+  } catch (error) {
+    console.error("getPublishedProducts:", error);
+    return demoProducts;
+  }
+}
+
+export async function getProductBySlug(slug: string) {
+  try {
+    await connectDB();
+    const doc = await Product.findOne({ slug, status: "published" }).lean();
+    if (doc) return mapMongoProduct(doc as unknown as MongoProductLike);
+  } catch (error) {
+    console.error("getProductBySlug:", error);
+  }
+  return demoProducts.find((p) => p.slug === slug) || null;
+}
+
+export async function getProductCards() {
+  try {
+    await connectDB();
+    const docs = await Product.find({ status: "published" })
+      .sort({ pinToShopTop: -1, createdAt: -1 })
+      .lean();
+    if (!docs.length) return demoProducts.map(toCardProduct);
+    return sortProductsForShop(leanList(docs).map(mapMongoProduct)).map(
+      toCardProduct
+    );
+  } catch {
+    return demoProducts.map(toCardProduct);
+  }
+}
+
+export async function getAdminProducts() {
+  await connectDB();
+  const docs = await Product.find({}).sort({ updatedAt: -1 }).lean();
+  return leanList(docs).map(mapMongoProduct);
+}
+
+export async function getAdminProductById(id: string) {
+  await connectDB();
+  const doc = await Product.findById(id).lean();
+  if (!doc) return null;
+  return mapMongoProduct(doc as unknown as MongoProductLike);
+}
