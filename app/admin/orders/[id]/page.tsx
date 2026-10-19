@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -16,6 +16,7 @@ import {
 } from "@/components/admin/AdminOrderItemsEditor";
 import { computeOrderTotals } from "@/lib/pricing/orderTotals";
 import {
+  deleteAdminOrder,
   resendOrderConfirmationEmail,
   updateAdminOrderStatus,
 } from "@/actions/orders";
@@ -64,9 +65,11 @@ type OrderDetail = {
 
 export default function AdminOrderDetailPage() {
   const params = useParams<{ id: string }>();
+  const router = useRouter();
   const [order, setOrder] = useState<OrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [status, setStatus] = useState<OrderStatus>("pending");
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>("pending");
   const [resending, setResending] = useState(false);
@@ -240,9 +243,44 @@ export default function AdminOrderDetailPage() {
           <p className="text-xs uppercase tracking-wider text-silver">Order</p>
           <h1 className="font-heading text-3xl text-fuchsia">{order.orderNumber}</h1>
         </div>
-        <Button asChild variant="secondary">
-          <Link href="/admin/orders">All orders</Link>
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button asChild variant="secondary">
+            <Link href="/admin/orders">All orders</Link>
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            loading={deleting}
+            className="text-red-400 hover:text-red-300"
+            onClick={async () => {
+              if (!order) return;
+              if (
+                !confirm(
+                  `Permanently delete order ${order.orderNumber}? This cannot be undone.`
+                )
+              ) {
+                return;
+              }
+              setDeleting(true);
+              try {
+                const res = await deleteAdminOrder(order._id);
+                if (!res.success) {
+                  throw new Error(res.error || "Delete failed");
+                }
+                toast.success(`Order ${res.orderNumber} deleted`);
+                router.push("/admin/orders");
+              } catch (err) {
+                toast.error(
+                  err instanceof Error ? err.message : "Delete failed"
+                );
+              } finally {
+                setDeleting(false);
+              }
+            }}
+          >
+            Delete order
+          </Button>
+        </div>
       </div>
 
       <div className="rounded-xl border border-white/10 p-6 space-y-4 text-sm">

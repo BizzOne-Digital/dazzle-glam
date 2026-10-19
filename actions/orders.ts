@@ -272,6 +272,20 @@ export async function resendOrderConfirmationEmail(orderId: string) {
   }
 }
 
+export async function deleteAdminOrder(id: string) {
+  await requireAdmin();
+  await connectDB();
+  const order = await Order.findById(id);
+  if (!order) {
+    return { success: false as const, error: "Order not found" };
+  }
+  await Order.deleteOne({ _id: order._id });
+  revalidatePath("/admin/orders");
+  revalidatePath("/admin");
+  revalidatePath(`/admin/orders/${id}`);
+  return { success: true as const, orderNumber: order.orderNumber };
+}
+
 /** Remove placeholder / demo orders that are not from Stripe checkout */
 export async function deleteDummyOrders() {
   await requireAdmin();

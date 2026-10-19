@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { useCartStore } from "@/lib/store/cart";
+import { cartLineUsesBundleOnlyPricing } from "@/lib/pricing/checkoutValidation";
 import { cn, formatCurrency } from "@/lib/utils";
 
 export interface ProductCardData {
@@ -24,6 +25,8 @@ export interface ProductCardData {
   isOnSale?: boolean;
   compareAtPrice?: number;
   sku?: string;
+  bundleOnlyPricing?: boolean;
+  quantityPriceBreaks?: Array<{ quantity: number; price: number }>;
 }
 
 export interface ProductCardProps {
@@ -75,6 +78,18 @@ export function ProductCard({
     }
     if (!inStock) {
       toast.error("This piece is currently sold out");
+      return;
+    }
+    if (
+      cartLineUsesBundleOnlyPricing({
+        name: product.name,
+        sku: product.sku,
+        quantity: 1,
+        bundleOnlyPricing: product.bundleOnlyPricing,
+        quantityPriceBreaks: product.quantityPriceBreaks,
+      })
+    ) {
+      toast.error("Please choose a pack size on the product page (2 for $5.50 or 4 for $10.00)");
       return;
     }
     addItem({

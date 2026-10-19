@@ -12,6 +12,7 @@ import { formatCurrency } from "@/lib/utils";
 import { calcShippingCost } from "@/lib/shipping";
 import { cartQualifiesForProductFreeShipping } from "@/lib/products/promotions";
 import { cartSubtotal, getCartLineTotal } from "@/lib/pricing/cartLine";
+import { cartLineUsesBundleOnlyPricing } from "@/lib/pricing/checkoutValidation";
 import { demoProducts, toCardProduct } from "@/lib/data/demo";
 import { ScrollReveal } from "@/components/animations/ScrollReveal";
 import {
@@ -79,7 +80,9 @@ export default function CartPage() {
         </ScrollReveal>
         <div className="mt-10 grid gap-10 lg:grid-cols-[1.2fr_0.8fr]">
           <div className="space-y-4">
-            {items.map((item, i) => (
+            {items.map((item, i) => {
+              const packOnly = cartLineUsesBundleOnlyPricing(item);
+              return (
               <motion.div
                 key={item.id}
                 className="flex flex-col gap-3 rounded-xl border border-white/10 bg-white/[0.02] p-4 sm:flex-row sm:gap-4"
@@ -109,6 +112,11 @@ export default function CartPage() {
                     </p>
                     <p className="mt-1 text-silver">{formatCurrency(item.price)}</p>
                     <div className="mt-3 flex items-center gap-3">
+                      {packOnly ? (
+                        <span className="text-sm text-white/50">
+                          Pack: {item.variantLabel || `${item.quantity} items`}
+                        </span>
+                      ) : (
                       <div className="flex items-center rounded border border-white/15">
                         <button
                           type="button"
@@ -126,6 +134,7 @@ export default function CartPage() {
                           <Plus className="h-3.5 w-3.5" />
                         </button>
                       </div>
+                      )}
                       <button
                         type="button"
                         className="text-white/40 hover:text-fuchsia"
@@ -141,7 +150,8 @@ export default function CartPage() {
                   {formatCurrency(getCartLineTotal(item))}
                 </p>
               </motion.div>
-            ))}
+            );
+            })}
           </div>
 
           <ScrollReveal direction="right" delay={0.1}>

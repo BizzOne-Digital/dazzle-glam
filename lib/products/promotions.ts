@@ -51,6 +51,8 @@ export function productUsesBundleOnlyPricing(
   p: ProductPromotionFields & { bundleOnlyPricing?: boolean }
 ): boolean {
   if (p.bundleOnlyPricing) return true;
+  const savedBreaks = normalizeQuantityPriceBreaks(p.quantityPriceBreaks);
+  if (savedBreaks.length > 0) return true;
   if (!matchesFundraisingProduct(p)) return false;
   return effectiveQuantityPriceBreaks(p).length > 0;
 }

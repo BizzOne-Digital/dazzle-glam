@@ -543,5 +543,7 @@ export function toCardProduct(p: DemoProduct) {
     compareAtPrice: sale ? p.compareAtPrice : undefined,
     inStock: p.stock > 0 && !comingSoon,
     sku: p.sku,
+    bundleOnlyPricing: p.bundleOnlyPricing,
+    quantityPriceBreaks: p.quantityPriceBreaks,
   };
 }

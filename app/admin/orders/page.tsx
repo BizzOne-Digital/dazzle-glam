@@ -9,7 +9,11 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import { formatCurrency } from "@/lib/utils";
-import { deleteDummyOrders, updateAdminOrderStatus } from "@/actions/orders";
+import {
+  deleteAdminOrder,
+  deleteDummyOrders,
+  updateAdminOrderStatus,
+} from "@/actions/orders";
 import type { OrderStatus } from "@/types";
 
 type AdminOrderRow = {
@@ -65,6 +69,7 @@ export default function AdminOrdersPage() {
   const [detail, setDetail] = useState<AdminOrderRow | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [status, setStatus] = useState<OrderStatus>("pending");
   const [trackingNumber, setTrackingNumber] = useState("");
   const [courier, setCourier] = useState("");
@@ -362,9 +367,46 @@ export default function AdminOrdersPage() {
                 onChange={(e) => setInternalNotes(e.target.value)}
                 placeholder="Warehouse notes…"
               />
-              <Button onClick={() => void saveDetail()} loading={saving}>
-                Update order
-              </Button>
+              <div className="flex flex-wrap gap-3">
+                <Button onClick={() => void saveDetail()} loading={saving}>
+                  Update order
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  loading={deleting}
+                  className="text-red-400 hover:text-red-300"
+                  onClick={async () => {
+                    if (!detail) return;
+                    if (
+                      !confirm(
+                        `Permanently delete order ${detail.orderNumber}? This cannot be undone.`
+                      )
+                    ) {
+                      return;
+                    }
+                    setDeleting(true);
+                    try {
+                      const res = await deleteAdminOrder(detail._id);
+                      if (!res.success) {
+                        throw new Error(res.error || "Delete failed");
+                      }
+                      toast.success(`Order ${res.orderNumber} deleted`);
+                      setSelectedId(null);
+                      setDetail(null);
+                      await load();
+                    } catch (err) {
+                      toast.error(
+                        err instanceof Error ? err.message : "Delete failed"
+                      );
+                    } finally {
+                      setDeleting(false);
+                    }
+                  }}
+                >
+                  Delete order
+                </Button>
+              </div>
             </div>
           </>
         )}

@@ -33,6 +33,7 @@ import {
 } from "@/lib/shipping";
 import { cartQualifiesForProductFreeShipping } from "@/lib/products/promotions";
 import { cartSubtotal, getCartLineTotal } from "@/lib/pricing/cartLine";
+import { validateCartItemsForCheckout } from "@/lib/pricing/checkoutValidation";
 
 type PaymentMethod = "stripe" | "interac";
 
@@ -125,6 +126,24 @@ export default function CheckoutPage() {
     setLoading(true);
 
     try {
+      const packError = validateCartItemsForCheckout(
+        items.map((item) => ({
+          name: item.name,
+          sku: item.sku,
+          quantity: item.quantity,
+          variantId: item.variantId,
+          variantLabel: item.variantLabel,
+          bundleOnlyPricing: item.bundleOnlyPricing,
+          quantityPriceBreaks: item.quantityPriceBreaks,
+          fixedLineTotal: item.fixedLineTotal,
+        }))
+      );
+      if (packError) {
+        toast.error(packError);
+        setLoading(false);
+        return;
+      }
+
       const formData = new FormData(e.currentTarget);
       const checkoutData = buildCheckoutPayload(formData);
 

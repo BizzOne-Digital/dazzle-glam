@@ -1,9 +1,6 @@
 import mongoose from "mongoose";
 import { connectDB } from "@/lib/db/connect";
-import {
-  computeLineTotal,
-  computeOrderTotals,
-} from "@/lib/pricing/orderTotals";
+import { computeLineTotal } from "@/lib/pricing/orderTotals";
 import type { AdminOrderLineInput } from "@/lib/types/adminOrder";
 import { Product, SiteSettings, type IProduct, type ISiteSettings } from "@/models";
 import type { IOrderItem } from "@/models/Commerce";

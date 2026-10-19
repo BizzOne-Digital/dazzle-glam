@@ -10,6 +10,7 @@ import { formatCurrency } from "@/lib/utils";
 import { calcShippingCost } from "@/lib/shipping";
 import { cartQualifiesForProductFreeShipping } from "@/lib/products/promotions";
 import { cartSubtotal, getCartLineTotal } from "@/lib/pricing/cartLine";
+import { cartLineUsesBundleOnlyPricing } from "@/lib/pricing/checkoutValidation";
 
 export function CartDrawer() {
   const isOpen = useCartStore((s) => s.isOpen);
@@ -117,7 +118,9 @@ export function CartDrawer() {
         />
       ) : (
         <ul className="space-y-5">
-          {items.map((item) => (
+          {items.map((item) => {
+            const packOnly = cartLineUsesBundleOnlyPricing(item);
+            return (
             <li key={item.id} className="flex gap-4">
               <Link
                 href={`/shop`}
@@ -161,6 +164,12 @@ export function CartDrawer() {
                   </button>
                 </div>
                 <div className="mt-auto flex items-center justify-between pt-3">
+                  {packOnly ? (
+                    <span className="font-body text-xs text-white/50">
+                      Qty: {item.quantity}
+                      {item.variantLabel ? ` · ${item.variantLabel}` : ""}
+                    </span>
+                  ) : (
                   <div className="inline-flex items-center border border-white/12">
                     <button
                       type="button"
@@ -186,13 +195,15 @@ export function CartDrawer() {
                       <Plus className="h-3.5 w-3.5" />
                     </button>
                   </div>
+                  )}
                   <span className="font-body text-sm text-white">
                     {formatCurrency(getCartLineTotal(item))}
                   </span>
                 </div>
               </div>
             </li>
-          ))}
+            );
+          })}
         </ul>
       )}
     </Drawer>

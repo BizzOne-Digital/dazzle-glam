@@ -15,6 +15,7 @@ import {
 } from "@/lib/shipping";
 import { orderQualifiesForProductFreeShipping } from "@/lib/shippingQualification";
 import { priceCheckoutLines } from "@/lib/pricing/checkoutPricing";
+import { validatePricedCheckoutLines } from "@/lib/pricing/checkoutValidation";
 import { getSiteSettings } from "@/actions/settings";
 import { Order, type IOrderItem } from "@/models/Commerce";
 
@@ -107,6 +108,10 @@ export async function POST(req: Request) {
         fixedLineTotal: item.fixedLineTotal,
       }))
     );
+    const packError = validatePricedCheckoutLines(pricedItems);
+    if (packError) {
+      return NextResponse.json({ error: packError }, { status: 400 });
+    }
     const productFreeShipping = await orderQualifiesForProductFreeShipping(
       items.map((item) => ({
         id: item.id,

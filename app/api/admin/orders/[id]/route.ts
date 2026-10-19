@@ -38,3 +38,33 @@ export async function GET(_req: Request, { params }: Params) {
     return NextResponse.json({ error: "Failed to load order" }, { status: 500 });
   }
 }
+
+export async function DELETE(_req: Request, { params }: Params) {
+  const { error } = await requireAdminApi();
+  if (error) return error;
+
+  try {
+    const { id } = await params;
+    await connectDB();
+
+    let order = null;
+    if (/^[a-f\d]{24}$/i.test(id)) {
+      order = await Order.findById(id);
+    }
+    if (!order) {
+      order = await Order.findOne({ orderNumber: id });
+    }
+    if (!order) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+
+    await Order.deleteOne({ _id: order._id });
+    return NextResponse.json({
+      success: true,
+      orderNumber: order.orderNumber,
+    });
+  } catch (err) {
+    console.error("admin order delete:", err);
+    return NextResponse.json({ error: "Failed to delete order" }, { status: 500 });
+  }
+}

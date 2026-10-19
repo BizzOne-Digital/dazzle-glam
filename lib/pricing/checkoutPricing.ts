@@ -26,6 +26,7 @@ export type CheckoutLineInput = {
 
 export type PricedCheckoutLine = CheckoutLineInput & {
   lineTotal: number;
+  bundleOnly: boolean;
 };
 
 function parseProductId(cartLineId: string): string | null {
@@ -131,6 +132,7 @@ export async function priceCheckoutLines(
       price: unitPrice,
       quantity,
       quantityPriceBreaks: breaks,
+      bundleOnly,
       lineTotal,
     };
   });
