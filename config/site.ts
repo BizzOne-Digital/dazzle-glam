@@ -51,8 +51,9 @@ export const marqueeWords = [
 /** Maximum gallery images per product (admin + storefront) */
 export const MAX_PRODUCT_IMAGES = 6;
 
-/** Fundraising bracelets (breast cancer / silicone) — Shop pin + free shipping + default 4/$10. */
+/** Silicone fundraising bracelet (AM1001) — pack tiers apply only to this SKU / silicone material. */
 export const FUNDRAISING_PRODUCT_SKUS = ["AM1001"] as const;
+/** Broader awareness products — shop pin / free shipping only (not automatic pack tiers). */
 export const FUNDRAISING_PRODUCT_NAME_PATTERN =
   /silicone|breast\s*cancer|awareness|fundraising/i;
 export const FUNDRAISING_DEFAULT_QUANTITY_BREAKS = [

@@ -36,6 +36,15 @@ export function matchesFundraisingProduct(
   return (fields.materials || []).some((m) => /silicone/i.test(m));
 }
 
+/** Silicone bracelet only — not other awareness jewelry (e.g. brooches at unit price). */
+export function matchesFundraisingPackProduct(
+  fields: Pick<ProductPromotionFields, "name" | "slug" | "sku" | "materials">
+): boolean {
+  const sku = (fields.sku || "").trim().toUpperCase();
+  if (sku && FUNDRAISING_SKU_SET.has(sku)) return true;
+  return (fields.materials || []).some((m) => /silicone/i.test(m));
+}
+
 export function productPinsToShopTop(p: ProductPromotionFields): boolean {
   return !!p.pinToShopTop || matchesFundraisingProduct(p);
 }
@@ -53,7 +62,7 @@ export function productUsesBundleOnlyPricing(
   if (p.bundleOnlyPricing) return true;
   const savedBreaks = normalizeQuantityPriceBreaks(p.quantityPriceBreaks);
   if (savedBreaks.length > 0) return true;
-  if (!matchesFundraisingProduct(p)) return false;
+  if (!matchesFundraisingPackProduct(p)) return false;
   return effectiveQuantityPriceBreaks(p).length > 0;
 }
 
@@ -62,7 +71,7 @@ export function effectiveQuantityPriceBreaks(
 ): QuantityPriceBreak[] {
   const saved = normalizeQuantityPriceBreaks(p.quantityPriceBreaks);
   if (saved.length) return saved;
-  if (matchesFundraisingProduct(p)) {
+  if (matchesFundraisingPackProduct(p)) {
     return [...FUNDRAISING_DEFAULT_QUANTITY_BREAKS];
   }
   return [];
@@ -129,6 +138,16 @@ export function fundraisingProductMongoQuery() {
       { sku: { $in: [...FUNDRAISING_PRODUCT_SKUS] } },
       { name: FUNDRAISING_PRODUCT_NAME_PATTERN },
       { slug: FUNDRAISING_PRODUCT_NAME_PATTERN },
+      { materials: /silicone/i },
+    ],
+  };
+}
+
+/** Products that should receive default 2/$5.50 and 4/$10 pack tiers. */
+export function fundraisingPackProductMongoQuery() {
+  return {
+    $or: [
+      { sku: { $in: [...FUNDRAISING_PRODUCT_SKUS] } },
       { materials: /silicone/i },
     ],
   };

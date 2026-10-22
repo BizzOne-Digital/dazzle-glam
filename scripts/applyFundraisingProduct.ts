@@ -5,11 +5,15 @@
 import { connectDB } from "../lib/db/connect";
 import { Product } from "../models/Product";
 import { FUNDRAISING_DEFAULT_QUANTITY_BREAKS } from "../config/site";
-import { fundraisingProductMongoQuery } from "../lib/products/promotions";
+import {
+  fundraisingPackProductMongoQuery,
+  fundraisingProductMongoQuery,
+} from "../lib/products/promotions";
 
 async function main() {
   await connectDB();
   const matches = await Product.find(fundraisingProductMongoQuery());
+  const packProducts = await Product.find(fundraisingPackProductMongoQuery());
 
   if (!matches.length) {
     console.log("No fundraising bracelet products matched (SKU AM1001, silicone, etc.).");
@@ -20,16 +24,25 @@ async function main() {
     product.pinToShopTop = true;
     product.isFeatured = true;
     product.freeShipping = true;
-    if (!product.quantityPriceBreaks?.length) {
-      product.quantityPriceBreaks = [...FUNDRAISING_DEFAULT_QUANTITY_BREAKS];
-    }
     await product.save();
     console.log(
-      `Updated: ${product.name} (${product.slug}) SKU ${product.sku || "—"}`
+      `Promotions: ${product.name} (${product.slug}) SKU ${product.sku || "—"}`
     );
   }
 
-  console.log(`Done. ${matches.length} product(s) updated.`);
+  for (const product of packProducts) {
+    if (!product.quantityPriceBreaks?.length) {
+      product.quantityPriceBreaks = [...FUNDRAISING_DEFAULT_QUANTITY_BREAKS];
+      await product.save();
+      console.log(
+        `Pack tiers: ${product.name} (${product.slug}) SKU ${product.sku || "—"}`
+      );
+    }
+  }
+
+  console.log(
+    `Done. ${matches.length} promotion(s), ${packProducts.length} pack product(s) checked.`
+  );
   process.exit(0);
 }
 
